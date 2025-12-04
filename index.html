@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS 計算器</title>
+    <style>
+        /* 濃縮 CSS 樣式 */
+        body { font-family: sans-serif; margin: 0 5px; background-color: #f4f7f6; color: #333; }
+        .c { max-width: 550px; margin: 3px auto; background: white; padding: 8px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1); }
+        h1 { text-align: center; color: #007bff; margin-bottom: 3px; border-bottom: 1px solid #007bff; padding-bottom: 2px; font-size: 18px; }
+        .tip { text-align: center; color: #6a0dad !important; font-size: 13px !important; margin: 0 0 3px 0; font-weight: bold; }
+        .ig { margin-bottom: 3px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; background-color: #fafafa; }
+        .ig > label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; font-weight: bold; color: #333; font-size: 13px; }
+        
+        .cg { border: 1px solid #eee; padding: 3px; margin-bottom: 3px; border-radius: 4px; }
+        .cl { font-weight: bold; color: #555; display: block; margin-bottom: 2px; font-size: 12px; }
+
+        /* 輸入框通用樣式 */
+        input[type="number"], input[type="text"] { 
+            padding: 3px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box; font-size: 12px; margin-right: 4px; 
+        }
+
+        /* 十進制輸入行 */
+        .ddr { display: flex; align-items: center; margin-bottom: 2px; }
+        .ddr input { flex-grow: 1; }
+        .ddr span { color: #666; font-size: 11px; margin-right: 4px; flex-shrink: 0; }
+        
+        /* DMS 輸入行 */
+        .dmsr { display: flex; align-items: center; justify-content: space-between; }
+        .dmsf { display: flex; align-items: center; flex: 1; }
+        .dmsr input { text-align: center; margin-right: 2px; }
+        #latA_deg, #lonA_deg, #latB_deg, #lonB_deg { width: 40px; }
+        #latA_min, #lonA_min, #latB_min, #lonB_min { width: 30px; }
+        #latA_sec, #lonA_sec, #latB_sec, #lonB_sec { width: 50px; }
+        .dmsr span { color: #666; font-size: 11px; margin-right: 4px; flex-shrink: 0; }
+
+        /* 高度行 */
+        .er { display: flex; align-items: center; margin-top: 3px; padding-top: 3px; border-top: 1px dashed #ddd; }
+        .er input { max-width: 120px; }
+        .er label, .er span { font-size: 12px; margin-right: 4px; flex-shrink: 0; }
+
+        /* 地名輸入行 */
+        .lnr { display: flex; align-items: center; margin-bottom: 5px; }
+        .lnr input { max-width: 70px; }
+        .lnr span { color: #666; font-size: 12px; flex-shrink: 0; }
+
+        /* 清除按鈕 */
+        .cb { background: none; border: none; color: #dc3545; font-size: 13px; cursor: pointer; padding: 2px 5px; line-height: 1; margin-left: auto; }
+
+        /* 計算按鈕 */
+        #calcBtn { width: 100%; padding: 7px; background-color: #28a745; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; margin-top: 4px; }
+        #calcBtn:hover { background-color: #218838; }
+
+        /* 結果顯示 */
+        #res { margin-top: 4px; padding: 7px; border: 2px solid #007bff; border-radius: 4px; background-color: #e9f7ff; font-size: 13px; font-weight: bold; text-align: left; }
+        #res p { margin: 2px 0; } 
+        #res hr { border: 0; border-top: 1px solid #ddd; margin: 2px 0; }
+
+        /* 距離數值 - 強制藍色 */
+        .v-dist { 
+            color: #007bff !important; 
+        } 
+        
+        /* 方位角數值 - 保持深澄色 */
+        .v-bearing {
+            color: #008B8B !important; 
+        }
+
+        /* 俯仰角顏色 */
+        .rp { color: #9c27b0; } 
+        .rpn { font-size: 11px !important; color: #6c757d; margin-left: 8px; margin-top: 0; margin-bottom: 2px !important; }
+    </style>
+</head>
+<body>
+
+<div class="c">
+    <h1>🌍 GPS 距離、方位角與俯仰角計算器</h1>
+    <p class="tip">考慮地球曲率與高度差</p>
+
+    <div class="ig">
+        <label>📍 地點 A 座標
+            <div class="lnr">
+                <input type="text" id="nameA" placeholder="最多5字" maxlength="5">
+                <span>(輸入地名)</span>
+            </div>
+        </label>
+        
+        <div class="cg">
+            <span class="cl">緯度 (Latitude)</span>
+            <div class="ddr">
+                <input type="number" id="latA" placeholder="數值" step="any" oninput="dToDMS('latA')">
+                <span>度十進制</span>
+                <button class="cb" onclick="clearCoord('latA')">✖</button>
+            </div>
+            <div class="dmsr">
+                <div class="dmsf"><input type="number" id="latA_deg" placeholder="度" oninput="dmsToD('latA')"><span>度</span></div>
+                <div class="dmsf"><input type="number" id="latA_min" placeholder="分" oninput="dmsToD('latA')"><span>分</span></div>
+                <div class="dmsf"><input type="number" id="latA_sec" placeholder="秒" step="0.01" oninput="dmsToD('latA')"><span>秒</span></div>
+            </div>
+        </div>
+        
+        <div class="cg">
+            <span class="cl">經度 (Longitude)</span>
+            <div class="ddr">
+                <input type="number" id="lonA" placeholder="數值" step="any" oninput="dToDMS('lonA')">
+                <span>度十進制</span>
+                <button class="cb" onclick="clearCoord('lonA')">✖</button>
+            </div>
+            <div class="dmsr">
+                <div class="dmsf"><input type="number" id="lonA_deg" placeholder="度" oninput="dmsToD('lonA')"><span>度</span></div>
+                <div class="dmsf"><input type="number" id="lonA_min" placeholder="分" oninput="dmsToD('lonA')"><span>分</span></div>
+                <div class="dmsf"><input type="number" id="lonA_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonA')"><span>秒</span></div>
+            </div>
+        </div>
+        
+        <div class="er">
+            <label for="eleA">高度 (Elevation)</label>
+            <input type="number" id="eleA" placeholder="米 (m)" step="0.01">
+            <span>公尺 (m)</span>
+        </div>
+    </div>
+
+    <div class="ig">
+        <label>🎯 地點 B 座標
+            <div class="lnr">
+                <input type="text" id="nameB" placeholder="最多5字" maxlength="5">
+                <span>(輸入地名)</span>
+            </div>
+        </label>
+        
+        <div class="cg">
+            <span class="cl">緯度 (Latitude)</span>
+            <div class="ddr">
+                <input type="number" id="latB" placeholder="數值" step="any" oninput="dToDMS('latB')">
+                <span>度十進制</span>
+                <button class="cb" onclick="clearCoord('latB')">✖</button>
+            </div>
+            <div class="dmsr">
+                <div class="dmsf"><input type="number" id="latB_deg" placeholder="度" oninput="dmsToD('latB')"><span>度</span></div>
+                <div class="dmsf"><input type="number" id="latB_min" placeholder="分" oninput="dmsToD('latB')"><span>分</span></div>
+                <div class="dmsf"><input type="number" id="latB_sec" placeholder="秒" step="0.01" oninput="dmsToD('latB')"><span>秒</span></div>
+            </div>
+        </div>
+        
+        <div class="cg">
+            <span class="cl">經度 (Longitude)</span>
+            <div class="ddr">
+                <input type="number" id="lonB" placeholder="數值" step="any" oninput="dToDMS('lonB')">
+                <span>度十進制</span>
+                <button class="cb" onclick="clearCoord('lonB')">✖</button>
+            </div>
+            <div class="dmsr">
+                <div class="dmsf"><input type="number" id="lonB_deg" placeholder="度" oninput="dmsToD('lonB')"><span>度</span></div>
+                <div class="dmsf"><input type="number" id="lonB_min" placeholder="分" oninput="dmsToD('lonB')"><span>分</span></div>
+                <div class="dmsf"><input type="number" id="lonB_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonB')"><span>秒</span></div>
+            </div>
+        </div>
+        
+        <div class="er">
+            <label for="eleB">高度 (Elevation)</label>
+            <input type="number" id="eleB" placeholder="米 (m)" step="0.01">
+            <span>公尺 (m)</span>
+        </div>
+    </div>
+
+    <button id="calcBtn" onclick="calculate()">計算直線距離、方位角與俯仰角</button>
+
+    <div id="res">
+        點擊「計算直線距離、方位角與俯仰角」以顯示結果
+    </div>
+</div>
+
+<script>
+    // --- 簡化常數與輔助函數 ---
+    const R_KM = 6371;
+    const tRad = a => a * (Math.PI / 180);
+    const tDeg = r => r * (180 / Math.PI);
+
+    // DD to DMS 轉換
+    const dToDMS = (id) => {
+        const dd = parseFloat(document.getElementById(id).value);
+        if (isNaN(dd) || document.getElementById(id).value.trim() === '') {
+            ['deg', 'min', 'sec'].forEach(s => document.getElementById(id + '_' + s).value = '');
+            return;
+        }
+        const absDD = Math.abs(dd);
+        const deg = Math.floor(absDD);
+        const min = Math.floor((absDD - deg) * 60);
+        const sec = ((absDD - deg) * 3600 - min * 60).toFixed(2);
+        
+        document.getElementById(id + '_deg').value = (dd < 0 ? -deg : deg);
+        document.getElementById(id + '_min').value = min;
+        document.getElementById(id + '_sec').value = sec;
+    };
+
+    // DMS to DD 轉換
+    const dmsToD = (id) => {
+        const d = parseFloat(document.getElementById(id + '_deg').value);
+        const m = parseFloat(document.getElementById(id + '_min').value) || 0;
+        const s = parseFloat(document.getElementById(id + '_sec').value) || 0;
+        
+        if (isNaN(d) && !m && !s) { document.getElementById(id).value = ''; return; }
+        
+        const sign = (d < 0) ? -1 : 1;
+        const dd = sign * (Math.abs(d) + m / 60 + s / 3600);
+        if (!isNaN(dd)) { document.getElementById(id).value = dd.toFixed(8); } else { document.getElementById(id).value = ''; }
+    };
+    
+    // 清除單組座標
+    const clearCoord = (idPrefix) => {
+        document.getElementById(idPrefix).value = '';
+        ['deg', 'min', 'sec'].forEach(s => document.getElementById(idPrefix + '_' + s).value = '');
+        const suffix = idPrefix.slice(-1);
+        document.getElementById('ele' + suffix).value = '';
+        document.getElementById('name' + suffix).value = '';
+    };
+
+    // --- GPS 計算核心函數 ---
+
+    // Haversine 距離 (球面投影距離, km)
+    const hDist = (lat1, lon1, lat2, lon2) => {
+        const [rLat1, rLat2, dLat, dLon] = [tRad(lat1), tRad(lat2), tRad(lat2 - lat1), tRad(lon2 - lon1)];
+        const a = Math.sin(dLat / 2)**2 + Math.cos(rLat1) * Math.cos(rLat2) * Math.sin(dLon / 2)**2;
+        return R_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+    
+    // 3D 直線距離 (km)
+    const straightDist = (hD, eleA, eleB) => {
+        const dH = (eleB - eleA) / 1000;
+        return Math.sqrt(hD * hD + dH * dH);
+    };
+
+    // 方位角 (Bearing, 0-360°)
+    const getBearing = (lat1, lon1, lat2, lon2) => {
+        const [rL1, rL2, dLon] = [tRad(lat1), tRad(lat2), tRad(lon2 - lon1)];
+        const y = Math.sin(dLon) * Math.cos(rL2);
+        const x = Math.cos(rL1) * Math.sin(rL2) - Math.sin(rL1) * Math.cos(rL2) * Math.cos(dLon);
+        return (tDeg(Math.atan2(y, x)) + 360) % 360;
+    };
+    
+    // 俯仰角 (Pitch Angle, 度)
+    const getPitch = (distKm, eleA, eleB) => {
+        if (distKm === 0) return { pitchAB: 0, pitchBA: 0 };
+        const [hA, hB] = [eleA / 1000, eleB / 1000];
+        const offset = distKm**2 / (2 * R_KM);
+        
+        const H_AB = (hB - hA) - offset;
+        const pitchAB = tDeg(Math.atan2(H_AB, distKm));
+        
+        const H_BA = (hA - hB) - offset;
+        const pitchBA = tDeg(Math.atan2(H_BA, distKm));
+
+        return { pitchAB, pitchBA };
+    };
+
+
+    // --- 主計算函數 ---
+    function calculate() {
+        const [latA, lonA, latB, lonB, eleA, eleB] = 
+            ['latA', 'lonA', 'latB', 'lonB', 'eleA', 'eleB'].map(id => parseFloat(document.getElementById(id).value || 0));
+        
+        const [nameA, nameB] = 
+            ['nameA', 'nameB'].map(id => document.getElementById(id).value || (id === 'nameA' ? 'A' : 'B'));
+
+        const resDiv = document.getElementById('res');
+
+        if (isNaN(latA) || isNaN(lonA) || isNaN(latB) || isNaN(lonB)) {
+            resDiv.innerHTML = "❌ **請輸入有效的 GPS 座標數字**";
+            resDiv.style.borderColor = '#dc3545';
+            resDiv.style.backgroundColor = '#f8d7da';
+            return;
+        }
+
+        const hD = hDist(latA, lonA, latB, lonB);
+        const sD = straightDist(hD, eleA, eleB);
+        const bAB = getBearing(latA, lonA, latB, lonB);
+        const bBA = getBearing(latB, lonB, latA, lonA); 
+        const pitch = getPitch(hD, eleA, eleB);
+        
+        // 格式化距離 (使用藍色 v-dist)
+        const fDist = sD < 1 
+            ? `<strong class="v-dist">${(sD * 1000).toFixed(2)}</strong> 公尺`
+            : `<strong class="v-dist">${sD.toFixed(2)}</strong> 公里`;
+        
+        // 顯示結果
+        resDiv.innerHTML = `
+            <p>✅ **兩點間的直線距離**：${fDist}</p>
+            <hr>
+            <p>🧭 **從 ${nameA} 到 ${nameB} 的方位角**：<strong class="v-bearing">${bAB.toFixed(2)}°</strong></p>
+            <p>↩️ **從 ${nameB} 到 ${nameA} 的方位角**：<strong class="v-bearing">${bBA.toFixed(2)}°</strong></p>
+            <hr style="border: 0; border-top: 1px dashed #ccc; margin: 2px 0;">
+            <p class="rp">⏫ **${nameA} 對 ${nameB} 的俯仰角**：<strong style="color: #9c27b0;">${pitch.pitchAB.toFixed(2)}°</strong></p>
+            <p class="rpn">(正值向上仰望，負值向下俯視)</p>
+            <p class="rp">⏬ **${nameB} 對 ${nameA} 的俯仰角**：<strong style="color: #9c27b0;">${pitch.pitchBA.toFixed(2)}°</strong></p>
+            <p class="rpn">(正值向上仰望，負值向下俯視)</p>
+        `;
+        resDiv.style.borderColor = '#007bff';
+        resDiv.style.backgroundColor = '#e9f7ff';
+    }
+    
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        // 預設值
+        document.getElementById('latA').value = '23.123456'; 
+        document.getElementById('lonA').value = '122.654321'; 
+        document.getElementById('eleA').value = '50'; 
+        document.getElementById('nameA').value = '泰山壓頂'; 
+        document.getElementById('latB').value = '24.123456'; 
+        document.getElementById('lonB').value = '121.654321'; 
+        document.getElementById('eleB').value = '2000'; 
+        document.getElementById('nameB').value = '光明頂'; 
+        
+        dToDMS('latA'); dToDMS('lonA'); dToDMS('latB'); dToDMS('lonB');
+        calculate();
+    });
+</script>
+
+</body>
+</html>
+
+
