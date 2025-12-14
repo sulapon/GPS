@@ -1,0 +1,26 @@
+{
+  "name": "RF & GPS 計算器",
+  "short_name": "RF GPS",
+  "start_url": "/Gps-Cable-Loss-Calculator/index.html",
+  "scope": "/Gps-Cable-Loss-Calculator/",
+  "display": "standalone",
+  "background_color": "#071026",
+  "theme_color": "#071026",
+  "icons": [
+    {
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-1024x1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}
