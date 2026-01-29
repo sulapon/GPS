@@ -3196,6 +3196,10 @@ function jumpToMaxPoint() {
 
 // ✅ 全局變數：記錄當前高度已選過的點
 let selectedPointsInCurrentHeight = new Set();
+// ✅ 新增：記錄上一次按下的按鈕類型 ('plus' 或 'minus')
+let lastButtonPressed = null;
+// ✅ 新增：記錄按下按鈕前的指定位置
+let previousPointIndex = null;
 
 function jumpToHigherPoint() {
     if (!elevationData || elevationData.length === 0) {
@@ -3209,8 +3213,27 @@ function jumpToHigherPoint() {
         return;
     }
     
-    const currentIndex = parseInt(selectedPointInput.value) - 1;
+    // ✅ 記錄按下按鈕前的指定位置
+    previousPointIndex = parseInt(selectedPointInput.value) - 1;
+    console.log('按下 + 按鈕前的指定位置:', previousPointIndex);
+    
+    // ✅ 檢查是否需要重置相同高度功能（上一次按的是 - 按鈕）
+    if (lastButtonPressed === 'minus') {
+        console.log('上一次按的是 - 按鈕，重置相同高度功能');
+        selectedPointsInCurrentHeight.clear();
+    }
+    
+    // ✅ 記錄這次按的是 + 按鈕
+    lastButtonPressed = 'plus';
+    
+    const currentIndex = previousPointIndex;
     const currentHeight = elevationData[currentIndex];
+    
+    // 先將當前點標記為已選
+    if (!selectedPointsInCurrentHeight.has(currentIndex)) {
+        selectedPointsInCurrentHeight.add(currentIndex);
+        console.log('標記當前點為已選:', currentIndex);
+    }
     
     // 第1步：找所有相同高度的點
     let sameHeightPoints = [];
@@ -3221,10 +3244,10 @@ function jumpToHigherPoint() {
     }
     
     // 第2步：檢查同高度的點中是否還有未選過的
-    if (sameHeightPoints.length > 1) {
-        // 找未選過的同高度點
+    if (sameHeightPoints.length > 0) {
+        // 找未選過的同高度點（排除當前點）
         for (let idx of sameHeightPoints) {
-            if (!selectedPointsInCurrentHeight.has(idx)) {
+            if (!selectedPointsInCurrentHeight.has(idx) && idx !== currentIndex) {
                 console.log('選擇未選過的同高度點:', idx, '高度:', elevationData[idx]);
                 selectedPointsInCurrentHeight.add(idx);
                 showMap(idx, elevationData[idx]);
@@ -3233,6 +3256,7 @@ function jumpToHigherPoint() {
         }
         
         // 如果所有同高度點都選過了，進入第3步
+        console.log('相同高度的點都已選過，尋找更高的高度');
     }
     
     // 第3步：同高度的點都選完了，找下一個更高的【不同】高度
@@ -3295,8 +3319,27 @@ function jumpToLowerPoint() {
         return;
     }
     
-    const currentIndex = parseInt(selectedPointInput.value) - 1;
+    // ✅ 記錄按下按鈕前的指定位置
+    previousPointIndex = parseInt(selectedPointInput.value) - 1;
+    console.log('按下 - 按鈕前的指定位置:', previousPointIndex);
+    
+    // ✅ 檢查是否需要重置相同高度功能（上一次按的是 + 按鈕）
+    if (lastButtonPressed === 'plus') {
+        console.log('上一次按的是 + 按鈕，重置相同高度功能');
+        selectedPointsInCurrentHeight.clear();
+    }
+    
+    // ✅ 記錄這次按的是 - 按鈕
+    lastButtonPressed = 'minus';
+    
+    const currentIndex = previousPointIndex;
     const currentHeight = elevationData[currentIndex];
+    
+    // 先將當前點標記為已選
+    if (!selectedPointsInCurrentHeight.has(currentIndex)) {
+        selectedPointsInCurrentHeight.add(currentIndex);
+        console.log('標記當前點為已選:', currentIndex);
+    }
     
     // 第1步：找所有相同高度的點
     let sameHeightPoints = [];
@@ -3307,11 +3350,11 @@ function jumpToLowerPoint() {
     }
     
     // 第2步：檢查同高度的點中是否還有未選過的
-    if (sameHeightPoints.length > 1) {
-        // 找未選過的同高度點（反向搜尋，從後往前）
+    if (sameHeightPoints.length > 0) {
+        // 找未選過的同高度點（反向搜尋，從後往前，排除當前點）
         for (let i = sameHeightPoints.length - 1; i >= 0; i--) {
             let idx = sameHeightPoints[i];
-            if (!selectedPointsInCurrentHeight.has(idx)) {
+            if (!selectedPointsInCurrentHeight.has(idx) && idx !== currentIndex) {
                 console.log('選擇未選過的同高度點:', idx, '高度:', elevationData[idx]);
                 selectedPointsInCurrentHeight.add(idx);
                 showMap(idx, elevationData[idx]);
@@ -3320,6 +3363,7 @@ function jumpToLowerPoint() {
         }
         
         // 如果所有同高度點都選過了，進入第3步
+        console.log('相同高度的點都已選過，尋找更低的高度');
     }
     
     // 第3步：同高度的點都選完了，找下一個更低的【不同】高度
