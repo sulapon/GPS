@@ -2722,6 +2722,9 @@ function renderChart(elevations) {
             responsive: true,
             maintainAspectRatio: false,
             onClick: (event, elements) => {
+                // ✅ 清空同高度點記錄，開始新的選擇
+                selectedPointsInCurrentHeight.clear();
+                
                 console.log('點擊圖表，elements:', elements);
                 if (elements.length > 0) {
                     const idx = elements[0].index;
@@ -3056,18 +3059,21 @@ function showMap(index, height) {
 }
 
 function updatePointFromInput() {
+    // ✅ 清空同高度點記錄，開始新的選擇
+    selectedPointsInCurrentHeight.clear();
+    
     const selectedPointInput = document.getElementById('selectedPointIndex');
     if (!selectedPointInput || !selectedPointInput.value) return;
     
     let inputValue = parseInt(selectedPointInput.value);
     
-    // 檢查邊界
+    // ✅ 檢查邊界 - 改為使用 elevationData.length
     if (inputValue < 1) {
         inputValue = 1;
         selectedPointInput.value = 1;
-    } else if (inputValue > pathData.length) {
-        inputValue = pathData.length;
-        selectedPointInput.value = pathData.length;
+    } else if (inputValue > elevationData.length) {
+        inputValue = elevationData.length;
+        selectedPointInput.value = elevationData.length;
     }
     
     const index = inputValue - 1; // 轉換回0-based索引
@@ -3076,15 +3082,18 @@ function updatePointFromInput() {
 }
 
 function incrementSelectedPoint() {
+    // ✅ 清空同高度點記錄，開始新的選擇
+    selectedPointsInCurrentHeight.clear();
+    
     const selectedPointInput = document.getElementById('selectedPointIndex');
     if (!selectedPointInput || !selectedPointInput.value) return;
     
     let currentIndex = parseInt(selectedPointInput.value) - 1; // 轉換回0-based索引
     let newIndex = currentIndex + 1;
     
-    // 檢查邊界
-    if (newIndex >= pathData.length) {
-        newIndex = pathData.length - 1;
+    // ✅ 循環遍歷而不是停在最後
+    if (newIndex >= elevationData.length) {
+        newIndex = 0;  // 改為循環回到開始
     }
     
     console.log('上鍵：從索引', currentIndex, '移到', newIndex);
@@ -3092,15 +3101,18 @@ function incrementSelectedPoint() {
 }
 
 function decrementSelectedPoint() {
+    // ✅ 清空同高度點記錄，開始新的選擇
+    selectedPointsInCurrentHeight.clear();
+    
     const selectedPointInput = document.getElementById('selectedPointIndex');
     if (!selectedPointInput || !selectedPointInput.value) return;
     
     let currentIndex = parseInt(selectedPointInput.value) - 1; // 轉換回0-based索引
     let newIndex = currentIndex - 1;
     
-    // 檢查邊界
+    // ✅ 循環遍歷而不是停在0
     if (newIndex < 0) {
-        newIndex = 0;
+        newIndex = elevationData.length - 1;  // 改為循環到最後
     }
     
     console.log('下鍵：從索引', currentIndex, '移到', newIndex);
@@ -3108,6 +3120,9 @@ function decrementSelectedPoint() {
 }
 
 function jumpToStartPoint() {
+    // ✅ 清空同高度點記錄，開始新的選擇
+    selectedPointsInCurrentHeight.clear();
+    
     if (!elevationData || elevationData.length === 0) {
         alert('請先生成路徑剖面');
         return;
@@ -3118,6 +3133,9 @@ function jumpToStartPoint() {
 }
 
 function jumpToEndPoint() {
+    // ✅ 清空同高度點記錄，開始新的選擇
+    selectedPointsInCurrentHeight.clear();
+    
     if (!elevationData || elevationData.length === 0) {
         alert('請先生成路徑剖面');
         return;
@@ -3129,6 +3147,9 @@ function jumpToEndPoint() {
 }
 
 function jumpToMinPoint() {
+    // ✅ 清空同高度點記錄，開始新的選擇
+    selectedPointsInCurrentHeight.clear();
+    
     if (!elevationData || elevationData.length === 0) {
         alert('請先生成路徑剖面');
         return;
@@ -3150,6 +3171,9 @@ function jumpToMinPoint() {
 }
 
 function jumpToMaxPoint() {
+    // ✅ 清空同高度點記錄，開始新的選擇
+    selectedPointsInCurrentHeight.clear();
+    
     if (!elevationData || elevationData.length === 0) {
         alert('請先生成路徑剖面');
         return;
@@ -3170,6 +3194,9 @@ function jumpToMaxPoint() {
     showMap(maxIndex, elevationData[maxIndex]);
 }
 
+// ✅ 全局變數：記錄當前高度已選過的點
+let selectedPointsInCurrentHeight = new Set();
+
 function jumpToHigherPoint() {
     if (!elevationData || elevationData.length === 0) {
         alert('請先生成路徑剖面');
@@ -3182,35 +3209,78 @@ function jumpToHigherPoint() {
         return;
     }
     
-    const currentIndex = parseInt(selectedPointInput.value) - 1; // 轉換回0-based索引
+    const currentIndex = parseInt(selectedPointInput.value) - 1;
     const currentHeight = elevationData[currentIndex];
     
-    // 從當前位置開始往後找第一個更高的點
-    let foundIndex = -1;
+    // 第1步：找所有相同高度的點
+    let sameHeightPoints = [];
+    for (let i = 0; i < elevationData.length; i++) {
+        if (Math.abs(elevationData[i] - currentHeight) < 0.01) {
+            sameHeightPoints.push(i);
+        }
+    }
+    
+    // 第2步：檢查同高度的點中是否還有未選過的
+    if (sameHeightPoints.length > 1) {
+        // 找未選過的同高度點
+        for (let idx of sameHeightPoints) {
+            if (!selectedPointsInCurrentHeight.has(idx)) {
+                console.log('選擇未選過的同高度點:', idx, '高度:', elevationData[idx]);
+                selectedPointsInCurrentHeight.add(idx);
+                showMap(idx, elevationData[idx]);
+                return;
+            }
+        }
+        
+        // 如果所有同高度點都選過了，進入第3步
+    }
+    
+    // 第3步：同高度的點都選完了，找下一個更高的【不同】高度
+    let higherHeights = new Set();
+    for (let i = 0; i < elevationData.length; i++) {
+        if (elevationData[i] > currentHeight + 0.001) {
+            higherHeights.add(Math.round(elevationData[i] * 100) / 100);
+        }
+    }
+    
+    if (higherHeights.size === 0) {
+        console.log('沒有更高的高度，無動作');
+        return;
+    }
+    
+    // 找最低的更高高度
+    let targetHeight = Math.min(...higherHeights);
+    
+    // 清空已選點記錄，準備選新高度的點
+    selectedPointsInCurrentHeight.clear();
+    
+    // 在後續位置找該高度的第一個點
+    let nextIndex = -1;
     for (let i = currentIndex + 1; i < elevationData.length; i++) {
-        if (elevationData[i] > currentHeight) {
-            foundIndex = i;
+        if (Math.abs(elevationData[i] - targetHeight) < 0.01) {
+            nextIndex = i;
             break;
         }
     }
     
-    // 如果後面沒找到，從頭開始找
-    if (foundIndex === -1) {
+    // 如果後面沒有，從前面找
+    if (nextIndex === -1) {
         for (let i = 0; i < currentIndex; i++) {
-            if (elevationData[i] > currentHeight) {
-                foundIndex = i;
+            if (Math.abs(elevationData[i] - targetHeight) < 0.01) {
+                nextIndex = i;
                 break;
             }
         }
     }
     
-    if (foundIndex === -1) {
-        // 沒有找到更高的點，靜默返回
+    if (nextIndex === -1) {
+        console.log('找不到目標高度的點');
         return;
     }
     
-    console.log('跳到更高的點：從索引', currentIndex, '(高度', currentHeight, ') 跳到索引', foundIndex, '(高度', elevationData[foundIndex], ')');
-    showMap(foundIndex, elevationData[foundIndex]);
+    console.log('跳到更高的點：從索引', currentIndex, '(高度', currentHeight, ') 跳到索引', nextIndex, '(高度', elevationData[nextIndex], ')');
+    selectedPointsInCurrentHeight.add(nextIndex);
+    showMap(nextIndex, elevationData[nextIndex]);
 }
 
 function jumpToLowerPoint() {
@@ -3225,36 +3295,84 @@ function jumpToLowerPoint() {
         return;
     }
     
-    const currentIndex = parseInt(selectedPointInput.value) - 1; // 轉換回0-based索引
+    const currentIndex = parseInt(selectedPointInput.value) - 1;
     const currentHeight = elevationData[currentIndex];
     
-    // 從當前位置開始往後找第一個更低的點
-    let foundIndex = -1;
-    for (let i = currentIndex + 1; i < elevationData.length; i++) {
-        if (elevationData[i] < currentHeight) {
-            foundIndex = i;
+    // 第1步：找所有相同高度的點
+    let sameHeightPoints = [];
+    for (let i = 0; i < elevationData.length; i++) {
+        if (Math.abs(elevationData[i] - currentHeight) < 0.01) {
+            sameHeightPoints.push(i);
+        }
+    }
+    
+    // 第2步：檢查同高度的點中是否還有未選過的
+    if (sameHeightPoints.length > 1) {
+        // 找未選過的同高度點（反向搜尋，從後往前）
+        for (let i = sameHeightPoints.length - 1; i >= 0; i--) {
+            let idx = sameHeightPoints[i];
+            if (!selectedPointsInCurrentHeight.has(idx)) {
+                console.log('選擇未選過的同高度點:', idx, '高度:', elevationData[idx]);
+                selectedPointsInCurrentHeight.add(idx);
+                showMap(idx, elevationData[idx]);
+                return;
+            }
+        }
+        
+        // 如果所有同高度點都選過了，進入第3步
+    }
+    
+    // 第3步：同高度的點都選完了，找下一個更低的【不同】高度
+    let lowerHeights = new Set();
+    for (let i = 0; i < elevationData.length; i++) {
+        if (elevationData[i] < currentHeight - 0.001) {
+            lowerHeights.add(Math.round(elevationData[i] * 100) / 100);
+        }
+    }
+    
+    if (lowerHeights.size === 0) {
+        console.log('沒有更低的高度，無動作');
+        return;
+    }
+    
+    // 找最高的更低高度
+    let targetHeight = Math.max(...lowerHeights);
+    
+    // 清空已選點記錄，準備選新高度的點
+    selectedPointsInCurrentHeight.clear();
+    
+    // 在前面位置找該高度的點（反向搜尋）
+    let nextIndex = -1;
+    for (let i = currentIndex - 1; i >= 0; i--) {
+        if (Math.abs(elevationData[i] - targetHeight) < 0.01) {
+            nextIndex = i;
             break;
         }
     }
     
-    // 如果後面沒找到，從頭開始找
-    if (foundIndex === -1) {
-        for (let i = 0; i < currentIndex; i++) {
-            if (elevationData[i] < currentHeight) {
-                foundIndex = i;
+    // 如果前面沒有，從後面找
+    if (nextIndex === -1) {
+        for (let i = currentIndex + 1; i < elevationData.length; i++) {
+            if (Math.abs(elevationData[i] - targetHeight) < 0.01) {
+                nextIndex = i;
                 break;
             }
         }
     }
     
-    if (foundIndex === -1) {
-        // 沒有找到更低的點，靜默返回
+    if (nextIndex === -1) {
+        console.log('找不到目標高度的點');
         return;
     }
     
-    console.log('跳到更低的點：從索引', currentIndex, '(高度', currentHeight, ') 跳到索引', foundIndex, '(高度', elevationData[foundIndex], ')');
-    showMap(foundIndex, elevationData[foundIndex]);
+    console.log('跳到更低的點：從索引', currentIndex, '(高度', currentHeight, ') 跳到索引', nextIndex, '(高度', elevationData[nextIndex], ')');
+    selectedPointsInCurrentHeight.add(nextIndex);
+    showMap(nextIndex, elevationData[nextIndex]);
 }
+
+
+
+
 
 // 全局變數以保存elevation數據，供上下鍵使用
 let elevationData = [];
