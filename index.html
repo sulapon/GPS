@@ -85,7 +85,10 @@ function swapLinkTxUnit() {
     calculateLinkBudget();
 }
 
-</script> <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" /><title>計算工具</title><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><meta name="theme-color" content="#071026"><style> :root{ --bg-0:#050a16; --bg-1:#0b1526; --muted:#a8b3c3; --label:#85c9ff; --title:#ffe58f; --value:#5ff0d5; --accent1:#5ff0d5; --accent2:#79a8ff; --orange-border: #ffaa00; --glass: rgba(255,255,255,0.06); --shadow: 0 4px 12px rgba(0,0,0,0.40); font-size:24px; --gps-error-border: #dc3545; --rf-green-start: #36c74d; --rf-green-end: #1e8030; --rf-green-border: #1e8030; --red-clear: #dd4444; --purple-accent: #bb66ff; } *{box-sizing:border-box} body{ margin:0; padding:0; background:linear-gradient(180deg,var(--bg-0),var(--bg-1)); color:#e8eef5; font-family:Inter, 'Noto Sans TC', system-ui; line-height:1.3; } header{ padding: 0 10px; background-color: var(--bg-1); border-bottom: 1px solid rgba(255,255,255,0.08); height: 0; } h1{ display: none; } main{padding:6px; max-width:880px; margin:0 auto;} .card{ background:rgba(255,255,255,0.02); padding:6px 8px; border-radius:10px; margin-bottom:6px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.03); } .gps-container .card { padding: 5px 8px; } .section-title{ color:var(--title); font-size:18px; font-weight:700; margin-bottom:4px; display:block; } .rf-header { margin-bottom: 6px; } .rf-header .section-title { color: var(--title); font-size: 18px; font-weight: 700; margin-bottom: 2px; display: block; } .unit-selector-row { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 4px 0; margin-bottom: 2px; } .unit-selector-row .unit-label { font-size: 15px; color: var(--label); margin-bottom: 0; font-weight: 700; } .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:5px; align-items:end; } label{ color:var(--label); font-size:15px; margin-bottom:1px; display:block; } input,select{ width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); } .input-with-clear-rf { display: flex; align-items: center; position: relative; } .input-with-clear-rf input { flex-grow: 1; padding-right: 35px; } .clear-btn-rf { position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--red-clear); font-size: 18px; cursor: pointer; padding: 0 8px; line-height: 1; font-weight: bold; opacity: 0.8; z-index: 10; height: 100%; display: flex; align-items: center; } #unit, #displayMode { border: 1px solid var(--purple-accent) !important; color: var(--purple-accent) !important; background-color: rgba(187, 102, 255, 0.08) !important; width: auto !important; max-width: 120px !important; padding: 3px 6px !important; font-size: 15px !important; flex-shrink: 0; } .gps-container input[type="number"], .gps-container input[type="text"] { padding: 3px 5px; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); } .controls{ margin-top:2px; display:flex; gap:5px; } .btn{ background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:8px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; } .btn.ghost{ border:1px solid var(--accent2); background:transparent; color:#e8eef5; } .btn.clear{ background:var(--red-clear); color:white; border-radius:6px; } #rf-content + .btn-row .btn { background: linear-gradient(90deg, var(--rf-green-start), var(--rf-green-end)); color: #022; border: none; } #rf-content + .btn-row .btn.ghost { background: transparent; border: 1px solid var(--rf-green-border); color: #e8eef5; } #rf-content + .btn-row .btn.clear { background: var(--red-clear); color: white; border: none; } .btn-row{ display:flex; flex-wrap:nowrap; justify-content:stretch; align-items:center; gap:12px; width:100%; box-sizing:border-box; } .btn-row .btn{ flex:1 1 0%; text-align:center; white-space:nowrap; min-width:0; } #liveInputs{ margin-top:3px; font-size:14px; color:var(--muted); } table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:16px; } thead th{ color:var(--label); padding:3px 3px; border-bottom:1px solid rgba(255,255,255,0.06); text-align:center; } tbody td{ padding:4px 3px; border-bottom:1px solid rgba(255,255,255,0.03); text-align:center; } .name{ color:#ffd369; font-weight:700; white-space:nowrap; } th:first-child, td:first-child{ width:32%; text-align:left; } .value, .percent{ color:var(--value); font-weight:800; font-variant-numeric:tabular-nums; } .small-note{ font-size:13px; margin-top:3px; color:var(--muted); } @media (max-width:640px){ .form-grid{grid-template-columns:1fr;} } .tabs{ display:flex; margin-bottom: 6px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.06); } .tab-button{ flex-shrink: 0; padding: 6px 10px; margin: 0 2px; background: transparent; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; transition: all 0.2s ease; } .tab-button.active{ background: var(--glass); color: var(--title); border-bottom: 2px solid var(--accent1); } .tab-content{ display: none; padding-top: 5px; } .tab-content.active{ display: block; } .gps-container { padding: 0; } .gps-tip { color: var(--label) !important; font-size: 13px !important; margin: 0 0 2px 0 !important; } .display-mode-container { margin-top: 3px; } .gps-ig { margin-bottom: 2px !important; padding: 3px 7px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; background-color: rgba(255,255,255,0.02); } .gps-loc-header { margin-bottom: 2px !important; font-weight: bold; color: var(--title); font-size: 17px; display: flex; align-items: center; justify-content: space-between; } .gps-loc-header > div { display: flex; align-items: center; gap: 5px; } #nameA, #nameB { width: 144px !important; max-width: 144px !important; font-size: 14px !important; text-align: center; flex-shrink: 0; padding: 4px 6px !important; } .gps-loc-header span { color: var(--muted); font-size: 13px; flex-shrink: 0; } .gps-cg { padding: 2px !important; margin-bottom: 2px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; } .gps-cl { font-weight: bold; color: var(--label); display: block; margin-bottom: 1px; font-size: 14px !important; } .gps-ddr { display: flex; align-items: center; margin-bottom: 0 !important; } .gps-ddr input { flex-grow: 1; text-align: right; padding: 4px 8px !important; font-size: 16px !important; } .gps-ddr span { color: var(--muted); font-size: 14px !important; margin-right: 4px; flex-shrink: 0; } .gps-dmsr { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 0 !important; } .gps-dmsr input { padding: 4px 8px !important; font-size: 16px !important; } .gps-dmsf { display: flex; align-items: center; flex: 1; min-width: 0; } .gps-dmsf input { text-align: center; margin-right: 3px; max-width: none; flex-grow: 1; min-width: 30px; } .gps-dmsf:nth-child(1) input { flex: 2; } .gps-dmsf:nth-child(2) input { flex: 1.5; } .gps-dmsf:nth-child(3) input { flex: 2.5; } .gps-dmsr span { color: var(--muted); font-size: 14px !important; margin-right: 0; flex-shrink: 0; } .gps-er { display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-top: 2px !important; padding-top: 2px !important; border-top: 1px dashed rgba(255,255,255,0.08); flex-wrap: nowrap !important; } .gps-er label { font-size: 15px !important; flex-shrink: 0; color: var(--label); width: 120px; margin-right: 8px; } .gps-er input { text-align: right; flex-grow: 1.2 !important; padding: 4px 8px !important; font-size: 16px !important; min-width: 60px !important; max-width: 100px !important; } .gps-er > .control-group { display: flex; align-items: center; flex-shrink: 0; min-width: 0; margin-left: auto !important; } .gps-er .control-group span { font-size: 14px !important; flex-shrink: 0; color: var(--muted); margin-left: 4px; } .gps-cb { background: none; border: none; color: #ff6347; font-size: 18px; cursor: pointer; padding: 0 5px; line-height: 1; font-weight: bold; opacity: 0.9; margin: 0; flex-shrink: 0; } .gps-ddr .gps-cb { margin-left: auto; } .gps-er .control-group .gps-cb { margin-left: 5px !important; } #gpsRes { margin-top: 5px !important; padding: 8px !important; border: 2px solid var(--accent2); border-radius: 8px; background-color: rgba(121, 168, 255, 0.05); font-size: 16px !important; font-weight: 500; text-align: left; color: #e8eef5; } #gpsRes p { margin: 4px 0 !important; } .gps-label-title { color: var(--title); font-weight: 700; margin-right: 5px; } .v-dist, .v-bearing, .v-pitch-value { font-weight: 900 !important; font-size: 1.1em; color: var(--value) !important; } .display-mode-container { display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-top: 3px; } #displayMode { width: auto !important; max-width: 170px; flex-shrink: 0; } .display-mode-container label { display: none; } .display-mode-text { font-weight: 700; color: var(--label); font-size: 14px; flex-shrink: 0; } .results-card-border { border: 2px solid var(--accent2) !important; border-radius: 8px !important; background-color: rgba(121, 168, 255, 0.05) !important; } .orange-border-card { border: 2px solid var(--orange-border) !important; border-radius: 8px !important; background-color: rgba(255, 170, 0, 0.05) !important; }
+</script> <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" /><title>計算工具</title><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Google Maps JavaScript API (無需API key的開發版本) -->
+<script src="https://maps.googleapis.com/maps/api/js?v=3&callback=Function.prototype"></script>
+<meta name="theme-color" content="#071026"><style> :root{ --bg-0:#050a16; --bg-1:#0b1526; --muted:#a8b3c3; --label:#85c9ff; --title:#ffe58f; --value:#5ff0d5; --accent1:#5ff0d5; --accent2:#79a8ff; --orange-border: #ffaa00; --glass: rgba(255,255,255,0.06); --shadow: 0 4px 12px rgba(0,0,0,0.40); font-size:24px; --gps-error-border: #dc3545; --rf-green-start: #36c74d; --rf-green-end: #1e8030; --rf-green-border: #1e8030; --red-clear: #dd4444; --purple-accent: #bb66ff; } *{box-sizing:border-box} body{ margin:0; padding:0; background:linear-gradient(180deg,var(--bg-0),var(--bg-1)); color:#e8eef5; font-family:Inter, 'Noto Sans TC', system-ui; line-height:1.3; } header{ padding: 0 10px; background-color: var(--bg-1); border-bottom: 1px solid rgba(255,255,255,0.08); height: 0; } h1{ display: none; } main{padding:6px; max-width:880px; margin:0 auto;} .card{ background:rgba(255,255,255,0.02); padding:6px 8px; border-radius:10px; margin-bottom:6px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.03); } .gps-container .card { padding: 5px 8px; } .section-title{ color:var(--title); font-size:18px; font-weight:700; margin-bottom:4px; display:block; } .rf-header { margin-bottom: 6px; } .rf-header .section-title { color: var(--title); font-size: 18px; font-weight: 700; margin-bottom: 2px; display: block; } .unit-selector-row { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 4px 0; margin-bottom: 2px; } .unit-selector-row .unit-label { font-size: 15px; color: var(--label); margin-bottom: 0; font-weight: 700; } .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:5px; align-items:end; } label{ color:var(--label); font-size:15px; margin-bottom:1px; display:block; } input,select{ width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); } .input-with-clear-rf { display: flex; align-items: center; position: relative; } .input-with-clear-rf input { flex-grow: 1; padding-right: 35px; } .clear-btn-rf { position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--red-clear); font-size: 18px; cursor: pointer; padding: 0 8px; line-height: 1; font-weight: bold; opacity: 0.8; z-index: 10; height: 100%; display: flex; align-items: center; } #unit, #displayMode { border: 1px solid var(--purple-accent) !important; color: var(--purple-accent) !important; background-color: rgba(187, 102, 255, 0.08) !important; width: auto !important; max-width: 120px !important; padding: 3px 6px !important; font-size: 15px !important; flex-shrink: 0; } .gps-container input[type="number"], .gps-container input[type="text"] { padding: 3px 5px; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); } .controls{ margin-top:2px; display:flex; gap:5px; } .btn{ background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:8px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; } .btn.ghost{ border:1px solid var(--accent2); background:transparent; color:#e8eef5; } .btn.clear{ background:var(--red-clear); color:white; border-radius:6px; } #rf-content + .btn-row .btn { background: linear-gradient(90deg, var(--rf-green-start), var(--rf-green-end)); color: #022; border: none; } #rf-content + .btn-row .btn.ghost { background: transparent; border: 1px solid var(--rf-green-border); color: #e8eef5; } #rf-content + .btn-row .btn.clear { background: var(--red-clear); color: white; border: none; } .btn-row{ display:flex; flex-wrap:nowrap; justify-content:stretch; align-items:center; gap:12px; width:100%; box-sizing:border-box; } .btn-row .btn{ flex:1 1 0%; text-align:center; white-space:nowrap; min-width:0; } #liveInputs{ margin-top:3px; font-size:14px; color:var(--muted); } table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:16px; } thead th{ color:var(--label); padding:3px 3px; border-bottom:1px solid rgba(255,255,255,0.06); text-align:center; } tbody td{ padding:4px 3px; border-bottom:1px solid rgba(255,255,255,0.03); text-align:center; } .name{ color:#ffd369; font-weight:700; white-space:nowrap; } th:first-child, td:first-child{ width:32%; text-align:left; } .value, .percent{ color:var(--value); font-weight:800; font-variant-numeric:tabular-nums; } .small-note{ font-size:13px; margin-top:3px; color:var(--muted); } @media (max-width:640px){ .form-grid{grid-template-columns:1fr;} } .tabs{ display:flex; margin-bottom: 6px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.06); } .tab-button{ flex-shrink: 0; padding: 6px 10px; margin: 0 2px; background: transparent; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; transition: all 0.2s ease; } .tab-button.active{ background: var(--glass); color: var(--title); border-bottom: 2px solid var(--accent1); } .tab-content{ display: none; padding-top: 5px; } .tab-content.active{ display: block; } .gps-container { padding: 0; } .gps-tip { color: var(--label) !important; font-size: 13px !important; margin: 0 0 2px 0 !important; } .display-mode-container { margin-top: 3px; } .gps-ig { margin-bottom: 2px !important; padding: 3px 7px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; background-color: rgba(255,255,255,0.02); } .gps-loc-header { margin-bottom: 2px !important; font-weight: bold; color: var(--title); font-size: 17px; display: flex; align-items: center; justify-content: space-between; } .gps-loc-header > div { display: flex; align-items: center; gap: 5px; } #nameA, #nameB { width: 144px !important; max-width: 144px !important; font-size: 14px !important; text-align: center; flex-shrink: 0; padding: 4px 6px !important; } .gps-loc-header span { color: var(--muted); font-size: 13px; flex-shrink: 0; } .gps-cg { padding: 2px !important; margin-bottom: 2px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; } .gps-cl { font-weight: bold; color: var(--label); display: block; margin-bottom: 1px; font-size: 14px !important; } .gps-ddr { display: flex; align-items: center; margin-bottom: 0 !important; } .gps-ddr input { flex-grow: 1; text-align: right; padding: 4px 8px !important; font-size: 16px !important; } .gps-ddr span { color: var(--muted); font-size: 14px !important; margin-right: 4px; flex-shrink: 0; } .gps-dmsr { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 0 !important; } .gps-dmsr input { padding: 4px 8px !important; font-size: 16px !important; } .gps-dmsf { display: flex; align-items: center; flex: 1; min-width: 0; } .gps-dmsf input { text-align: center; margin-right: 3px; max-width: none; flex-grow: 1; min-width: 30px; } .gps-dmsf:nth-child(1) input { flex: 2; } .gps-dmsf:nth-child(2) input { flex: 1.5; } .gps-dmsf:nth-child(3) input { flex: 2.5; } .gps-dmsr span { color: var(--muted); font-size: 14px !important; margin-right: 0; flex-shrink: 0; } .gps-er { display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-top: 2px !important; padding-top: 2px !important; border-top: 1px dashed rgba(255,255,255,0.08); flex-wrap: nowrap !important; } .gps-er label { font-size: 15px !important; flex-shrink: 0; color: var(--label); width: 120px; margin-right: 8px; } .gps-er input { text-align: right; flex-grow: 1.2 !important; padding: 4px 8px !important; font-size: 16px !important; min-width: 60px !important; max-width: 100px !important; } .gps-er > .control-group { display: flex; align-items: center; flex-shrink: 0; min-width: 0; margin-left: auto !important; } .gps-er .control-group span { font-size: 14px !important; flex-shrink: 0; color: var(--muted); margin-left: 4px; } .gps-cb { background: none; border: none; color: #ff6347; font-size: 18px; cursor: pointer; padding: 0 5px; line-height: 1; font-weight: bold; opacity: 0.9; margin: 0; flex-shrink: 0; } .gps-ddr .gps-cb { margin-left: auto; } .gps-er .control-group .gps-cb { margin-left: 5px !important; } #gpsRes { margin-top: 5px !important; padding: 8px !important; border: 2px solid var(--accent2); border-radius: 8px; background-color: rgba(121, 168, 255, 0.05); font-size: 16px !important; font-weight: 500; text-align: left; color: #e8eef5; } #gpsRes p { margin: 4px 0 !important; } .gps-label-title { color: var(--title); font-weight: 700; margin-right: 5px; } .v-dist, .v-bearing, .v-pitch-value { font-weight: 900 !important; font-size: 1.1em; color: var(--value) !important; } .display-mode-container { display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-top: 3px; } #displayMode { width: auto !important; max-width: 170px; flex-shrink: 0; } .display-mode-container label { display: none; } .display-mode-text { font-weight: 700; color: var(--label); font-size: 14px; flex-shrink: 0; } .results-card-border { border: 2px solid var(--accent2) !important; border-radius: 8px !important; background-color: rgba(121, 168, 255, 0.05) !important; } .orange-border-card { border: 2px solid var(--orange-border) !important; border-radius: 8px !important; background-color: rgba(255, 170, 0, 0.05) !important; }
 
 /* 流水燈動畫樣式 */
 @keyframes blink-dots {
@@ -342,7 +345,7 @@ div.gps-ig.orange-border-card,
 </div>
 <button class="btn" style="background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:5px 8px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; width:100%; margin-bottom:15px;" onclick="runAnalysis()">🌐 生成路徑剖面</button>
 <div id="summary" style="margin:15px 0; padding:10px; background:rgba(121, 168, 255, 0.1); border-radius:6px; text-align:center; font-weight:bold; color:#79a8ff; border: 1px solid rgba(121, 168, 255, 0.3);">請輸入座標並執行</div>
-<div style="position: relative; height:400px; width:100%; margin-bottom:20px;">
+<div style="position: relative; height:300px; width:100%; margin-bottom:20px;">
 <canvas id="elevationChart"></canvas>
 </div>
 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px; padding: 10px; background: rgba(121, 168, 255, 0.05); border-radius: 6px; border: 1px solid rgba(121, 168, 255, 0.2);">
@@ -354,14 +357,33 @@ div.gps-ig.orange-border-card,
 <button class="btn" style="background: linear-gradient(90deg, #748ffc, #5c7cfa); border:0; padding:6px 10px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; height:fit-content;" onclick="jumpToEndPoint()">終點</button>
 </div>
 <div style="display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 15px; padding: 10px; background: rgba(121, 168, 255, 0.05); border-radius: 6px; border: 1px solid rgba(121, 168, 255, 0.2);">
-<button class="btn" style="background: linear-gradient(90deg, #ff6b6b, #ee5a5a); border:0; padding:6px 12px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="jumpToMinPoint()">📉 最小值</button>
-<button class="btn" style="background: linear-gradient(90deg, #51cf66, #37b24d); border:0; padding:6px 12px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="jumpToMaxPoint()">📈 最大值</button>
+<button class="btn" style="background: linear-gradient(90deg, #ff6b6b, #ee5a5a); border:0; padding:6px 12px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="jumpToMinPoint()">最低點</button>
+<button class="btn" style="background: linear-gradient(90deg, #51cf66, #37b24d); border:0; padding:6px 12px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="jumpToMaxPoint()">最高點</button>
 <button class="btn" style="background: linear-gradient(90deg, #4dabf7, #339af0); border:0; padding:6px 18px; border-radius:4px; font-weight:700; font-size:18px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; min-width:50px;" onclick="jumpToLowerPoint()" title="跳到更低的點">-</button>
 <button class="btn" style="background: linear-gradient(90deg, #ff922b, #fd7e14); border:0; padding:6px 18px; border-radius:4px; font-weight:700; font-size:18px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; min-width:50px;" onclick="jumpToHigherPoint()" title="跳到更高的點">+</button>
+</div>
+<div style="display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 15px; padding: 10px; background: rgba(255, 107, 107, 0.08); border-radius: 6px; border: 1px solid rgba(255, 107, 107, 0.3);">
+<button class="btn" style="background: linear-gradient(90deg, #e03131, #c92a2a); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="jumpToMaxObstruction()">主遮蔽</button>
+<button class="btn" style="background: linear-gradient(90deg, #fa5252, #e03131); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="jumpToFirstObstructionFromStart()">起點障礙</button>
+<button class="btn" style="background: linear-gradient(90deg, #ff6b6b, #fa5252); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="jumpToFirstObstructionFromEnd()">終點障礙</button>
 </div>
 <div id="map-container" style="margin-top:30px; text-align:center; display:none; padding:20px; border-top:2px dashed rgba(255,255,255,0.1);">
 <div id="map-details" style="margin-bottom:15px; font-size:0.95em; color:#e8eef5; text-align:left;">請點擊上方圖表的點</div>
 <iframe id="map-frame" style="border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); width:100%; height:450px;" src="" allowfullscreen loading="lazy"></iframe>
+</div>
+
+<!-- 新增：起點終點路徑地圖 -->
+<div id="route-map-container" style="margin-top:30px; text-align:center; display:none; padding:20px; border-top:2px dashed rgba(95, 240, 213, 0.3);">
+<div style="margin-bottom:15px; font-size:1.1em; color:var(--title); font-weight:700;">
+📍 起點終點路徑圖
+</div>
+<div id="route-map-details" style="margin-bottom:15px; font-size:0.95em; color:#e8eef5; text-align:left;">
+<strong><span style="color: #FFD700;">路徑資訊</span></strong><br>
+<span style="color: #FFD700;">起點:</span> <span style="color: #5ff0d5;" id="route-start-info">-</span><br>
+<span style="color: #FFD700;">終點:</span> <span style="color: #5ff0d5;" id="route-end-info">-</span><br>
+<span style="color: #FFD700;">直線距離:</span> <span style="color: #5ff0d5;" id="route-distance-info">-</span>
+</div>
+<div id="route-map" style="width:100%; height:450px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:2px solid var(--accent1);"></div>
 </div>
 </div>
 </div>
@@ -2526,6 +2548,14 @@ function renderChart(elevations) {
         window.dragStartOffsetY = 0;
     }
     
+    // 文字方向狀態變數（用於北七路和火燒厝標籤）
+    if (typeof window.labelTextVertical === 'undefined') {
+        window.labelTextVertical = {
+            A: false,  // false = 橫向，true = 垂直
+            B: false
+        };
+    }
+    
     // 自定義插件：在圖表上繪製 A 點和 B 點地名標注（可拖曳）
     const pointLabelPlugin = {
         id: 'pointLabelPlugin',
@@ -2614,7 +2644,21 @@ function renderChart(elevations) {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#022';
-                ctx.fillText(nameA, labelXA, boxY + boxHeightA / 2);
+                
+                // 根據垂直狀態決定如何繪製文字
+                if (window.labelTextVertical.A) {
+                    // 垂直顯示 - 逐字繪製
+                    ctx.save();
+                    const chars = nameA.split('');
+                    const charHeight = boxHeightA / (chars.length + 1);
+                    chars.forEach((char, i) => {
+                        ctx.fillText(char, labelXA, boxY + charHeight * (i + 1));
+                    });
+                    ctx.restore();
+                } else {
+                    // 橫向顯示
+                    ctx.fillText(nameA, labelXA, boxY + boxHeightA / 2);
+                }
                 
                 // 繪製拖曳圖標（小圓點表示可拖曳）
                 ctx.fillStyle = 'rgba(0, 34, 34, 0.3)';
@@ -2700,7 +2744,21 @@ function renderChart(elevations) {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#022';
-                ctx.fillText(nameB, labelXB, boxY + boxHeightB / 2);
+                
+                // 根據垂直狀態決定如何繪製文字
+                if (window.labelTextVertical.B) {
+                    // 垂直顯示 - 逐字繪製
+                    ctx.save();
+                    const chars = nameB.split('');
+                    const charHeight = boxHeightB / (chars.length + 1);
+                    chars.forEach((char, i) => {
+                        ctx.fillText(char, labelXB, boxY + charHeight * (i + 1));
+                    });
+                    ctx.restore();
+                } else {
+                    // 橫向顯示
+                    ctx.fillText(nameB, labelXB, boxY + boxHeightB / 2);
+                }
                 
                 // 繪製拖曳圖標（小圓點表示可拖曳）
                 ctx.fillStyle = 'rgba(0, 34, 34, 0.3)';
@@ -2732,6 +2790,14 @@ function renderChart(elevations) {
             labels: pathData.map(p => Math.round(parseFloat(p.dist)).toString()),
             datasets: [
                 { 
+                    label: '視距連線 (考慮地球曲度)', 
+                    data: losLineWithCurvature, 
+                    borderColor: '#dc3545', 
+                    borderDash: [5, 5], 
+                    fill: false, 
+                    pointRadius: 0 
+                },
+                { 
                     label: '地形海拔 (m)', 
                     data: adjustedElevations, 
                     borderColor: '#28a745', 
@@ -2742,14 +2808,6 @@ function renderChart(elevations) {
                     pointHoverRadius: pointHoverRadiusArray,
                     pointBackgroundColor: pointColorArray,
                     pointBorderWidth: 0
-                },
-                { 
-                    label: '視距連線 (考慮地球曲度)', 
-                    data: losLineWithCurvature, 
-                    borderColor: '#dc3545', 
-                    borderDash: [5, 5], 
-                    fill: false, 
-                    pointRadius: 0 
                 }
             ]
         },
@@ -2781,9 +2839,9 @@ function renderChart(elevations) {
                     window.currentSelectedPointIndex = idx;
                     
                     // 更新圖表
-                    chartInstance.data.datasets[0].pointBackgroundColor = pointColorArray;
-                    chartInstance.data.datasets[0].pointRadius = pointRadiusArray;
-                    chartInstance.data.datasets[0].pointHoverRadius = pointHoverRadiusArray;
+                    chartInstance.data.datasets[1].pointBackgroundColor = pointColorArray;
+                    chartInstance.data.datasets[1].pointRadius = pointRadiusArray;
+                    chartInstance.data.datasets[1].pointHoverRadius = pointHoverRadiusArray;
                     chartInstance.update();
                     
                     showMap(idx, elevations[idx]);
@@ -2852,6 +2910,10 @@ function renderChart(elevations) {
     canvas.addEventListener('mousedown', function(e) {
         const pos = getMousePos(canvas, e);
         
+        // 記錄點擊起始位置和時間（用於檢測單擊）
+        window.clickStartTime = Date.now();
+        window.clickStartPos = { x: pos.x, y: pos.y };
+        
         // 檢查是否點擊在標籤上
         if (isPointInLabel(pos.x, pos.y, window.labelABounds)) {
             window.draggingLabel = 'A';
@@ -2905,6 +2967,21 @@ function renderChart(elevations) {
     
     // mouseup 事件
     canvas.addEventListener('mouseup', function(e) {
+        const pos = getMousePos(canvas, e);
+        const clickDuration = Date.now() - (window.clickStartTime || 0);
+        const moveDistance = window.clickStartPos ? 
+            Math.sqrt(Math.pow(pos.x - window.clickStartPos.x, 2) + Math.pow(pos.y - window.clickStartPos.y, 2)) : 0;
+        
+        // 檢測是否為單擊（時間短且移動距離小）
+        const isClick = clickDuration < 300 && moveDistance < 5;
+        
+        if (window.draggingLabel && isClick) {
+            // 單擊標籤時切換文字方向
+            const label = window.draggingLabel;
+            window.labelTextVertical[label] = !window.labelTextVertical[label];
+            console.log(`切換${label}標籤文字方向：${window.labelTextVertical[label] ? '垂直' : '橫向'}`);
+        }
+        
         if (window.draggingLabel) {
             window.draggingLabel = null;
             canvas.style.cursor = 'default';
@@ -3004,6 +3081,9 @@ function renderChart(elevations) {
     if (isFirstProfileGeneration) {
         isFirstProfileGeneration = false;
     }
+    
+    // 顯示起點終點路徑地圖
+    showRouteMap();
 }
 
 function showMap(index, height) {
@@ -3027,10 +3107,10 @@ function showMap(index, height) {
     }
 
     // 更新圖表中的點顏色和大小：選中的變黃色且變大，其他變綠色
-    if (chartInstance && chartInstance.data.datasets[0].pointBackgroundColor) {
-        const pointColors = chartInstance.data.datasets[0].pointBackgroundColor;
-        const pointRadius = chartInstance.data.datasets[0].pointRadius;
-        const pointHoverRadius = chartInstance.data.datasets[0].pointHoverRadius;
+    if (chartInstance && chartInstance.data.datasets[1].pointBackgroundColor) {
+        const pointColors = chartInstance.data.datasets[1].pointBackgroundColor;
+        const pointRadius = chartInstance.data.datasets[1].pointRadius;
+        const pointHoverRadius = chartInstance.data.datasets[1].pointHoverRadius;
         
         for (let i = 0; i < pointColors.length; i++) {
             if (i === index) {
@@ -3061,20 +3141,27 @@ function showMap(index, height) {
 
     // 計算遮蔽情況
     let obstructionInfo = '';
-    if (elevationData && elevationData.length > 0 && chartInstance && chartInstance.data.datasets[1]) {
+    if (elevationData && elevationData.length > 0 && chartInstance && chartInstance.data.datasets[0]) {
         // 獲取視距連線（考慮地球曲度）的數據
-        const losLineData = chartInstance.data.datasets[1].data;
+        const losLineData = chartInstance.data.datasets[0].data;
         
         if (losLineData && losLineData[index] !== undefined) {
             const losHeight = losLineData[index]; // 視距連線在該點的高度
             const terrainHeight = elevationData[index]; // 地形在該點的高度
             const clearance = losHeight - terrainHeight; // 離遮蔽的距離（正數表示沒遮蔽，負數表示被遮蔽）
             
+            // 判斷是否為起點或終點
+            const isStartPoint = (index === 0);
+            const isEndPoint = (index === elevationData.length - 1);
+            
             if (clearance > 0) {
                 // 沒有遮蔽，顯示綠色
                 obstructionInfo = `<br><span style="color: #FFD700;">遮蔽:</span> <span style="color: #51cf66; font-weight: bold;">${clearance.toFixed(2)} m</span>`;
+            } else if (clearance === 0 && (isStartPoint || isEndPoint)) {
+                // 起點或終點的0米遮蔽顯示綠色
+                obstructionInfo = `<br><span style="color: #FFD700;">遮蔽:</span> <span style="color: #51cf66; font-weight: bold;">0.00 m</span>`;
             } else {
-                // 有遮蔽，顯示紅色
+                // 有遮蔽或其它點的0米，顯示紅色
                 obstructionInfo = `<br><span style="color: #FFD700;">遮蔽:</span> <span style="color: #ff6b6b; font-weight: bold;">${Math.abs(clearance).toFixed(2)} m</span>`;
             }
         }
@@ -3092,6 +3179,177 @@ function showMap(index, height) {
     // 移除自動滾動到地圖的功能，但地圖仍會更新
     // mapContainer.scrollIntoView({ behavior: 'smooth' });
 }
+
+// 新增：顯示起點終點路徑地圖
+let routeMapInstance = null;
+
+function showRouteMap() {
+    console.log('showRouteMap() 被調用');
+    
+    if (!pathData || pathData.length < 2) {
+        console.log('路徑數據不足，無法顯示路徑地圖');
+        return;
+    }
+    
+    const routeMapContainer = document.getElementById('route-map-container');
+    const routeMapDiv = document.getElementById('route-map');
+    const routeStartInfo = document.getElementById('route-start-info');
+    const routeEndInfo = document.getElementById('route-end-info');
+    const routeDistanceInfo = document.getElementById('route-distance-info');
+    
+    if (!routeMapContainer || !routeMapDiv) {
+        console.error('找不到路徑地圖相關元素');
+        return;
+    }
+    
+    // 獲取起點和終點
+    const startPoint = pathData[0];
+    const endPoint = pathData[pathData.length - 1];
+    
+    // 獲取A點和B點的地名
+    const nameA = window.elevationPointAName || 'A點';
+    const nameB = window.elevationPointBName || 'B點';
+    
+    // 計算直線距離
+    const distance = endPoint.dist;
+    
+    // 更新資訊顯示
+    if (routeStartInfo) {
+        routeStartInfo.textContent = `${nameA} (${startPoint.lat}, ${startPoint.lng})`;
+    }
+    if (routeEndInfo) {
+        routeEndInfo.textContent = `${nameB} (${endPoint.lat}, ${endPoint.lng})`;
+    }
+    if (routeDistanceInfo) {
+        routeDistanceInfo.textContent = `${distance} km`;
+    }
+    
+    // 顯示容器
+    routeMapContainer.style.display = 'block';
+    
+    const startLat = parseFloat(startPoint.lat);
+    const startLng = parseFloat(startPoint.lng);
+    const endLat = parseFloat(endPoint.lat);
+    const endLng = parseFloat(endPoint.lng);
+    
+    // 計算地圖中心點
+    const centerLat = (startLat + endLat) / 2;
+    const centerLng = (startLng + endLng) / 2;
+    
+    // 計算合適的縮放級別
+    const latDiff = Math.abs(startLat - endLat);
+    const lngDiff = Math.abs(startLng - endLng);
+    const maxDiff = Math.max(latDiff, lngDiff);
+    let zoom = 13;
+    if (maxDiff > 0.1) zoom = 11;
+    if (maxDiff > 0.5) zoom = 9;
+    if (maxDiff > 1) zoom = 8;
+    if (maxDiff > 2) zoom = 7;
+    
+    // 清空容器
+    routeMapDiv.innerHTML = '';
+    
+    // 等待 Google Maps API 載入
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        console.error('Google Maps API 尚未載入');
+        routeMapDiv.innerHTML = '<div style="padding:20px; color:#ff6b6b; text-align:center;">Google Maps 載入中...</div>';
+        
+        // 嘗試重新載入
+        setTimeout(() => {
+            if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+                showRouteMap();
+            }
+        }, 2000);
+        return;
+    }
+    
+    // 創建地圖
+    routeMapInstance = new google.maps.Map(routeMapDiv, {
+        center: { lat: centerLat, lng: centerLng },
+        zoom: zoom,
+        mapTypeId: 'satellite' // 使用衛星圖
+    });
+    
+    // 創建起點標記（藍色）
+    const startMarker = new google.maps.Marker({
+        position: { lat: startLat, lng: startLng },
+        map: routeMapInstance,
+        title: `${nameA} (起點)`,
+        label: {
+            text: 'A',
+            color: 'white',
+            fontWeight: 'bold'
+        },
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: '#0066FF',
+            fillOpacity: 1,
+            strokeColor: '#FFFFFF',
+            strokeWeight: 2,
+            scale: 10
+        }
+    });
+    
+    // 創建終點標記（紅色）
+    const endMarker = new google.maps.Marker({
+        position: { lat: endLat, lng: endLng },
+        map: routeMapInstance,
+        title: `${nameB} (終點)`,
+        label: {
+            text: 'B',
+            color: 'white',
+            fontWeight: 'bold'
+        },
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: '#FF0000',
+            fillOpacity: 1,
+            strokeColor: '#FFFFFF',
+            strokeWeight: 2,
+            scale: 10
+        }
+    });
+    
+    // 添加資訊視窗
+    const startInfoWindow = new google.maps.InfoWindow({
+        content: `<div style="color:#000; padding:5px;"><strong>${nameA}</strong><br>起點<br>${startLat}, ${startLng}</div>`
+    });
+    
+    const endInfoWindow = new google.maps.InfoWindow({
+        content: `<div style="color:#000; padding:5px;"><strong>${nameB}</strong><br>終點<br>${endLat}, ${endLng}</div>`
+    });
+    
+    // 點擊標記顯示資訊
+    startMarker.addListener('click', () => {
+        startInfoWindow.open(routeMapInstance, startMarker);
+    });
+    
+    endMarker.addListener('click', () => {
+        endInfoWindow.open(routeMapInstance, endMarker);
+    });
+    
+    // 畫直線連接兩點（黃色）
+    const line = new google.maps.Polyline({
+        path: [
+            { lat: startLat, lng: startLng },
+            { lat: endLat, lng: endLng }
+        ],
+        geodesic: true,
+        strokeColor: '#FFFF00',
+        strokeOpacity: 1.0,
+        strokeWeight: 3,
+        map: routeMapInstance
+    });
+    
+    // 調整視圖以包含所有標記
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend({ lat: startLat, lng: startLng });
+    bounds.extend({ lat: endLat, lng: endLng });
+    routeMapInstance.fitBounds(bounds);
+    
+    console.log('路徑地圖已生成 (使用 Google Maps JavaScript API)');
+}
+
 
 function updatePointFromInput() {
     // ✅ 清空同高度點記錄，開始新的選擇
@@ -3227,6 +3485,116 @@ function jumpToMaxPoint() {
     
     console.log('跳到最大值：索引', maxIndex, '高度', maxValue);
     showMap(maxIndex, elevationData[maxIndex]);
+}
+
+// 跳到最大遮蔽點
+function jumpToMaxObstruction() {
+    // 清空同高度點記錄
+    selectedPointsInCurrentHeight.clear();
+    
+    if (!elevationData || elevationData.length === 0) {
+        alert('請先生成路徑剖面');
+        return;
+    }
+    
+    if (!chartInstance || !chartInstance.data.datasets[0]) {
+        alert('無法獲取視距連線數據');
+        return;
+    }
+    
+    // 獲取視距連線（考慮地球曲度）的數據
+    const losLineData = chartInstance.data.datasets[0].data;
+    
+    // 找到最大遮蔽點（地形高度 - 視距連線高度的最大負值）
+    let maxObstruction = 0;
+    let maxObstructionIndex = -1;
+    
+    for (let i = 1; i < elevationData.length - 1; i++) { // 排除起點和終點
+        const terrainHeight = elevationData[i];
+        const losHeight = losLineData[i];
+        const clearance = losHeight - terrainHeight;
+        
+        if (clearance < 0 && clearance < maxObstruction) {
+            maxObstruction = clearance;
+            maxObstructionIndex = i;
+        }
+    }
+    
+    if (maxObstructionIndex === -1) {
+        alert('✓ 路徑上沒有遮蔽點');
+        return;
+    }
+    
+    console.log('跳到最大遮蔽點：索引', maxObstructionIndex, '遮蔽量', Math.abs(maxObstruction).toFixed(2), 'm');
+    showMap(maxObstructionIndex, elevationData[maxObstructionIndex]);
+}
+
+// 跳到距離起點第一個遮蔽點
+function jumpToFirstObstructionFromStart() {
+    // 清空同高度點記錄
+    selectedPointsInCurrentHeight.clear();
+    
+    if (!elevationData || elevationData.length === 0) {
+        alert('請先生成路徑剖面');
+        return;
+    }
+    
+    if (!chartInstance || !chartInstance.data.datasets[0]) {
+        alert('無法獲取視距連線數據');
+        return;
+    }
+    
+    // 獲取視距連線（考慮地球曲度）的數據
+    const losLineData = chartInstance.data.datasets[0].data;
+    
+    // 從起點開始尋找第一個遮蔽點
+    for (let i = 1; i < elevationData.length - 1; i++) { // 排除起點和終點
+        const terrainHeight = elevationData[i];
+        const losHeight = losLineData[i];
+        const clearance = losHeight - terrainHeight;
+        
+        if (clearance < 0) {
+            console.log('找到距離起點第一個遮蔽點：索引', i, '遮蔽量', Math.abs(clearance).toFixed(2), 'm');
+            showMap(i, elevationData[i]);
+            return;
+        }
+    }
+    
+    alert('✓ 從起點開始沒有發現遮蔽點');
+}
+
+// 跳到距離終點第一個遮蔽點
+function jumpToFirstObstructionFromEnd() {
+    // 清空同高度點記錄
+    selectedPointsInCurrentHeight.clear();
+    
+    if (!elevationData || elevationData.length === 0) {
+        alert('請先生成路徑剖面');
+        return;
+    }
+    
+    if (!chartInstance || !chartInstance.data.datasets[0]) {
+        alert('無法獲取視距連線數據');
+        return;
+    }
+    
+    // 獲取視距連線（考慮地球曲度）的數據
+    const losLineData = chartInstance.data.datasets[0].data;
+    
+    // 從終點向起點尋找第一個遮蔽點
+    for (let i = elevationData.length - 2; i > 0; i--) { // 排除起點和終點
+        const terrainHeight = elevationData[i];
+        const losHeight = losLineData[i];
+        const clearance = losHeight - terrainHeight;
+        
+        if (clearance < 0) {
+            console.log('找到距離終點第一個遮蔽點：索引', i, '遮蔽量', Math.abs(clearance).toFixed(2), 'm');
+            showMap(i, elevationData[i]);
+            return;
+        }
+    }
+    
+    alert('✓ 從終點開始沒有發現遮蔽點');
 }
 
 // ✅ 全局變數：記錄當前高度已選過的點
