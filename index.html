@@ -3782,10 +3782,11 @@ function openChartFullscreen() {
                             let tooltipX = position.left + tooltipModel.caretX;
                             let tooltipY = position.top + tooltipModel.caretY;
                             
-                            // 獲取tooltip的實際尺寸
-                            tooltipEl.style.opacity = '1';
+                            // 先設置初始位置以獲取尺寸
+                            tooltipEl.style.opacity = '0';
                             tooltipEl.style.left = tooltipX + 'px';
                             tooltipEl.style.top = tooltipY + 'px';
+                            tooltipEl.style.transform = 'translate(-50%, -120%)';
                             
                             // 使用 getBoundingClientRect 獲取tooltip的實際尺寸
                             const tooltipRect = tooltipEl.getBoundingClientRect();
@@ -3796,31 +3797,53 @@ function openChartFullscreen() {
                             const viewportWidth = window.innerWidth;
                             const viewportHeight = window.innerHeight;
                             
-                            // 智能定位：根據點擊位置決定tooltip的方向
+                            // 智能定位：根據可用空間決定tooltip的方向
                             let transformX = '-50%';  // 預設水平置中
                             let transformY = '-120%'; // 預設在點上方
                             
-                            // 檢查上方是否有足夠空間
-                            if (tooltipY - tooltipHeight - 20 < 0) {
-                                // 上方空間不足，顯示在下方
-                                transformY = '20%';
+                            // 計算上方和下方的可用空間
+                            const spaceAbove = tooltipY;
+                            const spaceBelow = viewportHeight - tooltipY;
+                            
+                            // 檢查上方是否有足夠空間（需要 tooltipHeight + 30px 的空間）
+                            if (spaceAbove < tooltipHeight + 30) {
+                                // 上方空間不足，檢查下方空間
+                                if (spaceBelow > tooltipHeight + 30) {
+                                    // 下方有足夠空間，顯示在下方
+                                    transformY = '20%';
+                                } else {
+                                    // 上下都不夠，選擇空間較大的一側並垂直居中
+                                    if (spaceAbove > spaceBelow) {
+                                        transformY = '-50%';
+                                        tooltipY = Math.min(tooltipY, spaceAbove - tooltipHeight/2);
+                                    } else {
+                                        transformY = '-50%';
+                                        tooltipY = Math.max(tooltipY, tooltipHeight/2);
+                                    }
+                                }
                             }
                             
                             // 檢查左右是否有足夠空間
+                            const spaceLeft = tooltipX;
+                            const spaceRight = viewportWidth - tooltipX;
+                            
                             if (tooltipX - tooltipWidth / 2 < 20) {
                                 // 左側空間不足，靠左對齊
                                 transformX = '0%';
-                                tooltipX = 20;
+                                tooltipX = Math.max(20, tooltipX);
                             } else if (tooltipX + tooltipWidth / 2 > viewportWidth - 20) {
                                 // 右側空間不足，靠右對齊
                                 transformX = '-100%';
-                                tooltipX = viewportWidth - 20;
+                                tooltipX = Math.min(viewportWidth - 20, tooltipX);
                             }
                             
-                            // 應用最終位置和transform
+                            // 最終檢查：確保 tooltip 完全在螢幕內
                             tooltipEl.style.transform = `translate(${transformX}, ${transformY})`;
                             tooltipEl.style.left = tooltipX + 'px';
                             tooltipEl.style.top = tooltipY + 'px';
+                            
+                            // 設為可見
+                            tooltipEl.style.opacity = '1';
                         }
                     }
                 },
