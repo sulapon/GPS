@@ -4054,6 +4054,64 @@ function lsImport(e){
 document.addEventListener("DOMContentLoaded",lsLoadTable);
 </script>
 
+
+<!-- === FINAL FORCE FIX: LOS Refraction Toggle === -->
+<script>
+(function(){
+  // single source of truth
+  window.__LOS_REFRACTION = false; // false = 不含, true = 含
+
+  function updateBtn(){
+    const btn = document.getElementById('refBtn');
+    if(!btn) return;
+    btn.textContent = window.__LOS_REFRACTION ? '目前：含大氣折射' : '目前：不含大氣折射';
+    btn.style.color = '#bb66ff';
+  }
+
+  // hard override
+  window.toggleRefraction = function(){
+    window.__LOS_REFRACTION = !window.__LOS_REFRACTION;
+    updateBtn();
+    window.calculateMaxLOS();
+  };
+
+  // hard override calculation
+  window.calculateMaxLOS = function(){
+    const g1 = parseFloat(document.getElementById('los_g1')?.value) || 0;
+    const h1 = parseFloat(document.getElementById('los_h1')?.value) || 0;
+    const g2 = parseFloat(document.getElementById('los_g2')?.value) || 0;
+    const h2 = parseFloat(document.getElementById('los_h2')?.value) || 0;
+
+    let R = 6371000; // m
+    if(window.__LOS_REFRACTION){
+      R = R * 4 / 3;
+    }
+
+    const d1 = Math.sqrt(2 * R * (g1 + h1));
+    const d2 = Math.sqrt(2 * R * (g2 + h2));
+    const totalKm = (d1 + d2) / 1000;
+
+    const out = document.getElementById('los_output');
+    if(out){
+      out.innerHTML =
+        '最大通視距離：<span class="result-value">' + totalKm.toFixed(2) + '</span> km<br>' +
+        '(A:' + (d1/1000).toFixed(2) + ' km, B:' + (d2/1000).toFixed(2) + ' km)';
+    }
+  };
+
+  // ensure button click is bound even if HTML is wrong
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('refBtn');
+    if(btn){
+      btn.onclick = window.toggleRefraction;
+    }
+    updateBtn();
+    window.calculateMaxLOS();
+  });
+})();
+</script>
+<!-- === END FORCE FIX === -->
+
 </body></html> 
 <script>
 
