@@ -24,6 +24,28 @@ if ('serviceWorker' in navigator) {
 
 // --- Link Budget Tx Power 單位切換自動換算 ---
 let link_tx_last_unit = 'w';
+// --- 智能調整採樣點數 ---
+function smartIncreaseSamples(baseValue) {
+    const samplesInput = document.getElementById('samples');
+    const currentValue = parseInt(samplesInput.value) || 0;
+    
+    if (baseValue === 100) {
+        // 檢查是否為 100, 200, 300, ..., 900
+        if (currentValue >= 100 && currentValue <= 900 && currentValue % 100 === 0) {
+            samplesInput.value = currentValue + 100;
+        } else {
+            samplesInput.value = 100;
+        }
+    } else if (baseValue === 1000) {
+        // 檢查是否為 1000, 2000, 3000, ..., 9000
+        if (currentValue >= 1000 && currentValue <= 9000 && currentValue % 1000 === 0) {
+            samplesInput.value = currentValue + 1000;
+        } else {
+            samplesInput.value = 1000;
+        }
+    }
+}
+
 function setMaxEffectivePoints() {
     console.log('setMaxEffectivePoints() 被調用');
     
@@ -85,7 +107,7 @@ function swapLinkTxUnit() {
     calculateLinkBudget();
 }
 
-</script> <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" /><title>計算工具</title><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</script> <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,minimal-ui" /><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>計算工具</title><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- Google Maps JavaScript API (無需API key的開發版本) -->
 <script src="https://maps.googleapis.com/maps/api/js?v=3&callback=Function.prototype"></script>
 <meta name="theme-color" content="#071026"><style> :root{ --bg-0:#050a16; --bg-1:#0b1526; --muted:#a8b3c3; --label:#85c9ff; --title:#ffe58f; --value:#5ff0d5; --accent1:#5ff0d5; --accent2:#79a8ff; --orange-border: #ffaa00; --glass: rgba(255,255,255,0.06); --shadow: 0 4px 12px rgba(0,0,0,0.40); font-size:24px; --gps-error-border: #dc3545; --rf-green-start: #36c74d; --rf-green-end: #1e8030; --rf-green-border: #1e8030; --red-clear: #dd4444; --purple-accent: #bb66ff; } *{box-sizing:border-box} body{ margin:0; padding:0; background:linear-gradient(180deg,var(--bg-0),var(--bg-1)); color:#e8eef5; font-family:Inter, 'Noto Sans TC', system-ui; line-height:1.3; } header{ padding: 0 10px; background-color: var(--bg-1); border-bottom: 1px solid rgba(255,255,255,0.08); height: 0; } h1{ display: none; } main{padding:6px; max-width:880px; margin:0 auto;} .card{ background:rgba(255,255,255,0.02); padding:6px 8px; border-radius:10px; margin-bottom:6px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.03); } .gps-container .card { padding: 5px 8px; } .section-title{ color:var(--title); font-size:18px; font-weight:700; margin-bottom:4px; display:block; } .rf-header { margin-bottom: 6px; } .rf-header .section-title { color: var(--title); font-size: 18px; font-weight: 700; margin-bottom: 2px; display: block; } .unit-selector-row { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 4px 0; margin-bottom: 2px; } .unit-selector-row .unit-label { font-size: 15px; color: var(--label); margin-bottom: 0; font-weight: 700; } .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:5px; align-items:end; } label{ color:var(--label); font-size:15px; margin-bottom:1px; display:block; } input,select{ width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); } .input-with-clear-rf { display: flex; align-items: center; position: relative; } .input-with-clear-rf input { flex-grow: 1; padding-right: 35px; } .clear-btn-rf { position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--red-clear); font-size: 18px; cursor: pointer; padding: 0 8px; line-height: 1; font-weight: bold; opacity: 0.8; z-index: 10; height: 100%; display: flex; align-items: center; } #unit, #displayMode { border: 1px solid var(--purple-accent) !important; color: var(--purple-accent) !important; background-color: rgba(187, 102, 255, 0.08) !important; width: auto !important; max-width: 120px !important; padding: 3px 6px !important; font-size: 15px !important; flex-shrink: 0; } .gps-container input[type="number"], .gps-container input[type="text"] { padding: 3px 5px; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); } .controls{ margin-top:2px; display:flex; gap:5px; } .btn{ background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:8px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; } .btn.ghost{ border:1px solid var(--accent2); background:transparent; color:#e8eef5; } .btn.clear{ background:var(--red-clear); color:white; border-radius:6px; } #rf-content + .btn-row .btn { background: linear-gradient(90deg, var(--rf-green-start), var(--rf-green-end)); color: #022; border: none; } #rf-content + .btn-row .btn.ghost { background: transparent; border: 1px solid var(--rf-green-border); color: #e8eef5; } #rf-content + .btn-row .btn.clear { background: var(--red-clear); color: white; border: none; } .btn-row{ display:flex; flex-wrap:nowrap; justify-content:stretch; align-items:center; gap:12px; width:100%; box-sizing:border-box; } .btn-row .btn{ flex:1 1 0%; text-align:center; white-space:nowrap; min-width:0; } #liveInputs{ margin-top:3px; font-size:14px; color:var(--muted); } table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:16px; } thead th{ color:var(--label); padding:3px 3px; border-bottom:1px solid rgba(255,255,255,0.06); text-align:center; } tbody td{ padding:4px 3px; border-bottom:1px solid rgba(255,255,255,0.03); text-align:center; } .name{ color:#ffd369; font-weight:700; white-space:nowrap; } th:first-child, td:first-child{ width:32%; text-align:left; } .value, .percent{ color:var(--value); font-weight:800; font-variant-numeric:tabular-nums; } .small-note{ font-size:13px; margin-top:3px; color:var(--muted); } @media (max-width:640px){ .form-grid{grid-template-columns:1fr;} } .tabs{ display:flex; margin-bottom: 6px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.06); } .tab-button{ flex-shrink: 0; padding: 6px 10px; margin: 0 2px; background: transparent; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; transition: all 0.2s ease; } .tab-button.active{ background: var(--glass); color: var(--title); border-bottom: 2px solid var(--accent1); } .tab-content{ display: none; padding-top: 5px; } .tab-content.active{ display: block; } .gps-container { padding: 0; } .gps-tip { color: var(--label) !important; font-size: 13px !important; margin: 0 0 2px 0 !important; } .display-mode-container { margin-top: 3px; } .gps-ig { margin-bottom: 2px !important; padding: 3px 7px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; background-color: rgba(255,255,255,0.02); } .gps-loc-header { margin-bottom: 2px !important; font-weight: bold; color: var(--title); font-size: 17px; display: flex; align-items: center; justify-content: space-between; } .gps-loc-header > div { display: flex; align-items: center; gap: 5px; } #nameA, #nameB { width: 144px !important; max-width: 144px !important; font-size: 14px !important; text-align: center; flex-shrink: 0; padding: 4px 6px !important; } .gps-loc-header span { color: var(--muted); font-size: 13px; flex-shrink: 0; } .gps-cg { padding: 2px !important; margin-bottom: 2px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; } .gps-cl { font-weight: bold; color: var(--label); display: block; margin-bottom: 1px; font-size: 14px !important; } .gps-ddr { display: flex; align-items: center; margin-bottom: 0 !important; } .gps-ddr input { flex-grow: 1; text-align: right; padding: 4px 8px !important; font-size: 16px !important; } .gps-ddr span { color: var(--muted); font-size: 14px !important; margin-right: 4px; flex-shrink: 0; } .gps-dmsr { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 0 !important; } .gps-dmsr input { padding: 4px 8px !important; font-size: 16px !important; } .gps-dmsf { display: flex; align-items: center; flex: 1; min-width: 0; } .gps-dmsf input { text-align: center; margin-right: 3px; max-width: none; flex-grow: 1; min-width: 30px; } .gps-dmsf:nth-child(1) input { flex: 2; } .gps-dmsf:nth-child(2) input { flex: 1.5; } .gps-dmsf:nth-child(3) input { flex: 2.5; } .gps-dmsr span { color: var(--muted); font-size: 14px !important; margin-right: 0; flex-shrink: 0; } .gps-er { display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-top: 2px !important; padding-top: 2px !important; border-top: 1px dashed rgba(255,255,255,0.08); flex-wrap: nowrap !important; } .gps-er label { font-size: 15px !important; flex-shrink: 0; color: var(--label); width: 120px; margin-right: 8px; } .gps-er input { text-align: right; flex-grow: 1.2 !important; padding: 4px 8px !important; font-size: 16px !important; min-width: 60px !important; max-width: 100px !important; } .gps-er > .control-group { display: flex; align-items: center; flex-shrink: 0; min-width: 0; margin-left: auto !important; } .gps-er .control-group span { font-size: 14px !important; flex-shrink: 0; color: var(--muted); margin-left: 4px; } .gps-cb { background: none; border: none; color: #ff6347; font-size: 18px; cursor: pointer; padding: 0 5px; line-height: 1; font-weight: bold; opacity: 0.9; margin: 0; flex-shrink: 0; } .gps-ddr .gps-cb { margin-left: auto; } .gps-er .control-group .gps-cb { margin-left: 5px !important; } #gpsRes { margin-top: 5px !important; padding: 8px !important; border: 2px solid var(--accent2); border-radius: 8px; background-color: rgba(121, 168, 255, 0.05); font-size: 16px !important; font-weight: 500; text-align: left; color: #e8eef5; } #gpsRes p { margin: 4px 0 !important; } .gps-label-title { color: var(--title); font-weight: 700; margin-right: 5px; } .v-dist, .v-bearing, .v-pitch-value { font-weight: 900 !important; font-size: 1.1em; color: var(--value) !important; } .display-mode-container { display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-top: 3px; } #displayMode { width: auto !important; max-width: 170px; flex-shrink: 0; } .display-mode-container label { display: none; } .display-mode-text { font-weight: 700; color: var(--label); font-size: 14px; flex-shrink: 0; } .results-card-border { border: 2px solid var(--accent2) !important; border-radius: 8px !important; background-color: rgba(121, 168, 255, 0.05) !important; } .orange-border-card { border: 2px solid var(--orange-border) !important; border-radius: 8px !important; background-color: rgba(255, 170, 0, 0.05) !important; }
@@ -107,6 +129,166 @@ function swapLinkTxUnit() {
 .loading-dots::after {
     content: '';
     animation: blink-dots 1.5s steps(4, end) infinite;
+}
+
+/* 剖面圖全螢幕顯示樣式 */
+.chart-fullscreen-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #050a16;
+    z-index: 9999;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.chart-fullscreen-overlay.active {
+    display: block;
+}
+
+.chart-fullscreen-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: #050a16;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-fullscreen-canvas-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    padding: 10px 10px 10px 10px;
+    box-sizing: border-box;
+}
+
+.chart-fullscreen-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-fullscreen-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    width: 32px;
+    height: 32px;
+    background: rgba(220, 53, 69, 0.7);
+    color: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+    padding: 0;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.chart-fullscreen-close:hover {
+    background: rgba(220, 53, 69, 0.95);
+    color: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.6);
+}
+
+.chart-fullscreen-close:active {
+    background: rgba(220, 53, 69, 1);
+    transform: scale(0.9);
+}
+
+.chart-fullscreen-info-toggle {
+    position: absolute;
+    top: 10px;
+    right: 55px;
+    width: 32px;
+    height: 32px;
+    background: rgba(13, 71, 161, 0.85);
+    color: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(77, 171, 247, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    padding: 0;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.chart-fullscreen-info-toggle:hover {
+    background: rgba(13, 71, 161, 0.95);
+    color: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(77, 171, 247, 0.6);
+}
+
+.chart-fullscreen-info-toggle:active {
+    background: rgba(13, 71, 161, 1);
+    transform: scale(0.9);
+}
+
+.chart-fullscreen-info-toggle.disabled {
+    background: rgba(100, 100, 100, 0.85);
+    border-color: rgba(150, 150, 150, 0.8);
+}
+
+/* 手機上點擊提示 */
+.chart-zoom-btn {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    width: 32px;
+    height: 32px;
+    background: rgba(79, 168, 255, 0.6);
+    border: 2px solid rgba(95, 240, 213, 0.6);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.chart-zoom-btn:hover {
+    background: rgba(95, 240, 213, 0.8);
+    border-color: rgba(95, 240, 213, 0.9);
+    color: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(95, 240, 213, 0.4);
+}
+
+.chart-zoom-btn:active {
+    transform: scale(0.95);
+}
+
+.chart-zoom-btn svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0.85;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 </style><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0a4cff">
@@ -324,10 +506,12 @@ div.gps-ig.orange-border-card,
 </div>
 <div style="grid-column: span 3; display: flex; gap: 10px; align-items: flex-end; margin-bottom: 8px;">
 <div style="display: flex; align-items: center; gap: 5px; flex: 1;">
-<label style="color:var(--label); font-size:15px; margin-bottom:0; display:block; flex-shrink:0;">取樣點數量</label>
-<input type="number" id="samples" value="40" min="2" max="200" style="flex: 1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
+<label style="color:var(--label); font-size:15px; margin-bottom:0; display:block; flex-shrink:0;">採樣點數</label>
+<input type="number" id="samples" value="100" min="2" max="2000" style="flex: 1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
 </div>
-<button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; white-space:nowrap; height:fit-content; flex-shrink:0;" onclick="setMaxEffectivePoints()">最大有效點</button>
+<button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; white-space:nowrap; height:34px; flex-shrink:0; min-width:42px;" onclick="smartIncreaseSamples(100)">100</button>
+<button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; white-space:nowrap; height:34px; flex-shrink:0; min-width:42px;" onclick="smartIncreaseSamples(1000)">1K</button>
+<button class="btn" style="background: linear-gradient(90deg, #2f9e44, #2b8a3e); border:0; padding:5px 8px; border-radius:6px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; white-space:nowrap; height:34px; flex-shrink:0;" onclick="setMaxEffectivePoints()">滿格採樣</button>
 </div>
 <div style="display: flex; gap: 10px; align-items: flex-start;">
 <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;"><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">最小高度 (m)</label><div style="display: flex; gap: 3px;"><input type="number" id="minElevation" placeholder="自動" style="flex: 1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:fit-content;" onclick="document.getElementById('minElevation').value=''; document.getElementById('minElevation').placeholder='自動';">自動</button></div></div>
@@ -343,48 +527,58 @@ div.gps-ig.orange-border-card,
 </select>
 <span id="apiInfo" style="font-size: 12px; color: var(--muted); margin-top: 4px; display: block;"></span>
 </div>
-<button class="btn" style="background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:5px 8px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; width:100%; margin-bottom:15px;" onclick="runAnalysis()">🌐 生成路徑剖面</button>
-<div id="summary" style="margin:15px 0; padding:10px; background:rgba(121, 168, 255, 0.1); border-radius:6px; text-align:center; font-weight:bold; color:#79a8ff; border: 1px solid rgba(121, 168, 255, 0.3); font-size:14px;">請輸入座標並執行</div>
-<div style="position: relative; height:300px; width:100%; margin-bottom:20px;">
+<button class="btn" style="background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:18px; color:#022; cursor:pointer; width:100%; margin-bottom:8px;" onclick="runAnalysis()">🌐 生成路徑剖面</button>
+<div style="display: flex; gap: 8px; margin-bottom: 8px;">
+<button id="toggleGreenPointsBtn" class="btn" style="background:linear-gradient(90deg,#6c757d,#5a6268); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; width:100%;" onclick="toggleGreenPoints()">👁️ 顯示節點</button>
+</div>
+<div id="summary" style="margin:8px 0; padding:6px; text-align:center; font-weight:bold; color:#79a8ff; font-size:14px;">請輸入座標並執行</div>
+<div style="position: relative; height:300px; width:100%; margin-bottom:20px; border: 3px solid #4dabf7; border-radius: 8px; padding: 8px; background: rgba(77, 171, 247, 0.05);">
 <canvas id="elevationChart"></canvas>
+<button class="chart-zoom-btn" onclick="openChartFullscreen()" title="放大圖表">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<circle cx="11" cy="11" r="8"></circle>
+<path d="M21 21l-4.35-4.35"></path>
+<path d="M11 8v6M8 11h6"></path>
+</svg>
+</button>
 </div>
 <div style="padding: 12px; margin-bottom: 0; background: rgba(255, 170, 0, 0.05); border-radius: 8px; border: 2px solid #ffaa00;">
 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px; padding: 6px 0;">
 <label style="color: #ffd43b; font-size: 15px; font-weight: 700; flex-shrink: 0;">位置：</label>
 <input type="number" id="selectedPointIndex" placeholder="點擊圖表選擇點" style="flex: 1; padding: 6px 8px; font-size: 16px; color: var(--value); background: transparent; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); text-align: center;" oninput="updatePointFromInput()">
-<button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:6px 10px; border-radius:4px; font-weight:700; font-size:16px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="decrementSelectedPoint()">⬇</button>
-<button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:6px 10px; border-radius:4px; font-weight:700; font-size:16px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="incrementSelectedPoint()">⬆</button>
-<button class="btn" style="background: linear-gradient(90deg, #4dabf7, #339af0); border:0; padding:6px 10px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="jumpToStartPoint()">起點</button>
-<button class="btn" style="background: linear-gradient(90deg, #ff6b6b, #e03131); border:0; padding:6px 10px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="jumpToEndPoint()">終點</button>
+<button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:6px 16px; border-radius:4px; font-weight:700; font-size:16px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="decrementSelectedPoint()">⬅</button>
+<button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:6px 16px; border-radius:4px; font-weight:700; font-size:16px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="incrementSelectedPoint()">➡</button>
+<button class="btn" style="background: linear-gradient(90deg, #4dabf7, #339af0); border:0; padding:6px 10px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="jumpToStartPoint()">A點</button>
+<button class="btn" style="background: linear-gradient(90deg, #ff6b6b, #e03131); border:0; padding:6px 10px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="jumpToEndPoint()">B點</button>
 </div>
 <div style="display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 4px; padding: 6px 0;">
 <label style="color: #ffd43b; font-size: 15px; font-weight: 700; flex-shrink: 0; margin-right: 8px;">高度：</label>
-<button class="btn" style="background: linear-gradient(90deg, #51cf66, #37b24d); border:0; padding:6px 12px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="jumpToMinPoint()">最低點</button>
-<button class="btn" style="background: linear-gradient(90deg, #cc5de8, #9c36b5); border:0; padding:6px 12px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="jumpToMaxPoint()">最高點</button>
-<button class="btn" style="background: linear-gradient(90deg, #868e96, #495057); border:0; padding:6px 18px; border-radius:4px; font-weight:700; font-size:18px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; min-width:50px; height:34px;" onclick="jumpToLowerPoint()" title="跳到更低的點">-</button>
-<button class="btn" style="background: linear-gradient(90deg, #ff922b, #fd7e14); border:0; padding:6px 18px; border-radius:4px; font-weight:700; font-size:18px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; min-width:50px; height:34px;" onclick="jumpToHigherPoint()" title="跳到更高的點">+</button>
+<button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:6px 16px; border-radius:4px; font-weight:700; font-size:16px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="jumpToHigherPoint()" title="跳到更高的點">⬆</button>
+<button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:6px 16px; border-radius:4px; font-weight:700; font-size:16px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="jumpToLowerPoint()" title="跳到更低的點">⬇</button>
+<button class="btn" style="background: linear-gradient(90deg, #4dabf7, #339af0); border:0; padding:6px 12px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:34px;" onclick="jumpToMinPoint()">最低點</button>
+<button class="btn" style="background: linear-gradient(90deg, #ff6b6b, #e03131); border:0; padding:6px 12px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:34px;" onclick="jumpToMaxPoint()">最高點</button>
 </div>
 <div style="display: flex; gap: 8px; align-items: center; justify-content: center; padding: 6px 0;">
 <label style="color: #ffd43b; font-size: 15px; font-weight: 700; flex-shrink: 0; margin-right: 8px;">遮蔽：</label>
-<button class="btn" style="background: linear-gradient(90deg, #c92a2a, #a61e1e); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="jumpToMaxObstruction()">主遮蔽</button>
-<button class="btn" style="background: linear-gradient(90deg, #ff8fab, #ff6b8a); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="jumpToFirstObstructionFromStart()">起點障礙</button>
-<button class="btn" style="background: linear-gradient(90deg, #ff8fab, #ff6b8a); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; height:34px;" onclick="jumpToFirstObstructionFromEnd()">終點障礙</button>
+<button class="btn" style="background: linear-gradient(90deg, #c92a2a, #a61e1e); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:34px;" onclick="jumpToMaxObstruction()">主遮蔽</button>
+<button class="btn" style="background: linear-gradient(90deg, #ff8fab, #ff6b8a); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:34px;" onclick="jumpToFirstObstructionFromStart()">A點障礙</button>
+<button class="btn" style="background: linear-gradient(90deg, #ff8fab, #ff6b8a); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:34px;" onclick="jumpToFirstObstructionFromEnd()">B點障礙</button>
 </div>
 </div>
 <div id="map-container" style="margin-top:5px; text-align:center; display:none; padding:0; border-top:none;">
 <div id="map-details" style="width: 100%; box-sizing: border-box; margin: 0 0 15px 0; font-size:0.95em; color:#e8eef5; text-align:left; padding: 12px; border: 2px solid #79a8ff; border-radius: 8px; background-color: rgba(121, 168, 255, 0.05);">請點擊上方圖表的點</div>
-<iframe id="map-frame" style="border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); width:100%; height:450px;" src="" allowfullscreen loading="lazy"></iframe>
+<iframe id="map-frame" style="border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:2px solid #5ff0d5; width:100%; height:450px;" src="" allowfullscreen loading="lazy"></iframe>
 </div>
 
 <!-- 新增：起點終點路徑地圖 -->
 <div id="route-map-container" style="margin-top:5px; text-align:center; display:none; padding:0; border-top:none;">
-<div id="route-map-details" style="width: 100%; box-sizing: border-box; margin: 0 0 15px 0; font-size:0.95em; color:#e8eef5; text-align:left; padding: 12px; border: 2px solid #79a8ff; border-radius: 8px; background-color: rgba(121, 168, 255, 0.05);">
+<div id="route-map-details" style="width: 100%; box-sizing: border-box; margin: 0 0 15px 0; font-size:0.75em; color:#e8eef5; text-align:left; padding: 10px; border: 2px solid #79a8ff; border-radius: 8px; background-color: rgba(121, 168, 255, 0.05);">
 <strong><span style="color: #ffd43b;">路徑資訊</span></strong><br>
-<span style="color: #4a90e2;">A起點:</span> <span style="color: #5ff0d5;" id="route-start-info">-</span><br>
-<span style="color: #ea4335;">B終點:</span> <span style="color: #5ff0d5;" id="route-end-info">-</span><br>
+<span style="color: #4a90e2;">A點:</span> <span style="color: #5ff0d5;" id="route-start-info">-</span><br>
+<span style="color: #ea4335;">B點:</span> <span style="color: #5ff0d5;" id="route-end-info">-</span><br>
 <span style="color: #ffd43b;">直線距離:</span> <span style="color: #5ff0d5;" id="route-distance-info">-</span>
 </div>
-<div id="route-map" style="width:100%; height:450px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:2px solid var(--accent1);"></div>
+<div id="route-map" style="width:100%; height:450px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:2px solid #5ff0d5;"></div>
 </div>
 </div>
 </div>
@@ -395,25 +589,25 @@ div.gps-ig.orange-border-card,
     <h3 class="section-title" style="margin-bottom:12px">💾 參數保存 / 備份</h3>
     <div style="display:flex;gap:8px; margin-bottom:12px; align-items:center; flex-wrap:nowrap;">
       <input id="ls_save_name" placeholder="自訂名稱" style="flex:1;min-width:150px; padding:8px 12px; font-size:16px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
-      <button class="btn" onclick="lsSave()" style="padding:8px 16px; font-size:16px; white-space:nowrap; flex-shrink:0;">保存</button>
-      <button class="btn ghost" onclick="lsExport()" style="padding:8px 16px; font-size:16px; white-space:nowrap; flex-shrink:0;">匯出</button>
-      <button class="btn ghost" onclick="document.getElementById('ls_import').click()" style="padding:8px 16px; font-size:16px; white-space:nowrap; flex-shrink:0;">讀取</button>
+      <button class="btn" onclick="lsSave()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">保存</button>
+      <button class="btn ghost" onclick="lsExport()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">匯出</button>
+      <button class="btn ghost" onclick="document.getElementById('ls_import').click()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">讀取</button>
       <input id="ls_import" type="file" accept="application/json" style="display:none" onchange="lsImport(event)">
     </div>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:nowrap;">
       <label style="color:var(--label); font-size:15px; font-weight:600; white-space:nowrap;">排列方式：</label>
       <select id="sort_order" onchange="lsLoadTable()" style="flex:1; padding:6px 10px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
-        <option value="time-new">檔案名稱新>舊</option>
-        <option value="time-old">檔案名稱舊>新</option>
-        <option value="name-az">檔案名稱A>Z</option>
-        <option value="name-za">檔案名稱Z>A</option>
+        <option value="time-new">檔案 新 ⮕ 舊</option>
+        <option value="time-old">檔案 舊 ⮕ 新</option>
+        <option value="name-az">名稱 A ⮕ Z</option>
+        <option value="name-za">名稱 Z ⮕ A</option>
       </select>
     </div>
     <div style="overflow-x:auto;">
-      <table style="width:100%; table-layout:fixed;">
+      <table style="width:100%; table-layout:auto;">
         <thead>
           <tr>
-            <th style="text-align:left; padding:8px;">名稱</th>
+            <th style="text-align:left; padding:8px; width:auto;">名稱</th>
             <th style="text-align:center; padding:8px; width:200px;">操作</th>
           </tr>
         </thead>
@@ -2791,24 +2985,29 @@ function renderChart(elevations) {
             labels: pathData.map(p => Math.round(parseFloat(p.dist)).toString()),
             datasets: [
                 { 
-                    label: '視距連線 (考慮地球曲度)', 
-                    data: losLineWithCurvature, 
-                    borderColor: '#dc3545', 
-                    borderDash: [5, 5], 
-                    fill: false, 
-                    pointRadius: 0 
-                },
-                { 
                     label: '地形海拔 (m)', 
                     data: adjustedElevations, 
                     borderColor: '#28a745', 
                     backgroundColor: 'rgba(40, 167, 69, 0.2)', 
                     fill: true, 
-                    tension: 0.3, 
+                    tension: 0.4, 
                     pointRadius: pointRadiusArray,
                     pointHoverRadius: pointHoverRadiusArray,
                     pointBackgroundColor: pointColorArray,
-                    pointBorderWidth: 0
+                    pointBorderWidth: 0,
+                    order: 2,
+                    cubicInterpolationMode: 'monotone'
+                },
+                { 
+                    label: '視距連線 (考慮地球曲度)', 
+                    data: losLineWithCurvature, 
+                    borderColor: '#dc3545', 
+                    borderDash: [5, 5], 
+                    fill: false, 
+                    pointRadius: 0,
+                    order: 3,
+                    tension: 0.4,
+                    cubicInterpolationMode: 'monotone'
                 }
             ]
         },
@@ -2828,21 +3027,27 @@ function renderChart(elevations) {
                     for (let i = 0; i < pointColorArray.length; i++) {
                         if (i === idx) {
                             pointColorArray[i] = '#ffd43b';
-                            pointRadiusArray[i] = 6; // 黃點變大
+                            pointRadiusArray[i] = 6; // 黃點變大，始終顯示
                             pointHoverRadiusArray[i] = 10;
                         } else {
                             pointColorArray[i] = '#28a745';
-                            pointRadiusArray[i] = 3;
-                            pointHoverRadiusArray[i] = 8;
+                            // 根據 greenPointsVisible 狀態決定節點大小
+                            if (typeof greenPointsVisible !== 'undefined' && !greenPointsVisible) {
+                                pointRadiusArray[i] = 0; // 隱藏節點
+                                pointHoverRadiusArray[i] = 0;
+                            } else {
+                                pointRadiusArray[i] = 3; // 顯示節點
+                                pointHoverRadiusArray[i] = 8;
+                            }
                         }
                     }
                     
                     window.currentSelectedPointIndex = idx;
                     
                     // 更新圖表
-                    chartInstance.data.datasets[1].pointBackgroundColor = pointColorArray;
-                    chartInstance.data.datasets[1].pointRadius = pointRadiusArray;
-                    chartInstance.data.datasets[1].pointHoverRadius = pointHoverRadiusArray;
+                    chartInstance.data.datasets[0].pointBackgroundColor = pointColorArray;
+                    chartInstance.data.datasets[0].pointRadius = pointRadiusArray;
+                    chartInstance.data.datasets[0].pointHoverRadius = pointHoverRadiusArray;
                     chartInstance.update();
                     
                     showMap(idx, elevations[idx]);
@@ -3087,6 +3292,1004 @@ function renderChart(elevations) {
     showRouteMap();
 }
 
+// === 切換節點顯示/隱藏功能 ===
+let greenPointsVisible = false; // 全局變數追蹤節點顯示狀態（預設隱藏）
+
+function toggleGreenPoints() {
+    if (!chartInstance || !chartInstance.data.datasets[0]) {
+        alert('請先生成路徑剖面');
+        return;
+    }
+    
+    const btn = document.getElementById('toggleGreenPointsBtn');
+    const pointRadiusArray = chartInstance.data.datasets[0].pointRadius;
+    const pointHoverRadiusArray = chartInstance.data.datasets[0].pointHoverRadius;
+    const currentSelectedIndex = window.currentSelectedPointIndex || -1;
+    
+    // 切換狀態
+    greenPointsVisible = !greenPointsVisible;
+    
+    if (greenPointsVisible) {
+        // 顯示節點
+        btn.innerHTML = '👁️ 隱藏節點';
+        btn.style.background = 'linear-gradient(90deg,#28a745,#20c997)';
+        
+        // 恢復所有點的大小
+        for (let i = 0; i < pointRadiusArray.length; i++) {
+            if (i === currentSelectedIndex) {
+                pointRadiusArray[i] = 6; // 黃點保持大
+                pointHoverRadiusArray[i] = 10;
+            } else {
+                pointRadiusArray[i] = 3; // 節點正常大小
+                pointHoverRadiusArray[i] = 8;
+            }
+        }
+    } else {
+        // 隱藏節點
+        btn.innerHTML = '👁️ 顯示節點';
+        btn.style.background = 'linear-gradient(90deg,#6c757d,#5a6268)';
+        
+        // 將所有節點設為0，但保留黃點
+        for (let i = 0; i < pointRadiusArray.length; i++) {
+            if (i === currentSelectedIndex) {
+                pointRadiusArray[i] = 6; // 黃點保持大
+                pointHoverRadiusArray[i] = 10;
+            } else {
+                pointRadiusArray[i] = 0; // 節點隱藏
+                pointHoverRadiusArray[i] = 0;
+            }
+        }
+    }
+    
+    // 更新圖表
+    chartInstance.data.datasets[0].pointRadius = pointRadiusArray;
+    chartInstance.data.datasets[0].pointHoverRadius = pointHoverRadiusArray;
+    chartInstance.update();
+    
+    console.log('節點顯示狀態已切換:', greenPointsVisible ? '顯示' : '隱藏');
+}
+
+// === 剖面圖全螢幕顯示功能 ===
+let fullscreenChartInstance = null;
+let fullscreenLabelAOffset = { x: 0, y: -30 };
+let fullscreenLabelBOffset = { x: 0, y: -30 };
+let fullscreenDraggingLabel = null;
+
+function openChartFullscreen() {
+    // 檢查是否在手機上
+    const isMobile = window.innerWidth <= 768;
+    
+    if (!isMobile) {
+        console.log('非手機裝置，不開啟全螢幕');
+        return;
+    }
+    
+    // 重置資訊框顯示狀態為開啟
+    fullscreenInfoVisible = true;
+    
+    if (!chartInstance || !chartInstance.data) {
+        alert('請先生成路徑剖面');
+        return;
+    }
+    
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    overlay.classList.add('active');
+    
+    // 禁止背景滾動
+    document.body.style.overflow = 'hidden';
+    
+    // 重置標籤偏移
+    fullscreenLabelAOffset = { x: 0, y: -30 };
+    fullscreenLabelBOffset = { x: 0, y: -30 };
+    
+    // 使用 Fullscreen API
+    const elem = overlay;
+    const enterFullscreen = () => {
+        if (elem.requestFullscreen) {
+            return elem.requestFullscreen({ navigationUI: "hide" });
+        } else if (elem.webkitRequestFullscreen) {
+            return elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+            return elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+            return elem.msRequestFullscreen();
+        }
+        return Promise.reject(new Error('不支援全螢幕'));
+    };
+    
+    enterFullscreen().then(() => {
+        console.log('已進入全螢幕模式');
+        
+        // 全螢幕成功後再鎖定橫向
+        setTimeout(() => {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').then(() => {
+                    console.log('已鎖定橫向顯示');
+                }).catch(err => {
+                    console.log('無法鎖定橫向:', err);
+                    // 如果無法鎖定，嘗試其他方法
+                    if (screen.lockOrientation) {
+                        screen.lockOrientation('landscape');
+                    } else if (screen.mozLockOrientation) {
+                        screen.mozLockOrientation('landscape');
+                    } else if (screen.msLockOrientation) {
+                        screen.msLockOrientation('landscape');
+                    }
+                });
+            }
+        }, 300);
+    }).catch(err => {
+        console.log('無法進入全螢幕:', err);
+    });
+    
+    // 複製圖表數據到全螢幕圖表
+    setTimeout(() => {
+        const ctx = document.getElementById('elevationChartFullscreen');
+        
+        if (fullscreenChartInstance) {
+            fullscreenChartInstance.destroy();
+        }
+        
+        // 獲取原圖表的數據
+        const originalData = chartInstance.data;
+        const originalOptions = chartInstance.options;
+        
+        // 創建標籤插件（用於全螢幕圖表，支援拖曳）
+        const fullscreenLabelPlugin = {
+            id: 'fullscreenLabelPlugin',
+            afterDatasetsDraw: (chart) => {
+                const ctx = chart.ctx;
+                const xAxis = chart.scales.x;
+                const yAxis = chart.scales.y;
+                const chartArea = chart.chartArea;
+                
+                // 獲取地名
+                const nameA = window.elevationPointAName || 'A點';
+                const nameB = window.elevationPointBName || 'B點';
+                
+                // 獲取數據
+                const datasetIndex = 0;
+                const dataset = chart.data.datasets[datasetIndex];
+                
+                // 繪製 A 點標注
+                if (dataset.data.length > 0) {
+                    const xA = xAxis.getPixelForValue(0);
+                    const yA = yAxis.getPixelForValue(dataset.data[0]);
+                    
+                    ctx.save();
+                    ctx.font = 'bold 13px Inter, sans-serif';
+                    
+                    const textWidthA = ctx.measureText(nameA).width;
+                    const paddingA = 6;
+                    const boxWidthA = textWidthA + paddingA * 2;
+                    const boxHeightA = 22;
+                    
+                    let labelXA = xA + fullscreenLabelAOffset.x;
+                    let labelYA = yA + fullscreenLabelAOffset.y;
+                    
+                    // 確保標籤在圖表區域內
+                    const halfBoxWidth = boxWidthA / 2;
+                    if (labelXA - halfBoxWidth < chartArea.left) {
+                        labelXA = chartArea.left + halfBoxWidth + 2;
+                    }
+                    if (labelXA + halfBoxWidth > chartArea.right) {
+                        labelXA = chartArea.right - halfBoxWidth - 2;
+                    }
+                    
+                    const halfBoxHeight = boxHeightA / 2;
+                    if (labelYA - halfBoxHeight < chartArea.top) {
+                        labelYA = chartArea.top + halfBoxHeight + 2;
+                    }
+                    if (labelYA + halfBoxHeight > chartArea.bottom) {
+                        labelYA = chartArea.bottom - halfBoxHeight - 2;
+                    }
+                    
+                    const boxY = labelYA - halfBoxHeight;
+                    const boxX = labelXA - halfBoxWidth;
+                    
+                    // 保存標籤位置
+                    window.fullscreenLabelABounds = {
+                        x: boxX, y: boxY,
+                        width: boxWidthA, height: boxHeightA,
+                        centerX: labelXA, centerY: labelYA
+                    };
+                    
+                    // 繪製背景框
+                    if (fullscreenDraggingLabel === 'A') {
+                        ctx.fillStyle = 'rgba(255, 229, 143, 1)';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                        ctx.shadowBlur = 10;
+                    } else {
+                        ctx.fillStyle = 'rgba(255, 229, 143, 0.95)';
+                    }
+                    ctx.beginPath();
+                    ctx.roundRect(boxX, boxY, boxWidthA, boxHeightA, 5);
+                    ctx.fill();
+                    
+                    // 添加邊框
+                    ctx.strokeStyle = 'rgba(255, 200, 100, 1)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    
+                    // 繪製文字
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#022';
+                    ctx.fillText(nameA, labelXA, boxY + boxHeightA / 2);
+                    
+                    // 繪製拖曳圖標
+                    ctx.fillStyle = 'rgba(0, 34, 34, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(boxX + 6, boxY + boxHeightA / 2, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(boxX + boxWidthA - 6, boxY + boxHeightA / 2, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+                
+                // 繪製 B 點標注
+                if (dataset.data.length > 0) {
+                    const lastIndex = dataset.data.length - 1;
+                    const xB = xAxis.getPixelForValue(lastIndex);
+                    const yB = yAxis.getPixelForValue(dataset.data[lastIndex]);
+                    
+                    ctx.save();
+                    ctx.font = 'bold 13px Inter, sans-serif';
+                    
+                    const textWidthB = ctx.measureText(nameB).width;
+                    const paddingB = 6;
+                    const boxWidthB = textWidthB + paddingB * 2;
+                    const boxHeightB = 22;
+                    
+                    let labelXB = xB + fullscreenLabelBOffset.x;
+                    let labelYB = yB + fullscreenLabelBOffset.y;
+                    
+                    // 確保標籤在圖表區域內
+                    const halfBoxWidth = boxWidthB / 2;
+                    if (labelXB - halfBoxWidth < chartArea.left) {
+                        labelXB = chartArea.left + halfBoxWidth + 2;
+                    }
+                    if (labelXB + halfBoxWidth > chartArea.right) {
+                        labelXB = chartArea.right - halfBoxWidth - 2;
+                    }
+                    
+                    const halfBoxHeight = boxHeightB / 2;
+                    if (labelYB - halfBoxHeight < chartArea.top) {
+                        labelYB = chartArea.top + halfBoxHeight + 2;
+                    }
+                    if (labelYB + halfBoxHeight > chartArea.bottom) {
+                        labelYB = chartArea.bottom - halfBoxHeight - 2;
+                    }
+                    
+                    const boxY = labelYB - halfBoxHeight;
+                    const boxX = labelXB - halfBoxWidth;
+                    
+                    // 保存標籤位置
+                    window.fullscreenLabelBBounds = {
+                        x: boxX, y: boxY,
+                        width: boxWidthB, height: boxHeightB,
+                        centerX: labelXB, centerY: labelYB
+                    };
+                    
+                    // 繪製背景框
+                    if (fullscreenDraggingLabel === 'B') {
+                        ctx.fillStyle = 'rgba(255, 229, 143, 1)';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                        ctx.shadowBlur = 10;
+                    } else {
+                        ctx.fillStyle = 'rgba(255, 229, 143, 0.95)';
+                    }
+                    ctx.beginPath();
+                    ctx.roundRect(boxX, boxY, boxWidthB, boxHeightB, 5);
+                    ctx.fill();
+                    
+                    // 添加邊框
+                    ctx.strokeStyle = 'rgba(255, 200, 100, 1)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    
+                    // 繪製文字
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#022';
+                    ctx.fillText(nameB, labelXB, boxY + boxHeightB / 2);
+                    
+                    // 繪製拖曳圖標
+                    ctx.fillStyle = 'rgba(0, 34, 34, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(boxX + 6, boxY + boxHeightB / 2, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(boxX + boxWidthB - 6, boxY + boxHeightB / 2, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+        };
+        
+        // 創建全螢幕圖表
+        fullscreenChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: originalData.labels,
+                datasets: originalData.datasets.map(dataset => {
+                    // 確保點屬性是陣列格式，以便動態更新
+                    const dataLength = dataset.data.length;
+                    const pointBgColor = Array.isArray(dataset.pointBackgroundColor) 
+                        ? dataset.pointBackgroundColor.slice() 
+                        : new Array(dataLength).fill(dataset.pointBackgroundColor || 'transparent');
+                    const pointBColor = Array.isArray(dataset.pointBorderColor) 
+                        ? dataset.pointBorderColor.slice() 
+                        : new Array(dataLength).fill(dataset.pointBorderColor || 'transparent');
+                    const pointR = Array.isArray(dataset.pointRadius) 
+                        ? dataset.pointRadius.slice() 
+                        : new Array(dataLength).fill(dataset.pointRadius || 0);
+                    const pointHR = Array.isArray(dataset.pointHoverRadius) 
+                        ? dataset.pointHoverRadius.slice() 
+                        : new Array(dataLength).fill(dataset.pointHoverRadius || 6);
+                    
+                    return {
+                        label: dataset.label,
+                        data: dataset.data,
+                        borderColor: dataset.borderColor,
+                        backgroundColor: dataset.backgroundColor,
+                        tension: dataset.tension || 0.4,
+                        fill: dataset.fill,
+                        borderWidth: dataset.borderWidth || 2,
+                        pointRadius: pointR,
+                        pointBackgroundColor: pointBgColor,
+                        pointBorderColor: pointBColor,
+                        pointHoverRadius: pointHR,
+                        pointHoverBackgroundColor: dataset.pointHoverBackgroundColor,
+                        pointHoverBorderColor: dataset.pointHoverBorderColor,
+                        pointHoverBorderWidth: dataset.pointHoverBorderWidth || 2,
+                        borderDash: dataset.borderDash,
+                        order: dataset.order
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                },
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 10,
+                        top: 5,
+                        bottom: 5
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { 
+                            color: '#e8eef5', 
+                            font: { size: 12 },
+                            padding: 5,
+                            boxWidth: 15,
+                            boxHeight: 15
+                        },
+                        align: 'start'
+                    },
+                    tooltip: {
+                        enabled: false,
+                        position: 'nearest',
+                        mode: 'index',
+                        intersect: false,
+                        external: function(context) {
+                            // 檢查資訊框是否應該顯示
+                            if (typeof fullscreenInfoVisible !== 'undefined' && !fullscreenInfoVisible) {
+                                return;
+                            }
+                            
+                            // Tooltip Element - 添加到全螢幕容器內
+                            const fullscreenContainer = document.getElementById('chartFullscreenOverlay');
+                            let tooltipEl = fullscreenContainer ? fullscreenContainer.querySelector('#chartjs-tooltip-fullscreen') : null;
+
+                            // Create element on first render
+                            if (!tooltipEl) {
+                                tooltipEl = document.createElement('div');
+                                tooltipEl.id = 'chartjs-tooltip-fullscreen';
+                                tooltipEl.style.background = 'rgba(13, 71, 161, 0.75)';
+                                tooltipEl.style.borderRadius = '8px';
+                                tooltipEl.style.color = 'white';
+                                tooltipEl.style.opacity = '0';
+                                tooltipEl.style.pointerEvents = 'none';
+                                tooltipEl.style.position = 'fixed';
+                                tooltipEl.style.transform = 'translate(-50%, -120%)';
+                                tooltipEl.style.transition = 'all .1s ease';
+                                tooltipEl.style.padding = '16px';
+                                tooltipEl.style.border = '2px solid #4dabf7';
+                                tooltipEl.style.fontSize = '14px';
+                                tooltipEl.style.lineHeight = '1.8';
+                                tooltipEl.style.zIndex = '10002';
+                                tooltipEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                                tooltipEl.style.whiteSpace = 'nowrap';
+                                
+                                if (fullscreenContainer) {
+                                    fullscreenContainer.appendChild(tooltipEl);
+                                }
+                            }
+
+                            // Hide if no tooltip
+                            const tooltipModel = context.tooltip;
+                            if (tooltipModel.opacity === 0) {
+                                tooltipEl.style.opacity = '0';
+                                return;
+                            }
+
+                            // Set Text
+                            if (tooltipModel.body && tooltipModel.dataPoints && tooltipModel.dataPoints.length > 0) {
+                                const index = tooltipModel.dataPoints[0].dataIndex;
+                                const dataset = tooltipModel.dataPoints[0].dataset;
+                                const dataValue = dataset.data[index];
+                                
+                                // 計算距離資訊
+                                const totalPoints = dataset.data.length;
+                                const sLat = parseFloat(document.getElementById('sLat').value);
+                                const sLng = parseFloat(document.getElementById('sLng').value);
+                                const eLat = parseFloat(document.getElementById('eLat').value);
+                                const eLng = parseFloat(document.getElementById('eLng').value);
+                                const totalDistance = getDistance(sLat, sLng, eLat, eLng);
+                                
+                                const distanceFromStart = (index / (totalPoints - 1)) * totalDistance;
+                                const distanceFromEnd = totalDistance - distanceFromStart;
+                                
+                                // 計算當前點的座標
+                                const fraction = index / (totalPoints - 1);
+                                const currentLat = sLat + (eLat - sLat) * fraction;
+                                const currentLng = sLng + (eLng - sLng) * fraction;
+                                
+                                // 獲取A點和B點的名稱
+                                const startName = document.getElementById('sName')?.value || 'A點';
+                                const endName = document.getElementById('eName')?.value || 'B點';
+                                
+                                // 計算遮蔽高度
+                                let obstructionValue = 0;
+                                const losDataset = context.chart.data.datasets.find(d => d.label && d.label.includes('視距連線'));
+                                if (losDataset && losDataset.data[index] !== undefined) {
+                                    const losHeight = losDataset.data[index];
+                                    obstructionValue = Math.max(0, dataValue - losHeight);
+                                }
+                                
+                                // 判斷遮蔽顏色
+                                const obstructionColor = obstructionValue > 0 ? '#ff4444' : '#4caf50';
+                                
+                                const innerHTML = `
+                                    <div style="font-weight: bold; margin-bottom: 8px; font-size: 15px;">位置資訊: ${index}</div>
+                                    <div>距離${startName}: ${distanceFromStart.toFixed(3)} km</div>
+                                    <div>距離${endName}: ${distanceFromEnd.toFixed(3)} km</div>
+                                    <div>海拔高度: ${dataValue.toFixed(0)} m</div>
+                                    <div>座標: ${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}</div>
+                                    <div style="color: ${obstructionColor}; font-weight: bold;">遮蔽: ${obstructionValue.toFixed(2)} m</div>
+                                `;
+                                
+                                tooltipEl.innerHTML = innerHTML;
+                            }
+
+                            const position = context.chart.canvas.getBoundingClientRect();
+
+                            // 計算tooltip的基礎位置
+                            let tooltipX = position.left + tooltipModel.caretX;
+                            let tooltipY = position.top + tooltipModel.caretY;
+                            
+                            // 獲取tooltip的實際尺寸
+                            tooltipEl.style.opacity = '1';
+                            tooltipEl.style.left = tooltipX + 'px';
+                            tooltipEl.style.top = tooltipY + 'px';
+                            
+                            // 使用 getBoundingClientRect 獲取tooltip的實際尺寸
+                            const tooltipRect = tooltipEl.getBoundingClientRect();
+                            const tooltipWidth = tooltipRect.width;
+                            const tooltipHeight = tooltipRect.height;
+                            
+                            // 獲取視窗尺寸
+                            const viewportWidth = window.innerWidth;
+                            const viewportHeight = window.innerHeight;
+                            
+                            // 智能定位：根據點擊位置決定tooltip的方向
+                            let transformX = '-50%';  // 預設水平置中
+                            let transformY = '-120%'; // 預設在點上方
+                            
+                            // 檢查上方是否有足夠空間
+                            if (tooltipY - tooltipHeight - 20 < 0) {
+                                // 上方空間不足，顯示在下方
+                                transformY = '20%';
+                            }
+                            
+                            // 檢查左右是否有足夠空間
+                            if (tooltipX - tooltipWidth / 2 < 20) {
+                                // 左側空間不足，靠左對齊
+                                transformX = '0%';
+                                tooltipX = 20;
+                            } else if (tooltipX + tooltipWidth / 2 > viewportWidth - 20) {
+                                // 右側空間不足，靠右對齊
+                                transformX = '-100%';
+                                tooltipX = viewportWidth - 20;
+                            }
+                            
+                            // 應用最終位置和transform
+                            tooltipEl.style.transform = `translate(${transformX}, ${transformY})`;
+                            tooltipEl.style.left = tooltipX + 'px';
+                            tooltipEl.style.top = tooltipY + 'px';
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { 
+                            color: '#a8b3c3', 
+                            font: { size: 11 },
+                            padding: 5
+                        },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        title: { 
+                            display: true, 
+                            text: '高度 (m)', 
+                            color: '#85c9ff', 
+                            font: { size: 13 },
+                            padding: { bottom: 5 }
+                        }
+                    },
+                    x: {
+                        ticks: { 
+                            color: '#a8b3c3', 
+                            font: { size: 11 }, 
+                            maxRotation: 0, 
+                            minRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 15
+                        },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        title: { 
+                            display: true, 
+                            text: '距離 (km)', 
+                            color: '#85c9ff', 
+                            font: { size: 13 },
+                            padding: { top: 5 }
+                        }
+                    }
+                },
+                onClick: (event, elements, chart) => {
+                    console.log('全螢幕圖表點擊，elements:', elements);
+                    
+                    // 即使沒有點擊到具體的點，也要處理點擊事件
+                    let idx = -1;
+                    
+                    if (elements.length > 0) {
+                        idx = elements[0].index;
+                    } else {
+                        // 如果沒有點擊到點，嘗試從鼠標位置計算最近的點
+                        const canvasPosition = Chart.helpers.getRelativePosition(event, chart);
+                        const dataX = chart.scales.x.getValueForPixel(canvasPosition.x);
+                        
+                        if (dataX !== null && dataX !== undefined) {
+                            // 找到最接近的數據點索引
+                            const labels = chart.data.labels;
+                            let minDist = Infinity;
+                            let closestIdx = 0;
+                            
+                            for (let i = 0; i < labels.length; i++) {
+                                const dist = Math.abs(i - dataX);
+                                if (dist < minDist) {
+                                    minDist = dist;
+                                    closestIdx = i;
+                                }
+                            }
+                            
+                            // 只有當點擊位置足夠接近某個點時才選中
+                            if (minDist < 2) {
+                                idx = closestIdx;
+                            }
+                        }
+                    }
+                    
+                    if (idx >= 0) {
+                        console.log('全螢幕選中索引:', idx);
+                        
+                        // 檢查資訊框是否開啟，如果關閉則不更新黃點
+                        if (typeof fullscreenInfoVisible === 'undefined' || !fullscreenInfoVisible) {
+                            console.log('資訊框已關閉，不更新黃點');
+                            return;
+                        }
+                        
+                        // 更新全域變數
+                        window.currentSelectedPointIndex = idx;
+                        
+                        // 同步更新主圖表的選擇點
+                        if (typeof chartInstance !== 'undefined' && chartInstance) {
+                            // 更新主圖表的點顏色和大小
+                            const mainDataset = chartInstance.data.datasets[0];
+                            if (mainDataset && typeof pointColorArray !== 'undefined') {
+                                for (let i = 0; i < pointColorArray.length; i++) {
+                                    if (i === idx) {
+                                        pointColorArray[i] = '#ffd43b';
+                                        pointRadiusArray[i] = 6;
+                                        pointHoverRadiusArray[i] = 10;
+                                    } else {
+                                        pointColorArray[i] = '#28a745';
+                                        if (typeof greenPointsVisible !== 'undefined' && !greenPointsVisible) {
+                                            pointRadiusArray[i] = 0;
+                                            pointHoverRadiusArray[i] = 0;
+                                        } else {
+                                            pointRadiusArray[i] = 3;
+                                            pointHoverRadiusArray[i] = 8;
+                                        }
+                                    }
+                                }
+                                mainDataset.pointBackgroundColor = pointColorArray.slice();
+                                mainDataset.pointRadius = pointRadiusArray.slice();
+                                mainDataset.pointHoverRadius = pointHoverRadiusArray.slice();
+                                chartInstance.update('none');
+                            }
+                        }
+                        
+                        // 更新全螢幕圖表的點顏色和大小 - 只更新地形海拔數據集
+                        const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d => 
+                            d.label && d.label.includes('地形海拔')
+                        );
+                        
+                        if (fullscreenDataset && fullscreenDataset.data) {
+                            const fullscreenPointColors = new Array(fullscreenDataset.data.length);
+                            const fullscreenPointRadius = new Array(fullscreenDataset.data.length);
+                            const fullscreenPointHoverRadius = new Array(fullscreenDataset.data.length);
+                            const fullscreenPointBorderColor = new Array(fullscreenDataset.data.length);
+                            
+                            for (let i = 0; i < fullscreenDataset.data.length; i++) {
+                                if (i === idx) {
+                                    fullscreenPointColors[i] = '#ffd43b';
+                                    fullscreenPointRadius[i] = 8;
+                                    fullscreenPointHoverRadius[i] = 12;
+                                    fullscreenPointBorderColor[i] = '#fff';
+                                } else {
+                                    fullscreenPointColors[i] = 'transparent';
+                                    fullscreenPointRadius[i] = 0;
+                                    fullscreenPointHoverRadius[i] = 6;
+                                    fullscreenPointBorderColor[i] = 'transparent';
+                                }
+                            }
+                            
+                            fullscreenDataset.pointBackgroundColor = fullscreenPointColors;
+                            fullscreenDataset.pointRadius = fullscreenPointRadius;
+                            fullscreenDataset.pointHoverRadius = fullscreenPointHoverRadius;
+                            fullscreenDataset.pointBorderColor = fullscreenPointBorderColor;
+                            fullscreenDataset.pointBorderWidth = 2;
+                            
+                            console.log('更新全螢幕圖表黃點，索引:', idx, '顏色:', fullscreenPointColors[idx]);
+                            fullscreenChartInstance.update('none');
+                        }
+                        
+                        // 更新選擇點輸入框
+                        const selectedPointInput = document.getElementById('selectedPointIndex');
+                        if (selectedPointInput) {
+                            selectedPointInput.value = idx;
+                        }
+                        
+                        // 顯示地圖
+                        if (typeof elevations !== 'undefined' && elevations[idx] !== undefined) {
+                            showMap(idx, elevations[idx]);
+                        }
+                    } else {
+                        // 點擊空白處，隱藏 tooltip
+                        if (fullscreenChartInstance.tooltip) {
+                            fullscreenChartInstance.tooltip.setActiveElements([], {x: 0, y: 0});
+                            fullscreenChartInstance.update('none');
+                        }
+                    }
+                }
+            },
+            plugins: [fullscreenLabelPlugin]
+        });
+        
+        // 同步當前選中的點到全螢幕圖表
+        if (typeof window.currentSelectedPointIndex !== 'undefined' && window.currentSelectedPointIndex !== null && window.currentSelectedPointIndex >= 0) {
+            const selectedIdx = window.currentSelectedPointIndex;
+            const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d => 
+                d.label && d.label.includes('地形海拔')
+            );
+            
+            if (fullscreenDataset && fullscreenDataset.data) {
+                const fullscreenPointColors = new Array(fullscreenDataset.data.length);
+                const fullscreenPointRadius = new Array(fullscreenDataset.data.length);
+                const fullscreenPointHoverRadius = new Array(fullscreenDataset.data.length);
+                const fullscreenPointBorderColor = new Array(fullscreenDataset.data.length);
+                
+                for (let i = 0; i < fullscreenDataset.data.length; i++) {
+                    if (i === selectedIdx) {
+                        fullscreenPointColors[i] = '#ffd43b';
+                        fullscreenPointRadius[i] = 8;
+                        fullscreenPointHoverRadius[i] = 12;
+                        fullscreenPointBorderColor[i] = '#fff';
+                    } else {
+                        fullscreenPointColors[i] = 'transparent';
+                        fullscreenPointRadius[i] = 0;
+                        fullscreenPointHoverRadius[i] = 6;
+                        fullscreenPointBorderColor[i] = 'transparent';
+                    }
+                }
+                
+                fullscreenDataset.pointBackgroundColor = fullscreenPointColors;
+                fullscreenDataset.pointRadius = fullscreenPointRadius;
+                fullscreenDataset.pointHoverRadius = fullscreenPointHoverRadius;
+                fullscreenDataset.pointBorderColor = fullscreenPointBorderColor;
+                fullscreenDataset.pointBorderWidth = 2;
+                fullscreenChartInstance.update('none');
+            }
+        }
+        
+        // 添加標籤拖曳功能
+        const canvas = document.getElementById('elevationChartFullscreen');
+        
+        const isPointInLabel = (x, y, labelBounds) => {
+            if (!labelBounds) return false;
+            return x >= labelBounds.x && x <= labelBounds.x + labelBounds.width &&
+                   y >= labelBounds.y && y <= labelBounds.y + labelBounds.height;
+        };
+        
+        const getMousePos = (canvas, evt) => {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        };
+        
+        const getTouchPos = (canvas, evt) => {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.touches[0].clientX - rect.left,
+                y: evt.touches[0].clientY - rect.top
+            };
+        };
+        
+        // 滑鼠事件
+        canvas.addEventListener('mousedown', function(e) {
+            const pos = getMousePos(canvas, e);
+            
+            if (isPointInLabel(pos.x, pos.y, window.fullscreenLabelABounds)) {
+                fullscreenDraggingLabel = 'A';
+                window.fullscreenDragStartX = pos.x;
+                window.fullscreenDragStartY = pos.y;
+                window.fullscreenDragStartOffsetX = fullscreenLabelAOffset.x;
+                window.fullscreenDragStartOffsetY = fullscreenLabelAOffset.y;
+                e.preventDefault();
+            } else if (isPointInLabel(pos.x, pos.y, window.fullscreenLabelBBounds)) {
+                fullscreenDraggingLabel = 'B';
+                window.fullscreenDragStartX = pos.x;
+                window.fullscreenDragStartY = pos.y;
+                window.fullscreenDragStartOffsetX = fullscreenLabelBOffset.x;
+                window.fullscreenDragStartOffsetY = fullscreenLabelBOffset.y;
+                e.preventDefault();
+            }
+        });
+        
+        canvas.addEventListener('mousemove', function(e) {
+            if (fullscreenDraggingLabel) {
+                const pos = getMousePos(canvas, e);
+                const deltaX = pos.x - window.fullscreenDragStartX;
+                const deltaY = pos.y - window.fullscreenDragStartY;
+                
+                if (fullscreenDraggingLabel === 'A') {
+                    fullscreenLabelAOffset.x = window.fullscreenDragStartOffsetX + deltaX;
+                    fullscreenLabelAOffset.y = window.fullscreenDragStartOffsetY + deltaY;
+                } else if (fullscreenDraggingLabel === 'B') {
+                    fullscreenLabelBOffset.x = window.fullscreenDragStartOffsetX + deltaX;
+                    fullscreenLabelBOffset.y = window.fullscreenDragStartOffsetY + deltaY;
+                }
+                
+                fullscreenChartInstance.update('none');
+                e.preventDefault();
+            }
+        });
+        
+        canvas.addEventListener('mouseup', function(e) {
+            if (fullscreenDraggingLabel) {
+                fullscreenDraggingLabel = null;
+                fullscreenChartInstance.update();
+            }
+        });
+        
+        // 觸控事件
+        canvas.addEventListener('touchstart', function(e) {
+            const pos = getTouchPos(canvas, e);
+            
+            if (isPointInLabel(pos.x, pos.y, window.fullscreenLabelABounds)) {
+                fullscreenDraggingLabel = 'A';
+                window.fullscreenDragStartX = pos.x;
+                window.fullscreenDragStartY = pos.y;
+                window.fullscreenDragStartOffsetX = fullscreenLabelAOffset.x;
+                window.fullscreenDragStartOffsetY = fullscreenLabelAOffset.y;
+                e.preventDefault();
+            } else if (isPointInLabel(pos.x, pos.y, window.fullscreenLabelBBounds)) {
+                fullscreenDraggingLabel = 'B';
+                window.fullscreenDragStartX = pos.x;
+                window.fullscreenDragStartY = pos.y;
+                window.fullscreenDragStartOffsetX = fullscreenLabelBOffset.x;
+                window.fullscreenDragStartOffsetY = fullscreenLabelBOffset.y;
+                e.preventDefault();
+            }
+        });
+        
+        canvas.addEventListener('touchmove', function(e) {
+            if (fullscreenDraggingLabel) {
+                const pos = getTouchPos(canvas, e);
+                const deltaX = pos.x - window.fullscreenDragStartX;
+                const deltaY = pos.y - window.fullscreenDragStartY;
+                
+                if (fullscreenDraggingLabel === 'A') {
+                    fullscreenLabelAOffset.x = window.fullscreenDragStartOffsetX + deltaX;
+                    fullscreenLabelAOffset.y = window.fullscreenDragStartOffsetY + deltaY;
+                } else if (fullscreenDraggingLabel === 'B') {
+                    fullscreenLabelBOffset.x = window.fullscreenDragStartOffsetX + deltaX;
+                    fullscreenLabelBOffset.y = window.fullscreenDragStartOffsetY + deltaY;
+                }
+                
+                fullscreenChartInstance.update('none');
+                e.preventDefault();
+            }
+        });
+        
+        canvas.addEventListener('touchend', function(e) {
+            if (fullscreenDraggingLabel) {
+                fullscreenDraggingLabel = null;
+                fullscreenChartInstance.update();
+            }
+        });
+        
+        console.log('全螢幕剖面圖已開啟（橫向顯示）');
+    }, 300);
+}
+
+function closeChartFullscreen() {
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    overlay.classList.remove('active');
+    
+    // 清除tooltip
+    const tooltipEl = overlay.querySelector('#chartjs-tooltip-fullscreen');
+    if (tooltipEl) {
+        tooltipEl.remove();
+    }
+    
+    // 解除螢幕方向鎖定
+    if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+    }
+    
+    // 退出全螢幕
+    if (document.exitFullscreen) {
+        document.exitFullscreen().catch(err => console.log('退出全螢幕失敗:', err));
+    } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen().catch(err => console.log('退出全螢幕失敗:', err));
+    } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen().catch(err => console.log('退出全螢幕失敗:', err));
+    } else if (document.msExitFullscreen) {
+        document.msExitFullscreen().catch(err => console.log('退出全螢幕失敗:', err));
+    }
+    
+    // 恢復背景滾動
+    document.body.style.overflow = '';
+    
+    if (fullscreenChartInstance) {
+        fullscreenChartInstance.destroy();
+        fullscreenChartInstance = null;
+    }
+    
+    fullscreenDraggingLabel = null;
+    
+    console.log('全螢幕剖面圖已關閉');
+}
+
+// 全螢幕資訊框與黃點的顯示狀態
+let fullscreenInfoVisible = true;
+
+function toggleFullscreenInfo() {
+    fullscreenInfoVisible = !fullscreenInfoVisible;
+    
+    const toggleBtn = document.querySelector('.chart-fullscreen-info-toggle');
+    const tooltipEl = document.querySelector('#chartjs-tooltip-fullscreen');
+    
+    // 切換按鈕樣式
+    if (fullscreenInfoVisible) {
+        toggleBtn.classList.remove('disabled');
+        toggleBtn.style.opacity = '1';
+        console.log('全螢幕資訊框已開啟');
+    } else {
+        toggleBtn.classList.add('disabled');
+        toggleBtn.style.opacity = '0.6';
+        // 隱藏tooltip
+        if (tooltipEl) {
+            tooltipEl.style.opacity = '0';
+            tooltipEl.style.display = 'none';
+        }
+        
+        // 隱藏黃點 - 更新全螢幕圖表
+        if (fullscreenChartInstance) {
+            const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d => 
+                d.label && d.label.includes('地形海拔')
+            );
+            
+            if (fullscreenDataset && fullscreenDataset.data) {
+                const fullscreenPointColors = new Array(fullscreenDataset.data.length);
+                const fullscreenPointRadius = new Array(fullscreenDataset.data.length);
+                const fullscreenPointHoverRadius = new Array(fullscreenDataset.data.length);
+                const fullscreenPointBorderColor = new Array(fullscreenDataset.data.length);
+                
+                // 將所有點設為透明
+                for (let i = 0; i < fullscreenDataset.data.length; i++) {
+                    fullscreenPointColors[i] = 'transparent';
+                    fullscreenPointRadius[i] = 0;
+                    fullscreenPointHoverRadius[i] = 0;
+                    fullscreenPointBorderColor[i] = 'transparent';
+                }
+                
+                fullscreenDataset.pointBackgroundColor = fullscreenPointColors;
+                fullscreenDataset.pointRadius = fullscreenPointRadius;
+                fullscreenDataset.pointHoverRadius = fullscreenPointHoverRadius;
+                fullscreenDataset.pointBorderColor = fullscreenPointBorderColor;
+                fullscreenChartInstance.update('none');
+            }
+        }
+        
+        console.log('全螢幕資訊框已關閉');
+    }
+    
+    // 如果重新開啟且有選中的點，恢復黃點顯示
+    if (fullscreenInfoVisible) {
+        // 恢復 tooltip 顯示
+        if (tooltipEl) {
+            tooltipEl.style.display = 'block';
+        }
+        
+        if (typeof window.currentSelectedPointIndex !== 'undefined' && 
+            window.currentSelectedPointIndex !== null && window.currentSelectedPointIndex >= 0) {
+            const selectedIdx = window.currentSelectedPointIndex;
+            
+            if (fullscreenChartInstance) {
+                const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d => 
+                    d.label && d.label.includes('地形海拔')
+                );
+                
+                if (fullscreenDataset && fullscreenDataset.data) {
+                    const fullscreenPointColors = new Array(fullscreenDataset.data.length);
+                    const fullscreenPointRadius = new Array(fullscreenDataset.data.length);
+                    const fullscreenPointHoverRadius = new Array(fullscreenDataset.data.length);
+                    const fullscreenPointBorderColor = new Array(fullscreenDataset.data.length);
+                    
+                    for (let i = 0; i < fullscreenDataset.data.length; i++) {
+                        if (i === selectedIdx) {
+                            fullscreenPointColors[i] = '#ffd43b';
+                            fullscreenPointRadius[i] = 8;
+                            fullscreenPointHoverRadius[i] = 12;
+                            fullscreenPointBorderColor[i] = '#fff';
+                        } else {
+                            fullscreenPointColors[i] = 'transparent';
+                            fullscreenPointRadius[i] = 0;
+                            fullscreenPointHoverRadius[i] = 6;
+                            fullscreenPointBorderColor[i] = 'transparent';
+                        }
+                    }
+                    
+                    fullscreenDataset.pointBackgroundColor = fullscreenPointColors;
+                    fullscreenDataset.pointRadius = fullscreenPointRadius;
+                    fullscreenDataset.pointHoverRadius = fullscreenPointHoverRadius;
+                    fullscreenDataset.pointBorderColor = fullscreenPointBorderColor;
+                    fullscreenDataset.pointBorderWidth = 2;
+                    fullscreenChartInstance.update('none');
+                }
+            }
+        }
+    }
+}
+
 function showMap(index, height) {
     console.log('showMap() 被調用，索引:', index, '高度:', height);
     
@@ -3108,20 +4311,27 @@ function showMap(index, height) {
     }
 
     // 更新圖表中的點顏色和大小：選中的變黃色且變大，其他變綠色
-    if (chartInstance && chartInstance.data.datasets[1].pointBackgroundColor) {
-        const pointColors = chartInstance.data.datasets[1].pointBackgroundColor;
-        const pointRadius = chartInstance.data.datasets[1].pointRadius;
-        const pointHoverRadius = chartInstance.data.datasets[1].pointHoverRadius;
+    if (chartInstance && chartInstance.data.datasets[0].pointBackgroundColor) {
+        const pointColors = chartInstance.data.datasets[0].pointBackgroundColor;
+        const pointRadius = chartInstance.data.datasets[0].pointRadius;
+        const pointHoverRadius = chartInstance.data.datasets[0].pointHoverRadius;
         
         for (let i = 0; i < pointColors.length; i++) {
             if (i === index) {
                 pointColors[i] = '#ffd43b';
-                pointRadius[i] = 6; // 黃點變大
+                pointRadius[i] = 6; // 黃點變大，始終顯示
                 pointHoverRadius[i] = 10;
             } else {
                 pointColors[i] = '#28a745';
-                pointRadius[i] = 3;
-                pointHoverRadius[i] = 8;
+                // 根據 greenPointsVisible 狀態決定節點大小
+                if (typeof greenPointsVisible !== 'undefined' && !greenPointsVisible) {
+                    pointRadius[i] = 0; // 隱藏節點
+                    pointHoverRadius[i] = 0;
+                } else {
+                    pointRadius[i] = 3; // 顯示節點
+                    pointHoverRadius[i] = 8;
+                }
+
             }
         }
         chartInstance.update();
@@ -3142,9 +4352,9 @@ function showMap(index, height) {
 
     // 計算遮蔽情況
     let obstructionInfo = '';
-    if (elevationData && elevationData.length > 0 && chartInstance && chartInstance.data.datasets[0]) {
+    if (elevationData && elevationData.length > 0 && chartInstance && chartInstance.data.datasets[1]) {
         // 獲取視距連線（考慮地球曲度）的數據
-        const losLineData = chartInstance.data.datasets[0].data;
+        const losLineData = chartInstance.data.datasets[1].data;
         
         if (losLineData && losLineData[index] !== undefined) {
             const losHeight = losLineData[index]; // 視距連線在該點的高度
@@ -3498,13 +4708,13 @@ function jumpToMaxObstruction() {
         return;
     }
     
-    if (!chartInstance || !chartInstance.data.datasets[0]) {
+    if (!chartInstance || !chartInstance.data.datasets[1]) {
         alert('無法獲取視距連線數據');
         return;
     }
     
     // 獲取視距連線（考慮地球曲度）的數據
-    const losLineData = chartInstance.data.datasets[0].data;
+    const losLineData = chartInstance.data.datasets[1].data;
     
     // 找到最大遮蔽點（地形高度 - 視距連線高度的最大負值）
     let maxObstruction = 0;
@@ -3540,13 +4750,13 @@ function jumpToFirstObstructionFromStart() {
         return;
     }
     
-    if (!chartInstance || !chartInstance.data.datasets[0]) {
+    if (!chartInstance || !chartInstance.data.datasets[1]) {
         alert('無法獲取視距連線數據');
         return;
     }
     
     // 獲取視距連線（考慮地球曲度）的數據
-    const losLineData = chartInstance.data.datasets[0].data;
+    const losLineData = chartInstance.data.datasets[1].data;
     
     // 從起點開始尋找第一個遮蔽點
     for (let i = 1; i < elevationData.length - 1; i++) { // 排除起點和終點
@@ -3574,13 +4784,13 @@ function jumpToFirstObstructionFromEnd() {
         return;
     }
     
-    if (!chartInstance || !chartInstance.data.datasets[0]) {
+    if (!chartInstance || !chartInstance.data.datasets[1]) {
         alert('無法獲取視距連線數據');
         return;
     }
     
     // 獲取視距連線（考慮地球曲度）的數據
-    const losLineData = chartInstance.data.datasets[0].data;
+    const losLineData = chartInstance.data.datasets[1].data;
     
     // 從終點向起點尋找第一個遮蔽點
     for (let i = elevationData.length - 2; i > 0; i--) { // 排除起點和終點
@@ -3922,6 +5132,91 @@ console.log('高度圖 JavaScript 已加載');
 })();
 </script>
 
+<!-- === GPS 座標智能貼上功能 === -->
+<script>
+(function() {
+  // 處理座標貼上事件
+  function handleCoordinatePaste(event, point) {
+    // 獲取貼上的文本
+    const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+    
+    // 檢查是否為座標格式 (例如: "24.222222,121.333333" 或 "24.222222, 121.333333")
+    const coordPattern = /^\s*([-+]?\d+\.?\d*)\s*,\s*([-+]?\d+\.?\d*)\s*$/;
+    const match = pastedText.trim().match(coordPattern);
+    
+    if (match) {
+      // 阻止預設貼上行為
+      event.preventDefault();
+      
+      const lat = parseFloat(match[1]);
+      const lon = parseFloat(match[2]);
+      
+      // 驗證座標範圍
+      if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+        // 填入十進制欄位
+        document.getElementById(`lat${point}`).value = lat;
+        document.getElementById(`lon${point}`).value = lon;
+        
+        console.log(`座標已自動填入地點${point}: 緯度=${lat}, 經度=${lon}`);
+        
+        // 提示用戶
+        const resultDiv = document.getElementById('gpsRes');
+        if (resultDiv) {
+          resultDiv.innerHTML = `✓ 座標已自動填入地點${point}：緯度 ${lat}°, 經度 ${lon}°`;
+          resultDiv.style.color = '#ffd43b';
+          resultDiv.style.background = 'rgba(255, 212, 59, 0.1)';
+          resultDiv.style.padding = '12px';
+          resultDiv.style.borderRadius = '6px';
+          resultDiv.style.marginTop = '8px';
+        }
+      } else {
+        alert('❌ 座標超出有效範圍\n緯度: -90 ~ 90\n經度: -180 ~ 180');
+      }
+    }
+    // 如果不是座標格式，則允許正常貼上
+  }
+  
+  // 初始化貼上事件監聽
+  function initCoordinatePaste() {
+    // 為地點A的緯度和經度欄位添加貼上監聽
+    const latA = document.getElementById('latA');
+    const lonA = document.getElementById('lonA');
+    const latB = document.getElementById('latB');
+    const lonB = document.getElementById('lonB');
+    
+    if (latA) {
+      latA.addEventListener('paste', (e) => handleCoordinatePaste(e, 'A'));
+      console.log('✓ latA paste 監聽已設置');
+    }
+    if (lonA) {
+      lonA.addEventListener('paste', (e) => handleCoordinatePaste(e, 'A'));
+      console.log('✓ lonA paste 監聽已設置');
+    }
+    if (latB) {
+      latB.addEventListener('paste', (e) => handleCoordinatePaste(e, 'B'));
+      console.log('✓ latB paste 監聽已設置');
+    }
+    if (lonB) {
+      lonB.addEventListener('paste', (e) => handleCoordinatePaste(e, 'B'));
+      console.log('✓ lonB paste 監聽已設置');
+    }
+    
+    console.log('GPS 座標智能貼上功能已啟用');
+  }
+  
+  // 頁面載入完成後執行
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCoordinatePaste);
+  } else {
+    initCoordinatePaste();
+  }
+  
+  // 延遲再執行一次，確保所有元素都已渲染
+  setTimeout(initCoordinatePaste, 500);
+  setTimeout(initCoordinatePaste, 1000);
+})();
+</script>
+
 <!-- === LocalStorage & JSON Backup Script === -->
 <script>
 const LS_KEY="html_saved_configs";
@@ -3960,20 +5255,20 @@ function lsLoadTable(){
   // 排序
   const sortOrder = document.getElementById("sort_order")?.value || "time-new";
   if(sortOrder === "name-az"){
-    // 檔案名稱A>Z
+    // 名稱 A ⮕ Z
     entries.sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant'));
   } else if(sortOrder === "name-za"){
-    // 檔案名稱Z>A
+    // 名稱 Z ⮕ A
     entries.sort((a, b) => b[0].localeCompare(a[0], 'zh-Hant'));
   } else if(sortOrder === "time-new"){
-    // 檔案名稱新>舊
+    // 檔案 新 ⮕ 舊
     entries.sort((a, b) => {
       const timeA = a[1].timestamp || 0;
       const timeB = b[1].timestamp || 0;
       return timeB - timeA;
     });
   } else if(sortOrder === "time-old"){
-    // 檔案名稱舊>新
+    // 檔案 舊 ⮕ 新
     entries.sort((a, b) => {
       const timeA = a[1].timestamp || 0;
       const timeB = b[1].timestamp || 0;
@@ -3986,7 +5281,7 @@ function lsLoadTable(){
     const dataStr = JSON.stringify(data).replace(/'/g, "\\'");
     tr.innerHTML=`
       <td style="padding:8px; color:var(--title); font-weight:600; word-break:break-all;">${name}</td>
-      <td style="padding:8px; text-align:center; white-space:nowrap;">
+      <td style="padding:8px; text-align:right; white-space:nowrap;">
         <button class="btn" style="padding:6px 16px; font-size:14px;" onclick='applyFields(${dataStr})'>填入</button>
         <button class="btn clear" style="padding:6px 16px; font-size:14px; margin-left:8px;" onclick='lsDelete("${name}")'>刪除</button>
       </td>`;
@@ -4111,6 +5406,17 @@ document.addEventListener("DOMContentLoaded",lsLoadTable);
 })();
 </script>
 <!-- === END FORCE FIX === -->
+
+<!-- 剖面圖全螢幕覆蓋層 -->
+<div id="chartFullscreenOverlay" class="chart-fullscreen-overlay">
+    <div class="chart-fullscreen-container">
+        <button class="chart-fullscreen-close" onclick="closeChartFullscreen()">✕</button>
+        <button class="chart-fullscreen-info-toggle" onclick="toggleFullscreenInfo()" title="開關訊息框與黃點">ℹ️</button>
+        <div class="chart-fullscreen-canvas-wrapper">
+            <canvas id="elevationChartFullscreen"></canvas>
+        </div>
+    </div>
+</div>
 
 </body></html> 
 <script>
@@ -4327,11 +5633,16 @@ function drawElevationChart(data) {
         data: elevations,
         borderColor: '#5ff0d5',
         backgroundColor: 'rgba(95, 240, 213, 0.1)',
-        tension: 0.3,
+        tension: 0.4,
         fill: true,
         borderWidth: 2,
-        pointRadius: 0,
-        pointHoverRadius: 4
+        pointRadius: 3,
+        pointBackgroundColor: 'transparent',
+        pointBorderColor: 'transparent',
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: '#5ff0d5',
+        pointHoverBorderColor: '#fff',
+        pointHoverBorderWidth: 2
       }]
     },
     options: {
