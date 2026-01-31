@@ -3942,7 +3942,7 @@ function openChartFullscreen() {
                                 const clearanceColor = clearanceValue >= 0 ? '#4caf50' : '#ff4444';
                                 
                                 const innerHTML = `
-                                    <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">位置資訊: ${index}</div>
+                                    <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">位置資訊: ${index + 1}</div>
                                     <div>距離${startName}: ${distanceFromStart.toFixed(3)} km</div>
                                     <div>距離${endName}: ${distanceFromEnd.toFixed(3)} km</div>
                                     <div>海拔高度: ${dataValue.toFixed(0)} m</div>
@@ -4171,7 +4171,7 @@ function openChartFullscreen() {
                         // 更新選擇點輸入框
                         const selectedPointInput = document.getElementById('selectedPointIndex');
                         if (selectedPointInput) {
-                            selectedPointInput.value = idx;
+                            selectedPointInput.value = idx + 1;
                         }
                         
                         // 顯示地圖
@@ -4428,6 +4428,22 @@ function closeChartFullscreen() {
     // 恢復背景滾動
     document.body.style.overflow = '';
     
+    // 同步當前選中的點到非全螢幕圖表、地圖和位置資訊
+    if (typeof window.currentSelectedPointIndex !== 'undefined' && 
+        window.currentSelectedPointIndex !== null && 
+        window.currentSelectedPointIndex >= 0 &&
+        pathData && 
+        pathData[window.currentSelectedPointIndex]) {
+        
+        const selectedIdx = window.currentSelectedPointIndex;
+        
+        // 使用showMap函數來完整更新所有相關元素（黃點、地圖、位置資訊）
+        if (elevationData && elevationData[selectedIdx] !== undefined) {
+            showMap(selectedIdx, elevationData[selectedIdx]);
+            console.log('已同步黃點、地圖和位置資訊到非全螢幕，索引:', selectedIdx);
+        }
+    }
+    
     if (fullscreenChartInstance) {
         fullscreenChartInstance.destroy();
         fullscreenChartInstance = null;
@@ -4490,7 +4506,30 @@ function toggleFullscreenInfo() {
     fullscreenInfoVisible = !fullscreenInfoVisible;
     
     const toggleBtn = document.querySelector('.chart-fullscreen-info-toggle');
-    const tooltipEl = document.querySelector('#chartjs-tooltip-fullscreen');
+    const fullscreenContainer = document.getElementById('chartFullscreenOverlay');
+    let tooltipEl = fullscreenContainer ? fullscreenContainer.querySelector('#chartjs-tooltip-fullscreen') : null;
+    
+    // 如果tooltip不存在，創建它
+    if (!tooltipEl && fullscreenContainer) {
+        tooltipEl = document.createElement('div');
+        tooltipEl.id = 'chartjs-tooltip-fullscreen';
+        tooltipEl.style.background = 'rgba(13, 71, 161, 0.35)';
+        tooltipEl.style.borderRadius = '8px';
+        tooltipEl.style.color = 'white';
+        tooltipEl.style.opacity = '0';
+        tooltipEl.style.pointerEvents = 'none';
+        tooltipEl.style.position = 'fixed';
+        tooltipEl.style.transform = 'translate(-50%, -120%)';
+        tooltipEl.style.transition = 'all .1s ease';
+        tooltipEl.style.padding = '10px 12px';
+        tooltipEl.style.border = '2px solid #4dabf7';
+        tooltipEl.style.fontSize = '13px';
+        tooltipEl.style.lineHeight = '1.5';
+        tooltipEl.style.zIndex = '10002';
+        tooltipEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+        tooltipEl.style.whiteSpace = 'nowrap';
+        fullscreenContainer.appendChild(tooltipEl);
+    }
     
     // 切換按鈕樣式
     if (fullscreenInfoVisible) {
@@ -4579,8 +4618,78 @@ function toggleFullscreenInfo() {
                     fullscreenDataset.pointBorderColor = fullscreenPointBorderColor;
                     fullscreenDataset.pointBorderWidth = 2;
                     fullscreenChartInstance.update('none');
+                    
+                    // 顯示tooltip內容
+                    if (tooltipEl && fullscreenDataset.data[selectedIdx] !== undefined) {
+                        const dataValue = fullscreenDataset.data[selectedIdx];
+                        const totalPoints = fullscreenDataset.data.length;
+                        const sLat = parseFloat(document.getElementById('sLat').value);
+                        const sLng = parseFloat(document.getElementById('sLng').value);
+                        const eLat = parseFloat(document.getElementById('eLat').value);
+                        const eLng = parseFloat(document.getElementById('eLng').value);
+                        const totalDistance = getDistance(sLat, sLng, eLat, eLng);
+                        
+                        const distanceFromStart = (selectedIdx / (totalPoints - 1)) * totalDistance;
+                        const distanceFromEnd = totalDistance - distanceFromStart;
+                        
+                        const fraction = selectedIdx / (totalPoints - 1);
+                        const currentLat = sLat + (eLat - sLat) * fraction;
+                        const currentLng = sLng + (eLng - sLng) * fraction;
+                        
+                        const startName = window.elevationPointAName || 'A點';
+                        const endName = window.elevationPointBName || 'B點';
+                        
+                        // 計算離遮蔽的距離
+                        let clearanceValue = 0;
+                        let clearanceText = '';
+                        const losDataset = fullscreenChartInstance.data.datasets.find(d => d.label && d.label.includes('視距連線'));
+                        if (losDataset && losDataset.data[selectedIdx] !== undefined) {
+                            const losHeight = losDataset.data[selectedIdx];
+                            clearanceValue = losHeight - dataValue;
+                            
+                            if (clearanceValue > 0) {
+                                clearanceText = `+${clearanceValue.toFixed(2)} m`;
+                            } else if (clearanceValue < 0) {
+                                clearanceText = `${clearanceValue.toFixed(2)} m`;
+                            } else {
+                                clearanceText = '0.00 m';
+                            }
+                        }
+                        
+                        const clearanceColor = clearanceValue >= 0 ? '#4caf50' : '#ff4444';
+                        
+                        tooltipEl.innerHTML = `
+                            <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">位置資訊: ${selectedIdx + 1}</div>
+                            <div>距離${startName}: ${distanceFromStart.toFixed(3)} km</div>
+                            <div>距離${endName}: ${distanceFromEnd.toFixed(3)} km</div>
+                            <div>海拔高度: ${dataValue.toFixed(0)} m</div>
+                            <div>座標: ${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}</div>
+                            <div style="color: ${clearanceColor}; font-weight: bold;">遮蔽: ${clearanceText}</div>
+                        `;
+                        
+                        // 計算tooltip位置
+                        const chartArea = fullscreenChartInstance.chartArea;
+                        const xScale = fullscreenChartInstance.scales.x;
+                        const yScale = fullscreenChartInstance.scales.y;
+                        
+                        if (xScale && yScale) {
+                            const xPos = xScale.getPixelForValue(selectedIdx);
+                            const yPos = yScale.getPixelForValue(dataValue);
+                            
+                            // 調整位置到圖表容器的相對位置
+                            const canvas = fullscreenChartInstance.canvas;
+                            const canvasRect = canvas.getBoundingClientRect();
+                            
+                            tooltipEl.style.opacity = '1';
+                            tooltipEl.style.left = (canvasRect.left + xPos) + 'px';
+                            tooltipEl.style.top = (canvasRect.top + yPos) + 'px';
+                            console.log('Tooltip已顯示於位置:', canvasRect.left + xPos, canvasRect.top + yPos);
+                        }
+                    }
                 }
             }
+        } else {
+            console.log('沒有選中的點，請先點擊圖表選擇一個點');
         }
     }
 }
@@ -4748,7 +4857,7 @@ function openGoogleMapForYellowPoint() {
         titleBar.style.boxShadow = '0 4px 12px rgba(0,0,0,0.6)';
         titleBar.style.zIndex = '10005';
         titleBar.innerHTML = `
-            <span style="font-size: 13px;">📍 點 ${index}</span>
+            <span style="font-size: 13px;">📍 點 ${index + 1}</span>
             <div style="display: flex; gap: 6px;">
                 <button onclick="openInNewTabFromEmbedded()" style="background: rgba(255,255,255,0.95); color: #1971c2; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; white-space: nowrap;">🔗 開啟</button>
                 <button onclick="closeEmbeddedMap()" style="background: rgba(255,68,68,0.95); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">✕</button>
@@ -4786,7 +4895,7 @@ function openGoogleMapForYellowPoint() {
     // 更新標題
     const titleSpan = mapContainer.querySelector('span');
     if (titleSpan) {
-        titleSpan.innerHTML = `📍 點 ${index}`;
+        titleSpan.innerHTML = `📍 點 ${index + 1}`;
     }
     
     // 顯示地圖容器
