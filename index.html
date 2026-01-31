@@ -252,6 +252,123 @@ function swapLinkTxUnit() {
     border-color: rgba(150, 150, 150, 0.8);
 }
 
+.chart-fullscreen-obstruction-toggle {
+    position: absolute;
+    top: 10px;
+    right: 95px;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 68, 68, 0.85);
+    color: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(255, 100, 100, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    padding: 0;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.chart-fullscreen-obstruction-toggle:hover {
+    background: rgba(255, 68, 68, 0.95);
+    color: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(255, 100, 100, 0.6);
+}
+
+.chart-fullscreen-obstruction-toggle:active {
+    background: rgba(255, 68, 68, 1);
+    transform: scale(0.9);
+}
+
+.chart-fullscreen-obstruction-toggle.disabled {
+    background: rgba(100, 100, 100, 0.85);
+    border-color: rgba(150, 150, 150, 0.8);
+}
+
+.chart-fullscreen-map-toggle {
+    position: absolute;
+    top: 10px;
+    right: 135px;
+    width: 32px;
+    height: 32px;
+    background: rgba(79, 171, 247, 0.85);
+    color: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(79, 171, 247, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    padding: 0;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.chart-fullscreen-map-toggle:hover {
+    background: rgba(79, 171, 247, 0.95);
+    color: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(79, 171, 247, 0.6);
+}
+
+.chart-fullscreen-map-toggle:active {
+    background: rgba(79, 171, 247, 1);
+    transform: scale(0.9);
+}
+
+.chart-fullscreen-map-toggle.disabled {
+    background: rgba(100, 100, 100, 0.85);
+    border-color: rgba(150, 150, 150, 0.8);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.chart-fullscreen-rotate-toggle {
+    position: absolute;
+    top: 10px;
+    right: 175px;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 152, 0, 0.85);
+    color: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(255, 167, 38, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    padding: 0;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.chart-fullscreen-rotate-toggle:hover {
+    background: rgba(255, 152, 0, 0.95);
+    color: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.6);
+}
+
+.chart-fullscreen-rotate-toggle:active {
+    background: rgba(255, 152, 0, 1);
+    transform: scale(0.9);
+}
+
 /* 手機上點擊提示 */
 .chart-zoom-btn {
     position: absolute;
@@ -1185,8 +1302,16 @@ function calculateLinkBudget() {
 
 // --- 初始化執行 ---
 document.addEventListener('DOMContentLoaded', () => {
+    // 初始化全局變量，用於存儲地點名稱
+    window.elevationPointAName = 'A點';
+    window.elevationPointBName = 'B點';
+    
     // 初始計算所有顯示的區塊
     toggleSections(); 
+    
+    console.log('✅ 全局變量已初始化');
+    console.log('window.elevationPointAName:', window.elevationPointAName);
+    console.log('window.elevationPointBName:', window.elevationPointBName);
 });
 </script>  <script>
   // --- Tab 切換功能 ---
@@ -2513,8 +2638,8 @@ async function updateElevationLabelsWithPlaceNames(latA, lonA, latB, lonB, nameA
     
     if (!placeNameA || placeNameA.trim() === '') {
         // 顯示載入提示
-        labelALat.innerHTML = '<span class="loading-dots">取得地名中</span>';
-        labelALng.innerHTML = '<span class="loading-dots">取得地名中</span>';
+        if (labelALat) labelALat.innerHTML = '<span class="loading-dots">取得地名中</span>';
+        if (labelALng) labelALng.innerHTML = '<span class="loading-dots">取得地名中</span>';
         
         // 獲取A點地名
         placeNameA = await getPlaceNameFromCoords(latA, lonA);
@@ -2525,24 +2650,26 @@ async function updateElevationLabelsWithPlaceNames(latA, lonA, latB, lonB, nameA
     
     if (!placeNameB || placeNameB.trim() === '') {
         // 顯示載入提示
-        labelBLat.innerHTML = '<span class="loading-dots">取得地名中</span>';
-        labelBLng.innerHTML = '<span class="loading-dots">取得地名中</span>';
+        if (labelBLat) labelBLat.innerHTML = '<span class="loading-dots">取得地名中</span>';
+        if (labelBLng) labelBLng.innerHTML = '<span class="loading-dots">取得地名中</span>';
         
         // 獲取B點地名
         placeNameB = await getPlaceNameFromCoords(latB, lonB);
     }
     
     // 更新標籤顯示地名（地名用黃色顯示）
-    labelALat.innerHTML = `<span style="color: var(--title); font-weight: 700;">${placeNameA}</span> 緯度`;
-    labelALng.innerHTML = `<span style="color: var(--title); font-weight: 700;">${placeNameA}</span> 經度`;
-    labelBLat.innerHTML = `<span style="color: var(--title); font-weight: 700;">${placeNameB}</span> 緯度`;
-    labelBLng.innerHTML = `<span style="color: var(--title); font-weight: 700;">${placeNameB}</span> 經度`;
+    if (labelALat) labelALat.innerHTML = `<span style="color: var(--title); font-weight: 700;">${placeNameA}</span> 緯度`;
+    if (labelALng) labelALng.innerHTML = `<span style="color: var(--title); font-weight: 700;">${placeNameA}</span> 經度`;
+    if (labelBLat) labelBLat.innerHTML = `<span style="color: var(--title); font-weight: 700;">${placeNameB}</span> 緯度`;
+    if (labelBLng) labelBLng.innerHTML = `<span style="color: var(--title); font-weight: 700;">${placeNameB}</span> 經度`;
     
-    // 保存地名到全局變量，供圖表標注使用
+    // 保存地名到全局變量，供圖表標注使用（這些變量會在地圖點擊時被使用）
     window.elevationPointAName = placeNameA;
     window.elevationPointBName = placeNameB;
     
-    console.log('地名已更新:', {placeNameA, placeNameB});
+    console.log('✅ 地名已成功更新，藍色框會顯示:', {placeNameA, placeNameB});
+    console.log('window.elevationPointAName:', window.elevationPointAName);
+    console.log('window.elevationPointBName:', window.elevationPointBName);
 }
 
 function dmsToDecimal(degrees, minutes, seconds) {
@@ -2658,6 +2785,38 @@ async function runAnalysisWithOpenElevation() {
 
 function renderChart(elevations) {
     console.log('renderChart() 被調用，高度數據長度:', elevations.length);
+    
+    // 從標籤中提取地名並設置全局變量（供tooltip使用）
+    const labelALat = document.getElementById('labelALat');
+    const labelBLat = document.getElementById('labelBLat');
+    
+    if (labelALat && labelALat.innerHTML) {
+        // 提取標籤中的地名（格式: <span style="...">地名</span> 緯度）
+        const matchA = labelALat.innerHTML.match(/<span[^>]*>([^<]+)<\/span>/);
+        if (matchA && matchA[1]) {
+            window.elevationPointAName = matchA[1].trim();
+            console.log('從標籤A提取地名:', window.elevationPointAName);
+        }
+    }
+    
+    if (labelBLat && labelBLat.innerHTML) {
+        // 提取標籤中的地名（格式: <span style="...">地名</span> 緯度）
+        const matchB = labelBLat.innerHTML.match(/<span[^>]*>([^<]+)<\/span>/);
+        if (matchB && matchB[1]) {
+            window.elevationPointBName = matchB[1].trim();
+            console.log('從標籤B提取地名:', window.elevationPointBName);
+        }
+    }
+    
+    // 如果沒有從標籤提取到地名，使用預設值
+    if (!window.elevationPointAName) {
+        window.elevationPointAName = 'A點';
+    }
+    if (!window.elevationPointBName) {
+        window.elevationPointBName = 'B點';
+    }
+    
+    console.log('renderChart 設置的地名 - A點:', window.elevationPointAName, 'B點:', window.elevationPointBName);
     
     // 獲取天線高度
     const antennaHeightStart = parseFloat(document.getElementById('antennaHeightStart').value) || 0;
@@ -3356,8 +3515,10 @@ let fullscreenLabelBOffset = { x: 0, y: -30 };
 let fullscreenDraggingLabel = null;
 
 function openChartFullscreen() {
-    // 檢查是否在手機上
-    const isMobile = window.innerWidth <= 768;
+    // 改進的移動設備檢測，支持橫屏
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+        || (window.innerWidth <= 768 && window.innerHeight <= 768)
+        || ('ontouchstart' in window);
     
     if (!isMobile) {
         console.log('非手機裝置，不開啟全螢幕');
@@ -3366,6 +3527,9 @@ function openChartFullscreen() {
     
     // 重置資訊框顯示狀態為開啟
     fullscreenInfoVisible = true;
+    
+    // 重置遮蔽線顏色狀態為關閉
+    obstructionColorEnabled = false;
     
     if (!chartInstance || !chartInstance.data) {
         alert('請先生成路徑剖面');
@@ -3699,7 +3863,7 @@ function openChartFullscreen() {
                             if (!tooltipEl) {
                                 tooltipEl = document.createElement('div');
                                 tooltipEl.id = 'chartjs-tooltip-fullscreen';
-                                tooltipEl.style.background = 'rgba(13, 71, 161, 0.75)';
+                                tooltipEl.style.background = 'rgba(13, 71, 161, 0.35)';
                                 tooltipEl.style.borderRadius = '8px';
                                 tooltipEl.style.color = 'white';
                                 tooltipEl.style.opacity = '0';
@@ -3707,10 +3871,10 @@ function openChartFullscreen() {
                                 tooltipEl.style.position = 'fixed';
                                 tooltipEl.style.transform = 'translate(-50%, -120%)';
                                 tooltipEl.style.transition = 'all .1s ease';
-                                tooltipEl.style.padding = '16px';
+                                tooltipEl.style.padding = '10px 12px';
                                 tooltipEl.style.border = '2px solid #4dabf7';
-                                tooltipEl.style.fontSize = '14px';
-                                tooltipEl.style.lineHeight = '1.8';
+                                tooltipEl.style.fontSize = '13px';
+                                tooltipEl.style.lineHeight = '1.5';
                                 tooltipEl.style.zIndex = '10002';
                                 tooltipEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
                                 tooltipEl.style.whiteSpace = 'nowrap';
@@ -3749,28 +3913,41 @@ function openChartFullscreen() {
                                 const currentLat = sLat + (eLat - sLat) * fraction;
                                 const currentLng = sLng + (eLng - sLng) * fraction;
                                 
-                                // 獲取A點和B點的名稱
-                                const startName = document.getElementById('sName')?.value || 'A點';
-                                const endName = document.getElementById('eName')?.value || 'B點';
+                                // 獲取A點和B點的名稱（從全局變量讀取，如果沒有則使用預設值）
+                                const startName = window.elevationPointAName || 'A點';
+                                const endName = window.elevationPointBName || 'B點';
                                 
-                                // 計算遮蔽高度
-                                let obstructionValue = 0;
+                                // 計算離遮蔽的距離
+                                let clearanceValue = 0;
+                                let clearanceText = '';
                                 const losDataset = context.chart.data.datasets.find(d => d.label && d.label.includes('視距連線'));
                                 if (losDataset && losDataset.data[index] !== undefined) {
                                     const losHeight = losDataset.data[index];
-                                    obstructionValue = Math.max(0, dataValue - losHeight);
+                                    // 正數表示沒有遮蔽（離遮蔽線的高度），負數表示被遮蔽的深度
+                                    clearanceValue = losHeight - dataValue;
+                                    
+                                    if (clearanceValue > 0) {
+                                        // 沒有遮蔽，顯示綠色和正數（離遮蔽還有多少高度）
+                                        clearanceText = `+${clearanceValue.toFixed(2)} m`;
+                                    } else if (clearanceValue < 0) {
+                                        // 被遮蔽，顯示紅色和負數（被遮蔽的深度）
+                                        clearanceText = `${clearanceValue.toFixed(2)} m`;
+                                    } else {
+                                        // 剛好在遮蔽線上
+                                        clearanceText = '0.00 m';
+                                    }
                                 }
                                 
-                                // 判斷遮蔽顏色
-                                const obstructionColor = obstructionValue > 0 ? '#ff4444' : '#4caf50';
+                                // 判斷遮蔽顏色：正數（沒遮蔽）綠色，負數（有遮蔽）紅色
+                                const clearanceColor = clearanceValue >= 0 ? '#4caf50' : '#ff4444';
                                 
                                 const innerHTML = `
-                                    <div style="font-weight: bold; margin-bottom: 8px; font-size: 15px;">位置資訊: ${index}</div>
+                                    <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">位置資訊: ${index}</div>
                                     <div>距離${startName}: ${distanceFromStart.toFixed(3)} km</div>
                                     <div>距離${endName}: ${distanceFromEnd.toFixed(3)} km</div>
                                     <div>海拔高度: ${dataValue.toFixed(0)} m</div>
                                     <div>座標: ${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}</div>
-                                    <div style="color: ${obstructionColor}; font-weight: bold;">遮蔽: ${obstructionValue.toFixed(2)} m</div>
+                                    <div style="color: ${clearanceColor}; font-weight: bold;">遮蔽: ${clearanceText}</div>
                                 `;
                                 
                                 tooltipEl.innerHTML = innerHTML;
@@ -4008,6 +4185,56 @@ function openChartFullscreen() {
                             fullscreenChartInstance.update('none');
                         }
                     }
+                },
+                onHover: (event, elements, chart) => {
+                    // 只有在資訊框開啟時才處理 hover
+                    if (typeof fullscreenInfoVisible === 'undefined' || !fullscreenInfoVisible) {
+                        return;
+                    }
+                    
+                    let idx = -1;
+                    
+                    if (elements.length > 0) {
+                        idx = elements[0].index;
+                    }
+                    
+                    if (idx >= 0 && idx !== window.currentSelectedPointIndex) {
+                        // 更新全域變數（修復：拖曳時也要更新選中點索引）
+                        window.currentSelectedPointIndex = idx;
+                        
+                        // 更新黃點位置
+                        const fullscreenDataset = chart.data.datasets.find(d => 
+                            d.label && d.label.includes('地形海拔')
+                        );
+                        
+                        if (fullscreenDataset && fullscreenDataset.data) {
+                            const fullscreenPointColors = new Array(fullscreenDataset.data.length);
+                            const fullscreenPointRadius = new Array(fullscreenDataset.data.length);
+                            const fullscreenPointHoverRadius = new Array(fullscreenDataset.data.length);
+                            const fullscreenPointBorderColor = new Array(fullscreenDataset.data.length);
+                            
+                            for (let i = 0; i < fullscreenDataset.data.length; i++) {
+                                if (i === idx) {
+                                    fullscreenPointColors[i] = '#ffd43b';
+                                    fullscreenPointRadius[i] = 8;
+                                    fullscreenPointHoverRadius[i] = 12;
+                                    fullscreenPointBorderColor[i] = '#fff';
+                                } else {
+                                    fullscreenPointColors[i] = 'transparent';
+                                    fullscreenPointRadius[i] = 0;
+                                    fullscreenPointHoverRadius[i] = 6;
+                                    fullscreenPointBorderColor[i] = 'transparent';
+                                }
+                            }
+                            
+                            fullscreenDataset.pointBackgroundColor = fullscreenPointColors;
+                            fullscreenDataset.pointRadius = fullscreenPointRadius;
+                            fullscreenDataset.pointHoverRadius = fullscreenPointHoverRadius;
+                            fullscreenDataset.pointBorderColor = fullscreenPointBorderColor;
+                            fullscreenDataset.pointBorderWidth = 2;
+                            chart.update('none');
+                        }
+                    }
                 }
             },
             plugins: [fullscreenLabelPlugin]
@@ -4211,6 +4438,51 @@ function closeChartFullscreen() {
     console.log('全螢幕剖面圖已關閉');
 }
 
+// 強制橫屏全畫面功能
+function toggleLandscapeFullscreen() {
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    
+    // 請求全螢幕
+    const elem = overlay;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(err => {
+            console.log('進入全螢幕失敗:', err);
+            alert('無法進入全螢幕模式，請檢查瀏覽器權限設定');
+        });
+    } else if (elem.webkitRequestFullscreen) { // Safari
+        elem.webkitRequestFullscreen().catch(err => {
+            console.log('進入全螢幕失敗:', err);
+            alert('無法進入全螢幕模式，請檢查瀏覽器權限設定');
+        });
+    } else if (elem.mozRequestFullScreen) { // Firefox
+        elem.mozRequestFullScreen().catch(err => {
+            console.log('進入全螢幕失敗:', err);
+            alert('無法進入全螢幕模式，請檢查瀏覽器權限設定');
+        });
+    } else if (elem.msRequestFullscreen) { // IE11
+        elem.msRequestFullscreen().catch(err => {
+            console.log('進入全螢幕失敗:', err);
+            alert('無法進入全螢幕模式，請檢查瀏覽器權限設定');
+        });
+    }
+    
+    // 鎖定螢幕方向為橫向
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(err => {
+            console.log('鎖定橫向失敗:', err);
+            // 如果鎖定失敗，嘗試其他橫向選項
+            screen.orientation.lock('landscape-primary').catch(err => {
+                console.log('鎖定橫向-主要失敗:', err);
+                screen.orientation.lock('landscape-secondary').catch(err => {
+                    console.log('鎖定橫向-次要失敗:', err);
+                });
+            });
+        });
+    }
+    
+    console.log('已請求橫屏全畫面模式');
+}
+
 // 全螢幕資訊框與黃點的顯示狀態
 let fullscreenInfoVisible = true;
 
@@ -4310,6 +4582,239 @@ function toggleFullscreenInfo() {
                 }
             }
         }
+    }
+}
+
+// 遮蔽線顏色切換狀態
+let obstructionColorEnabled = false;
+
+function toggleObstructionColor() {
+    obstructionColorEnabled = !obstructionColorEnabled;
+    
+    const toggleBtn = document.querySelector('.chart-fullscreen-obstruction-toggle');
+    
+    if (!fullscreenChartInstance) {
+        console.log('全螢幕圖表未初始化');
+        return;
+    }
+    
+    // 找到地形海拔數據集
+    const terrainDataset = fullscreenChartInstance.data.datasets.find(d => 
+        d.label && d.label.includes('地形海拔')
+    );
+    
+    // 找到視距連線數據集
+    const losDataset = fullscreenChartInstance.data.datasets.find(d => 
+        d.label && d.label.includes('視距連線')
+    );
+    
+    if (!terrainDataset || !losDataset) {
+        console.log('找不到必要的數據集');
+        return;
+    }
+    
+    if (obstructionColorEnabled) {
+        // 開啟：將有遮蔽的線段變成紅色
+        toggleBtn.classList.remove('disabled');
+        toggleBtn.style.opacity = '1';
+        
+        // 創建分段顏色數據
+        const segmentColors = [];
+        const terrainData = terrainDataset.data;
+        const losData = losDataset.data;
+        
+        for (let i = 0; i < terrainData.length - 1; i++) {
+            // 檢查這個線段是否有遮蔽
+            const isObstructed = terrainData[i] > losData[i] || terrainData[i + 1] > losData[i + 1];
+            
+            segmentColors.push({
+                borderColor: isObstructed ? '#ff4444' : '#5ff0d5',
+                backgroundColor: isObstructed ? 'rgba(255, 68, 68, 0.1)' : 'rgba(95, 240, 213, 0.1)'
+            });
+        }
+        
+        // 使用 Chart.js 的 segment 功能來設置不同線段的顏色
+        terrainDataset.segment = {
+            borderColor: (ctx) => {
+                const idx = ctx.p0DataIndex;
+                if (idx < segmentColors.length) {
+                    return segmentColors[idx].borderColor;
+                }
+                return '#5ff0d5';
+            },
+            backgroundColor: (ctx) => {
+                const idx = ctx.p0DataIndex;
+                if (idx < segmentColors.length) {
+                    return segmentColors[idx].backgroundColor;
+                }
+                return 'rgba(95, 240, 213, 0.1)';
+            }
+        };
+        
+        // 更新圖例顏色為混合色（使用漸層表示）
+        // 因為有紅色和青色混合，用橘色/珊瑚色表示混合狀態
+        terrainDataset.borderColor = '#ff8866';
+        terrainDataset.backgroundColor = 'rgba(255, 136, 102, 0.1)';
+        
+        console.log('遮蔽線顏色已開啟');
+    } else {
+        // 關閉：恢復原始綠色
+        toggleBtn.classList.add('disabled');
+        toggleBtn.style.opacity = '0.6';
+        
+        // 移除 segment 設置，恢復原始顏色
+        delete terrainDataset.segment;
+        terrainDataset.borderColor = '#5ff0d5';
+        terrainDataset.backgroundColor = 'rgba(95, 240, 213, 0.1)';
+        
+        console.log('遮蔽線顏色已關閉');
+    }
+    
+    fullscreenChartInstance.update();
+}
+
+// 打開Google地圖顯示黃點位置（在全螢幕內嵌入式顯示）
+function openGoogleMapForYellowPoint() {
+    console.log('openGoogleMapForYellowPoint() 被調用');
+    
+    // 檢查是否有選中的黃點
+    if (typeof window.currentSelectedPointIndex === 'undefined' || 
+        window.currentSelectedPointIndex === null || 
+        window.currentSelectedPointIndex < 0) {
+        alert('❌ 請先點擊圖表上的任一點以選擇位置');
+        return;
+    }
+    
+    // 檢查pathData是否存在
+    if (!pathData || pathData.length === 0) {
+        alert('❌ 找不到路徑數據，請先生成路徑剖面');
+        return;
+    }
+    
+    const index = window.currentSelectedPointIndex;
+    
+    // 檢查索引是否有效
+    if (index >= pathData.length) {
+        alert('❌ 選中的點索引無效');
+        return;
+    }
+    
+    // 獲取黃點的座標
+    const point = pathData[index];
+    const lat = point.lat;
+    const lng = point.lng;
+    
+    console.log('顯示地圖，座標:', lat, lng, '索引:', index);
+    
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    
+    // 檢查是否已有地圖容器
+    let mapContainer = overlay.querySelector('#embedded-map-container');
+    
+    if (!mapContainer) {
+        // 創建地圖容器（全螢幕）
+        mapContainer = document.createElement('div');
+        mapContainer.id = 'embedded-map-container';
+        mapContainer.style.position = 'fixed';
+        mapContainer.style.top = '0';
+        mapContainer.style.left = '0';
+        mapContainer.style.width = '100%';
+        mapContainer.style.height = '100%';
+        mapContainer.style.background = '#1a1a1a';
+        mapContainer.style.zIndex = '10004';
+        mapContainer.style.display = 'none';
+        mapContainer.style.padding = '0';
+        mapContainer.style.overflow = 'hidden';
+        
+        // 創建標題欄（縮小版）
+        const titleBar = document.createElement('div');
+        titleBar.style.background = 'rgba(13, 71, 161, 0.9)';
+        titleBar.style.backdropFilter = 'blur(10px)';
+        titleBar.style.color = 'white';
+        titleBar.style.padding = '8px 12px';
+        titleBar.style.fontWeight = 'bold';
+        titleBar.style.fontSize = '14px';
+        titleBar.style.display = 'flex';
+        titleBar.style.justifyContent = 'flex-start';
+        titleBar.style.alignItems = 'center';
+        titleBar.style.gap = '10px';
+        titleBar.style.position = 'absolute';
+        titleBar.style.top = '10px';
+        titleBar.style.right = '10px';
+        titleBar.style.left = 'auto';
+        titleBar.style.width = 'auto';
+        titleBar.style.borderRadius = '8px';
+        titleBar.style.border = '2px solid #4dabf7';
+        titleBar.style.boxShadow = '0 4px 12px rgba(0,0,0,0.6)';
+        titleBar.style.zIndex = '10005';
+        titleBar.innerHTML = `
+            <span style="font-size: 13px;">📍 點 ${index}</span>
+            <div style="display: flex; gap: 6px;">
+                <button onclick="openInNewTabFromEmbedded()" style="background: rgba(255,255,255,0.95); color: #1971c2; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; white-space: nowrap;">🔗 開啟</button>
+                <button onclick="closeEmbeddedMap()" style="background: rgba(255,68,68,0.95); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">✕</button>
+            </div>
+        `;
+        mapContainer.appendChild(titleBar);
+        
+        // 創建iframe容器（全螢幕）
+        const iframeWrapper = document.createElement('div');
+        iframeWrapper.style.width = '100%';
+        iframeWrapper.style.height = '100%';
+        iframeWrapper.style.background = '#1a1a1a';
+        
+        const iframe = document.createElement('iframe');
+        iframe.id = 'embedded-map-iframe';
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.allowFullscreen = true;
+        
+        iframeWrapper.appendChild(iframe);
+        mapContainer.appendChild(iframeWrapper);
+        
+        overlay.appendChild(mapContainer);
+    }
+    
+    // 更新iframe的src和標題
+    const iframe = mapContainer.querySelector('#embedded-map-iframe');
+    const googleMapUrl = `https://maps.google.com/maps?q=${lat},${lng}&t=k&z=17&output=embed`;
+    iframe.src = googleMapUrl;
+    
+    // 保存當前座標供新視窗開啟使用
+    window.currentMapCoords = { lat, lng };
+    
+    // 更新標題
+    const titleSpan = mapContainer.querySelector('span');
+    if (titleSpan) {
+        titleSpan.innerHTML = `📍 點 ${index}`;
+    }
+    
+    // 顯示地圖容器
+    mapContainer.style.display = 'block';
+    
+    console.log('嵌入式地圖已顯示（全螢幕）');
+}
+
+// 關閉嵌入式地圖
+function closeEmbeddedMap() {
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    const mapContainer = overlay.querySelector('#embedded-map-container');
+    if (mapContainer) {
+        mapContainer.style.display = 'none';
+        // 清空iframe以停止加載
+        const iframe = mapContainer.querySelector('#embedded-map-iframe');
+        if (iframe) {
+            iframe.src = 'about:blank';
+        }
+    }
+}
+
+// 從嵌入式地圖在新視窗開啟
+function openInNewTabFromEmbedded() {
+    if (window.currentMapCoords) {
+        const { lat, lng } = window.currentMapCoords;
+        const googleMapUrl = `https://www.google.com/maps?q=${lat},${lng}&t=k&z=17`;
+        window.open(googleMapUrl, '_blank');
     }
 }
 
@@ -5435,6 +5940,9 @@ document.addEventListener("DOMContentLoaded",lsLoadTable);
     <div class="chart-fullscreen-container">
         <button class="chart-fullscreen-close" onclick="closeChartFullscreen()">✕</button>
         <button class="chart-fullscreen-info-toggle" onclick="toggleFullscreenInfo()" title="開關訊息框與黃點">ℹ️</button>
+        <button class="chart-fullscreen-obstruction-toggle" onclick="toggleObstructionColor()" title="切換遮蔽線顏色">🚧</button>
+        <button class="chart-fullscreen-map-toggle" onclick="openGoogleMapForYellowPoint()" title="在Google地圖中開啟黃點位置">📍</button>
+        <button class="chart-fullscreen-rotate-toggle" onclick="toggleLandscapeFullscreen()" title="強制橫屏全畫面">⛶</button>
         <div class="chart-fullscreen-canvas-wrapper">
             <canvas id="elevationChartFullscreen"></canvas>
         </div>
