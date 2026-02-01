@@ -111,7 +111,31 @@ function swapLinkTxUnit() {
 <!-- Leaflet 地圖庫 -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<meta name="theme-color" content="#071026"><style> :root{ --bg-0:#050a16; --bg-1:#0b1526; --muted:#a8b3c3; --label:#85c9ff; --title:#ffe58f; --value:#5ff0d5; --accent1:#5ff0d5; --accent2:#79a8ff; --orange-border: #ffaa00; --glass: rgba(255,255,255,0.06); --shadow: 0 4px 12px rgba(0,0,0,0.40); font-size:24px; --gps-error-border: #dc3545; --rf-green-start: #36c74d; --rf-green-end: #1e8030; --rf-green-border: #1e8030; --red-clear: #dd4444; --purple-accent: #bb66ff; } *{box-sizing:border-box} body{ margin:0; padding:0; background:linear-gradient(180deg,var(--bg-0),var(--bg-1)); color:#e8eef5; font-family:Inter, 'Noto Sans TC', system-ui; line-height:1.3; } header{ padding: 0 10px; background-color: var(--bg-1); border-bottom: 1px solid rgba(255,255,255,0.08); height: 0; } h1{ display: none; } main{padding:6px; max-width:880px; margin:0 auto;} .card{ background:rgba(255,255,255,0.02); padding:6px 8px; border-radius:10px; margin-bottom:6px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.03); } .gps-container .card { padding: 5px 8px; } .section-title{ color:var(--title); font-size:18px; font-weight:700; margin-bottom:4px; display:block; } .rf-header { margin-bottom: 6px; } .rf-header .section-title { color: var(--title); font-size: 18px; font-weight: 700; margin-bottom: 2px; display: block; } .unit-selector-row { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 4px 0; margin-bottom: 2px; } .unit-selector-row .unit-label { font-size: 15px; color: var(--label); margin-bottom: 0; font-weight: 700; } .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:5px; align-items:end; } label{ color:var(--label); font-size:15px; margin-bottom:1px; display:block; } input,select{ width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); } .input-with-clear-rf { display: flex; align-items: center; position: relative; } .input-with-clear-rf input { flex-grow: 1; padding-right: 35px; } .clear-btn-rf { position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--red-clear); font-size: 18px; cursor: pointer; padding: 0 8px; line-height: 1; font-weight: bold; opacity: 0.8; z-index: 10; height: 100%; display: flex; align-items: center; } #unit, #displayMode { border: 1px solid var(--purple-accent) !important; color: var(--purple-accent) !important; background-color: rgba(187, 102, 255, 0.08) !important; width: auto !important; max-width: 120px !important; padding: 3px 6px !important; font-size: 15px !important; flex-shrink: 0; } .gps-container input[type="number"], .gps-container input[type="text"] { padding: 3px 5px; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); } .controls{ margin-top:2px; display:flex; gap:5px; } .btn{ background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:8px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; } .btn.ghost{ border:1px solid var(--accent2); background:transparent; color:#e8eef5; } .btn.clear{ background:var(--red-clear); color:white; border-radius:6px; } #rf-content + .btn-row .btn { background: linear-gradient(90deg, var(--rf-green-start), var(--rf-green-end)); color: #022; border: none; } #rf-content + .btn-row .btn.ghost { background: transparent; border: 1px solid var(--rf-green-border); color: #e8eef5; } #rf-content + .btn-row .btn.clear { background: var(--red-clear); color: white; border: none; } .btn-row{ display:flex; flex-wrap:nowrap; justify-content:stretch; align-items:center; gap:12px; width:100%; box-sizing:border-box; } .btn-row .btn{ flex:1 1 0%; text-align:center; white-space:nowrap; min-width:0; } #liveInputs{ margin-top:3px; font-size:14px; color:var(--muted); } table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:16px; } thead th{ color:var(--label); padding:3px 3px; border-bottom:1px solid rgba(255,255,255,0.06); text-align:center; } tbody td{ padding:4px 3px; border-bottom:1px solid rgba(255,255,255,0.03); text-align:center; } .name{ color:#ffd369; font-weight:700; white-space:nowrap; } th:first-child, td:first-child{ width:32%; text-align:left; } .value, .percent{ color:var(--value); font-weight:800; font-variant-numeric:tabular-nums; } .small-note{ font-size:13px; margin-top:3px; color:var(--muted); } @media (max-width:640px){ .form-grid{grid-template-columns:1fr;} } .tabs{ display:flex; margin-bottom: 6px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.06); } .tab-button{ flex-shrink: 0; padding: 6px 10px; margin: 0 2px; background: transparent; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; transition: all 0.2s ease; } .tab-button.active{ background: var(--glass); color: var(--title); border-bottom: 2px solid var(--accent1); } .tab-content{ display: none; padding-top: 5px; } .tab-content.active{ display: block; } .gps-container { padding: 0; } .gps-tip { color: var(--label) !important; font-size: 13px !important; margin: 0 0 2px 0 !important; } .display-mode-container { margin-top: 3px; } .gps-ig { margin-bottom: 2px !important; padding: 3px 7px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; background-color: rgba(255,255,255,0.02); } .gps-loc-header { margin-bottom: 2px !important; font-weight: bold; color: var(--title); font-size: 17px; display: flex; align-items: center; justify-content: space-between; } .gps-loc-header > div { display: flex; align-items: center; gap: 5px; } #nameA, #nameB { width: 144px !important; max-width: 144px !important; font-size: 14px !important; text-align: center; flex-shrink: 0; padding: 4px 6px !important; } .gps-loc-header span { color: var(--muted); font-size: 13px; flex-shrink: 0; } .gps-cg { padding: 2px !important; margin-bottom: 2px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; } .gps-cl { font-weight: bold; color: var(--label); display: block; margin-bottom: 1px; font-size: 14px !important; } .gps-ddr { display: flex; align-items: center; margin-bottom: 0 !important; } .gps-ddr input { flex-grow: 1; text-align: right; padding: 4px 8px !important; font-size: 16px !important; } .gps-ddr span { color: var(--muted); font-size: 14px !important; margin-right: 4px; flex-shrink: 0; } .gps-dmsr { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 0 !important; } .gps-dmsr input { padding: 4px 8px !important; font-size: 16px !important; } .gps-dmsf { display: flex; align-items: center; flex: 1; min-width: 0; } .gps-dmsf input { text-align: center; margin-right: 3px; max-width: none; flex-grow: 1; min-width: 30px; } .gps-dmsf:nth-child(1) input { flex: 2; } .gps-dmsf:nth-child(2) input { flex: 1.5; } .gps-dmsf:nth-child(3) input { flex: 2.5; } .gps-dmsr span { color: var(--muted); font-size: 14px !important; margin-right: 0; flex-shrink: 0; } .gps-er { display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-top: 2px !important; padding-top: 2px !important; border-top: 1px dashed rgba(255,255,255,0.08); flex-wrap: nowrap !important; } .gps-er label { font-size: 15px !important; flex-shrink: 0; color: var(--label); width: 120px; margin-right: 8px; } .gps-er input { text-align: right; flex-grow: 1.2 !important; padding: 4px 8px !important; font-size: 16px !important; min-width: 60px !important; max-width: 100px !important; } .gps-er > .control-group { display: flex; align-items: center; flex-shrink: 0; min-width: 0; margin-left: auto !important; } .gps-er .control-group span { font-size: 14px !important; flex-shrink: 0; color: var(--muted); margin-left: 4px; } .gps-cb { background: none; border: none; color: #ff6347; font-size: 18px; cursor: pointer; padding: 0 5px; line-height: 1; font-weight: bold; opacity: 0.9; margin: 0; flex-shrink: 0; } .gps-ddr .gps-cb { margin-left: auto; } .gps-er .control-group .gps-cb { margin-left: 5px !important; } #gpsRes { margin-top: 5px !important; padding: 8px !important; border: 2px solid var(--accent2); border-radius: 8px; background-color: rgba(121, 168, 255, 0.05); font-size: 16px !important; font-weight: 500; text-align: left; color: #e8eef5; } #gpsRes p { margin: 4px 0 !important; } .gps-label-title { color: var(--title); font-weight: 700; margin-right: 5px; } .v-dist, .v-bearing, .v-pitch-value { font-weight: 900 !important; font-size: 1.1em; color: var(--value) !important; } .display-mode-container { display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-top: 3px; } #displayMode { width: auto !important; max-width: 170px; flex-shrink: 0; } .display-mode-container label { display: none; } .display-mode-text { font-weight: 700; color: var(--label); font-size: 14px; flex-shrink: 0; } .results-card-border { border: 2px solid var(--accent2) !important; border-radius: 8px !important; background-color: rgba(121, 168, 255, 0.05) !important; } .orange-border-card { border: 2px solid var(--orange-border) !important; border-radius: 8px !important; background-color: rgba(255, 170, 0, 0.05) !important; }
+<meta name="theme-color" content="#071026"><style> :root{ --bg-0:#050a16; --bg-1:#0b1526; --muted:#a8b3c3; --label:#85c9ff; --title:#ffe58f; --value:#5ff0d5; --accent1:#5ff0d5; --accent2:#79a8ff; --orange-border: #ffaa00; --glass: rgba(255,255,255,0.06); --shadow: 0 4px 12px rgba(0,0,0,0.40); font-size:24px; --gps-error-border: #dc3545; --rf-green-start: #36c74d; --rf-green-end: #1e8030; --rf-green-border: #1e8030; --red-clear: #dd4444; --purple-accent: #bb66ff; } *{box-sizing:border-box} 
+
+/* 文字選取樣式 - 改善對比度 */
+::selection {
+  background-color: #5ff0d5;
+  color: #000000;
+}
+
+::-moz-selection {
+  background-color: #5ff0d5;
+  color: #000000;
+}
+
+/* 針對輸入框的選取樣式 */
+input::selection {
+  background-color: #5ff0d5;
+  color: #000000;
+}
+
+input::-moz-selection {
+  background-color: #5ff0d5;
+  color: #000000;
+}
+
+body{ margin:0; padding:0; background:linear-gradient(180deg,var(--bg-0),var(--bg-1)); color:#e8eef5; font-family:Inter, 'Noto Sans TC', system-ui; line-height:1.3; } header{ padding: 0 10px; background-color: var(--bg-1); border-bottom: 1px solid rgba(255,255,255,0.08); height: 0; } h1{ display: none; } main{padding:6px; max-width:880px; margin:0 auto;} .card{ background:rgba(255,255,255,0.02); padding:6px 8px; border-radius:10px; margin-bottom:6px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.03); } .gps-container .card { padding: 5px 8px; } .section-title{ color:var(--title); font-size:18px; font-weight:700; margin-bottom:4px; display:block; } .rf-header { margin-bottom: 6px; } .rf-header .section-title { color: var(--title); font-size: 18px; font-weight: 700; margin-bottom: 2px; display: block; } .unit-selector-row { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 4px 0; margin-bottom: 2px; } .unit-selector-row .unit-label { font-size: 15px; color: var(--label); margin-bottom: 0; font-weight: 700; } .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:5px; align-items:end; } label{ color:var(--label); font-size:15px; margin-bottom:1px; display:block; } input,select{ width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); } .input-with-clear-rf { display: flex; align-items: center; position: relative; } .input-with-clear-rf input { flex-grow: 1; padding-right: 35px; } .clear-btn-rf { position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--red-clear); font-size: 18px; cursor: pointer; padding: 0 8px; line-height: 1; font-weight: bold; opacity: 0.8; z-index: 10; height: 100%; display: flex; align-items: center; } #unit, #displayMode { border: 1px solid var(--purple-accent) !important; color: var(--purple-accent) !important; background-color: rgba(187, 102, 255, 0.08) !important; width: auto !important; max-width: 120px !important; padding: 3px 6px !important; font-size: 15px !important; flex-shrink: 0; } .gps-container input[type="number"], .gps-container input[type="text"] { padding: 3px 5px; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); } .controls{ margin-top:2px; display:flex; gap:5px; } .btn{ background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:8px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; } .btn.ghost{ border:1px solid var(--accent2); background:transparent; color:#e8eef5; } .btn.clear{ background:var(--red-clear); color:white; border-radius:6px; } #rf-content + .btn-row .btn { background: linear-gradient(90deg, var(--rf-green-start), var(--rf-green-end)); color: #022; border: none; } #rf-content + .btn-row .btn.ghost { background: transparent; border: 1px solid var(--rf-green-border); color: #e8eef5; } #rf-content + .btn-row .btn.clear { background: var(--red-clear); color: white; border: none; } .btn-row{ display:flex; flex-wrap:nowrap; justify-content:stretch; align-items:center; gap:12px; width:100%; box-sizing:border-box; } .btn-row .btn{ flex:1 1 0%; text-align:center; white-space:nowrap; min-width:0; } #liveInputs{ margin-top:3px; font-size:14px; color:var(--muted); } table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:16px; } thead th{ color:var(--label); padding:3px 3px; border-bottom:1px solid rgba(255,255,255,0.06); text-align:center; } tbody td{ padding:4px 3px; border-bottom:1px solid rgba(255,255,255,0.03); text-align:center; } .name{ color:#ffd369; font-weight:700; white-space:nowrap; } th:first-child, td:first-child{ width:32%; text-align:left; } .value, .percent{ color:var(--value); font-weight:800; font-variant-numeric:tabular-nums; } .small-note{ font-size:13px; margin-top:3px; color:var(--muted); } @media (max-width:640px){ .form-grid{grid-template-columns:1fr;} } .tabs{ display:flex; margin-bottom: 6px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.06); } .tab-button{ flex-shrink: 0; padding: 6px 10px; margin: 0 2px; background: transparent; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; transition: all 0.2s ease; } .tab-button.active{ background: var(--glass); color: var(--title); border-bottom: 2px solid var(--accent1); } .tab-content{ display: none; padding-top: 5px; } .tab-content.active{ display: block; } .gps-container { padding: 0; } .gps-tip { color: var(--label) !important; font-size: 13px !important; margin: 0 0 2px 0 !important; } .display-mode-container { margin-top: 3px; } .gps-ig { margin-bottom: 2px !important; padding: 3px 7px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; background-color: rgba(255,255,255,0.02); } .gps-loc-header { margin-bottom: 2px !important; font-weight: bold; color: var(--title); font-size: 17px; display: flex; align-items: center; justify-content: space-between; } .gps-loc-header > div { display: flex; align-items: center; gap: 5px; } #nameA, #nameB { width: 144px !important; max-width: 144px !important; font-size: 14px !important; text-align: center; flex-shrink: 0; padding: 4px 6px !important; } .gps-loc-header span { color: var(--muted); font-size: 13px; flex-shrink: 0; } .gps-cg { padding: 2px !important; margin-bottom: 2px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; } .gps-cl { font-weight: bold; color: var(--label); display: block; margin-bottom: 1px; font-size: 14px !important; } .gps-ddr { display: flex; align-items: center; margin-bottom: 0 !important; } .gps-ddr input { flex-grow: 1; text-align: right; padding: 4px 8px !important; font-size: 16px !important; } .gps-ddr span { color: var(--muted); font-size: 14px !important; margin-right: 4px; flex-shrink: 0; } .gps-dmsr { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 0 !important; } .gps-dmsr input { padding: 4px 8px !important; font-size: 16px !important; } .gps-dmsf { display: flex; align-items: center; flex: 1; min-width: 0; } .gps-dmsf input { text-align: center; margin-right: 3px; max-width: none; flex-grow: 1; min-width: 30px; } .gps-dmsf:nth-child(1) input { flex: 2; } .gps-dmsf:nth-child(2) input { flex: 1.5; } .gps-dmsf:nth-child(3) input { flex: 2.5; } .gps-dmsr span { color: var(--muted); font-size: 14px !important; margin-right: 0; flex-shrink: 0; } .gps-er { display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-top: 2px !important; padding-top: 2px !important; border-top: 1px dashed rgba(255,255,255,0.08); flex-wrap: nowrap !important; } .gps-er label { font-size: 15px !important; flex-shrink: 0; color: var(--label); width: 120px; margin-right: 8px; } .gps-er input { text-align: right; flex-grow: 1.2 !important; padding: 4px 8px !important; font-size: 16px !important; min-width: 60px !important; max-width: 100px !important; } .gps-er > .control-group { display: flex; align-items: center; flex-shrink: 0; min-width: 0; margin-left: auto !important; } .gps-er .control-group span { font-size: 14px !important; flex-shrink: 0; color: var(--muted); margin-left: 4px; } .gps-cb { background: none; border: none; color: #ff6347; font-size: 18px; cursor: pointer; padding: 0 5px; line-height: 1; font-weight: bold; opacity: 0.9; margin: 0; flex-shrink: 0; } .gps-ddr .gps-cb { margin-left: auto; } .gps-er .control-group .gps-cb { margin-left: 5px !important; } #gpsRes { margin-top: 5px !important; padding: 8px !important; border: 2px solid var(--accent2); border-radius: 8px; background-color: rgba(121, 168, 255, 0.05); font-size: 16px !important; font-weight: 500; text-align: left; color: #e8eef5; } #gpsRes p { margin: 4px 0 !important; } .gps-label-title { color: var(--title); font-weight: 700; margin-right: 5px; } .v-dist, .v-bearing, .v-pitch-value { font-weight: 900 !important; font-size: 1.1em; color: var(--value) !important; } .display-mode-container { display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-top: 3px; } #displayMode { width: auto !important; max-width: 170px; flex-shrink: 0; } .display-mode-container label { display: none; } .display-mode-text { font-weight: 700; color: var(--label); font-size: 14px; flex-shrink: 0; } .results-card-border { border: 2px solid var(--accent2) !important; border-radius: 8px !important; background-color: rgba(121, 168, 255, 0.05) !important; } .orange-border-card { border: 2px solid var(--orange-border) !important; border-radius: 8px !important; background-color: rgba(255, 170, 0, 0.05) !important; }
 
 /* 流水燈動畫樣式 */
 @keyframes blink-dots {
@@ -836,13 +860,20 @@ div.gps-ig.orange-border-card,
 <!-- === Archive Tab Content === -->
 <div id="archive-content" class="tab-content">
   <section class="card">
-    <h3 class="section-title" style="margin-bottom:12px">💾 參數保存 / 備份</h3>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 class="section-title" style="margin:0">💾 參數保存 / 備份</h3>
+      <div style="display:flex; gap:8px;">
+        <button class="btn ghost" onclick="lsExport()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">匯出</button>
+        <button class="btn ghost" onclick="document.getElementById('ls_import').click()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">讀取</button>
+        <input id="ls_import" type="file" accept="application/json" style="display:none" onchange="lsImport(event)">
+      </div>
+    </div>
     <div style="display:flex;gap:8px; margin-bottom:12px; align-items:center; flex-wrap:nowrap;">
-      <input id="ls_save_name" placeholder="自訂名稱" style="flex:1;min-width:150px; padding:8px 12px; font-size:16px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
+      <div style="flex:1;min-width:150px; position:relative; display:flex; align-items:center; justify-content:space-between; padding:8px 12px; font-size:16px; background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
+        <input id="ls_save_name" placeholder="自訂名稱" style="border:none; background:transparent; outline:none; color:var(--value); font-size:16px; padding:0; flex:1; min-width:60px;" oninput="updateNamePreview()">
+        <span id="ls_name_suffix" style="color:rgba(255,255,255,0.5); font-size:16px; white-space:nowrap; margin-left:8px;"></span>
+      </div>
       <button class="btn" onclick="lsSave()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">保存</button>
-      <button class="btn ghost" onclick="lsExport()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">匯出</button>
-      <button class="btn ghost" onclick="document.getElementById('ls_import').click()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">讀取</button>
-      <input id="ls_import" type="file" accept="application/json" style="display:none" onchange="lsImport(event)">
     </div>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:nowrap;">
       <label style="color:var(--label); font-size:15px; font-weight:600; white-space:nowrap;">排列方式：</label>
@@ -854,11 +885,11 @@ div.gps-ig.orange-border-card,
       </select>
     </div>
     <div style="overflow-x:auto;">
-      <table style="width:100%; table-layout:auto;">
+      <table style="width:100%; table-layout:fixed;">
         <thead>
           <tr>
-            <th style="text-align:left; padding:8px; width:auto;">名稱</th>
-            <th style="text-align:center; padding:8px; width:200px;">操作</th>
+            <th style="text-align:left; padding:8px; width:65%;">名稱</th>
+            <th style="text-align:center; padding:8px; width:35%;">操作</th>
           </tr>
         </thead>
         <tbody id="ls_table"></tbody>
@@ -2059,14 +2090,71 @@ function openMapPicker(location) {
     mapPickerHTML += 'var query = document.getElementById("search-input").value.trim();';
     mapPickerHTML += 'if (!query) { alert("請輸入地址或地名"); return; }';
     mapPickerHTML += 'document.getElementById("instruction").style.display = "none";';
-    mapPickerHTML += 'document.getElementById("results-list").innerHTML = "<div class=\\"no-results\\">🔍 智能搜尋中...<br><small>使用多個搜尋引擎</small></div>";';
+    mapPickerHTML += 'document.getElementById("results-list").innerHTML = "<div class=\\"no-results\\">🔍 智能搜尋中...<br><small>正在使用多個資料來源</small></div>";';
     mapPickerHTML += 'document.getElementById("results-panel").style.display = "flex";';
     mapPickerHTML += 'var allResults = [];';
     mapPickerHTML += 'var searchPromises = [];';
     mapPickerHTML += 'var isCommonPlace = /火車站|車站|機場|港口|碼頭|醫院|大學|公園|夜市|老街/i.test(query);';
     mapPickerHTML += 'var limitPerQuery = isCommonPlace ? 10 : 5;';
-    mapPickerHTML += 'var taiwanQueries = [query + ", 台灣", query + ", Taiwan", query];';
-    mapPickerHTML += 'taiwanQueries.forEach(function(searchQuery) {';
+    mapPickerHTML += 'var isTaiwanAddress = /[縣市區鄉鎮村里路街段巷弄號]/i.test(query);';
+    mapPickerHTML += 'function cleanAddress(addr) {';
+    mapPickerHTML += '  return addr.replace(/第?\\d+鄰/g, "").replace(/[\\s]+/g, " ").trim();';
+    mapPickerHTML += '}';
+    mapPickerHTML += 'function generateAddressVariations(addr) {';
+    mapPickerHTML += '  var variations = [addr];';
+    mapPickerHTML += '  var cleaned = cleanAddress(addr);';
+    mapPickerHTML += '  if (cleaned !== addr) variations.push(cleaned);';
+    mapPickerHTML += '  var withoutHao = addr.replace(/號$/g, "");';
+    mapPickerHTML += '  if (withoutHao !== addr) {';
+    mapPickerHTML += '    variations.push(withoutHao);';
+    mapPickerHTML += '    variations.push(cleanAddress(withoutHao));';
+    mapPickerHTML += '  }';
+    mapPickerHTML += '  var withHao = addr.match(/\\d+$/) ? addr + "號" : addr;';
+    mapPickerHTML += '  if (withHao !== addr) {';
+    mapPickerHTML += '    variations.push(withHao);';
+    mapPickerHTML += '    variations.push(cleanAddress(withHao));';
+    mapPickerHTML += '  }';
+    mapPickerHTML += '  var normalized1 = addr.replace(/台/g, "臺");';
+    mapPickerHTML += '  var normalized2 = addr.replace(/臺/g, "台");';
+    mapPickerHTML += '  if (normalized1 !== addr) {';
+    mapPickerHTML += '    variations.push(normalized1);';
+    mapPickerHTML += '    variations.push(normalized1.replace(/號$/g, ""));';
+    mapPickerHTML += '  }';
+    mapPickerHTML += '  if (normalized2 !== addr) {';
+    mapPickerHTML += '    variations.push(normalized2);';
+    mapPickerHTML += '    variations.push(normalized2.replace(/號$/g, ""));';
+    mapPickerHTML += '  }';
+    mapPickerHTML += '  var cityMatch = addr.match(/^(.+?[縣市])(.+)$/);';
+    mapPickerHTML += '  if (cityMatch) {';
+    mapPickerHTML += '    var remainder = cityMatch[2].trim();';
+    mapPickerHTML += '    variations.push(remainder);';
+    mapPickerHTML += '    variations.push(remainder.replace(/號$/g, ""));';
+    mapPickerHTML += '    var districtMatch = cityMatch[2].match(/^(.+?[區鄉鎮市])(.+)$/);';
+    mapPickerHTML += '    if (districtMatch) {';
+    mapPickerHTML += '      var street = districtMatch[2].trim();';
+    mapPickerHTML += '      variations.push(cityMatch[1] + " " + districtMatch[1] + " " + street);';
+    mapPickerHTML += '      variations.push(districtMatch[1] + " " + street);';
+    mapPickerHTML += '      variations.push(street);';
+    mapPickerHTML += '      variations.push(street.replace(/號$/g, ""));';
+    mapPickerHTML += '      var streetOnly = districtMatch[2].match(/^([^0-9]+)/);';
+    mapPickerHTML += '      if (streetOnly) {';
+    mapPickerHTML += '        variations.push(streetOnly[1].trim());';
+    mapPickerHTML += '        variations.push(streetOnly[1].trim().replace(/號$/g, ""));';
+    mapPickerHTML += '      }';
+    mapPickerHTML += '    }';
+    mapPickerHTML += '  }';
+    mapPickerHTML += '  var noNumbers = addr.replace(/\\d+號?/g, "").replace(/第?\\d+鄰/g, "").trim();';
+    mapPickerHTML += '  if (noNumbers !== addr && noNumbers.length > 3) variations.push(noNumbers);';
+    mapPickerHTML += '  return [...new Set(variations)];';
+    mapPickerHTML += '}';
+    mapPickerHTML += 'var taiwanQueries = [];';
+    mapPickerHTML += 'if (isTaiwanAddress) {';
+    mapPickerHTML += '  taiwanQueries = generateAddressVariations(query);';
+    mapPickerHTML += '  console.log("地址變體:", taiwanQueries);';
+    mapPickerHTML += '} else {';
+    mapPickerHTML += '  taiwanQueries = [query + ", 台灣", query + ", Taiwan", query];';
+    mapPickerHTML += '}';
+    mapPickerHTML += 'taiwanQueries.slice(0, 3).forEach(function(searchQuery) {';
     mapPickerHTML += 'searchPromises.push(';
     mapPickerHTML += 'fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(searchQuery) + "&countrycodes=tw&limit=" + limitPerQuery + "&addressdetails=1&accept-language=zh-TW")';
     mapPickerHTML += '.then(r => r.json()).then(data => data.map(item => ({...item, source: "OSM"})))';
@@ -2090,6 +2178,56 @@ function openMapPicker(location) {
     mapPickerHTML += '.then(r => r.json()).then(data => data.map(item => ({...item, source: "LocationIQ"})))';
     mapPickerHTML += '.catch(e => [])';
     mapPickerHTML += ');';
+    mapPickerHTML += 'if (isTaiwanAddress) {';
+    mapPickerHTML += '  var addressVariations = generateAddressVariations(query);';
+    mapPickerHTML += '  addressVariations.slice(0, 5).forEach(function(addr) {';
+    mapPickerHTML += '    searchPromises.push(';
+    mapPickerHTML += '      fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(addr) + "&countrycodes=tw&limit=8&addressdetails=1&accept-language=zh-TW")';
+    mapPickerHTML += '      .then(r => r.json()).then(data => data.map(item => ({...item, source: "OSM-Address", searchVariant: addr})))';
+    mapPickerHTML += '      .catch(e => [])';
+    mapPickerHTML += '    );';
+    mapPickerHTML += '  });';
+    mapPickerHTML += '  var mainAddr = cleanAddress(query);';
+    mapPickerHTML += '  searchPromises.push(';
+    mapPickerHTML += '    fetch("https://nominatim.openstreetmap.org/search?format=json&street=" + encodeURIComponent(mainAddr) + "&country=taiwan&limit=10&addressdetails=1")';
+    mapPickerHTML += '    .then(r => r.json()).then(data => data.map(item => ({...item, source: "OSM-Street"})))';
+    mapPickerHTML += '    .catch(e => [])';
+    mapPickerHTML += '  );';
+    mapPickerHTML += '  var geocodeQueries = [query, mainAddr, query.replace(/台/g, "臺"), query.replace(/臺/g, "台")];';
+    mapPickerHTML += '  geocodeQueries.slice(0, 2).forEach(function(geoQuery) {';
+    mapPickerHTML += '    searchPromises.push(';
+    mapPickerHTML += '      fetch("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&outFields=*&maxLocations=5&address=" + encodeURIComponent(geoQuery) + "&countryCode=TWN")';
+    mapPickerHTML += '      .then(r => r.json()).then(data => {';
+    mapPickerHTML += '        if (data.candidates && data.candidates.length > 0) {';
+    mapPickerHTML += '          return data.candidates.map(c => ({';
+    mapPickerHTML += '            lat: c.location.y,';
+    mapPickerHTML += '            lon: c.location.x,';
+    mapPickerHTML += '            display_name: c.address || geoQuery,';
+    mapPickerHTML += '            type: "address",';
+    mapPickerHTML += '            source: "ArcGIS",';
+    mapPickerHTML += '            score: c.score || 0';
+    mapPickerHTML += '          }));';
+    mapPickerHTML += '        }';
+    mapPickerHTML += '        return [];';
+    mapPickerHTML += '      }).catch(e => [])';
+    mapPickerHTML += '    );';
+    mapPickerHTML += '  });';
+    mapPickerHTML += '  searchPromises.push(';
+    mapPickerHTML += '    fetch("https://api.nlsc.gov.tw/other/TownVillagePointQuery/" + encodeURIComponent(mainAddr) + "/4326/JSON")';
+    mapPickerHTML += '    .then(r => r.json()).then(data => {';
+    mapPickerHTML += '      if (data && Array.isArray(data) && data.length > 0) {';
+    mapPickerHTML += '        return data.map(item => ({';
+    mapPickerHTML += '          lat: parseFloat(item.y || item.Y),';
+    mapPickerHTML += '          lon: parseFloat(item.x || item.X),';
+    mapPickerHTML += '          display_name: query,';
+    mapPickerHTML += '          type: "address",';
+    mapPickerHTML += '          source: "NLSC-TW"';
+    mapPickerHTML += '        }));';
+    mapPickerHTML += '      }';
+    mapPickerHTML += '      return [];';
+    mapPickerHTML += '    }).catch(e => [])';
+    mapPickerHTML += '  );';
+    mapPickerHTML += '}';
     mapPickerHTML += 'Promise.all(searchPromises).then(function(results) {';
     mapPickerHTML += 'results.forEach(function(data) {';
     mapPickerHTML += 'if (data && Array.isArray(data)) {';
@@ -2116,10 +2254,24 @@ function openMapPicker(location) {
     mapPickerHTML += 'var bName = (b.name || b.display_name.split(",")[0]).toLowerCase().trim();';
     mapPickerHTML += 'var aFullName = a.display_name.toLowerCase().trim();';
     mapPickerHTML += 'var bFullName = b.display_name.toLowerCase().trim();';
-    mapPickerHTML += 'if (aName === queryLower) aScore += 1000;';
-    mapPickerHTML += 'if (bName === queryLower) bScore += 1000;';
-    mapPickerHTML += 'if (aFullName === queryLower) aScore += 900;';
-    mapPickerHTML += 'if (bFullName === queryLower) bScore += 900;';
+    mapPickerHTML += 'if (isTaiwanAddress) {';
+    mapPickerHTML += '  if (a.source === "ArcGIS" && a.score > 90) aScore += 3500;';
+    mapPickerHTML += '  if (b.source === "ArcGIS" && b.score > 90) bScore += 3500;';
+    mapPickerHTML += '  if (a.source === "ArcGIS") aScore += 3000;';
+    mapPickerHTML += '  if (b.source === "ArcGIS") bScore += 3000;';
+    mapPickerHTML += '  if (a.source === "NLSC-TW") aScore += 2800;';
+    mapPickerHTML += '  if (b.source === "NLSC-TW") bScore += 2800;';
+    mapPickerHTML += '  if ((a.type === "house" || a.type === "building" || a.type === "address") && aFullName.includes(queryLower)) aScore += 2000;';
+    mapPickerHTML += '  if ((b.type === "house" || b.type === "building" || b.type === "address") && bFullName.includes(queryLower)) bScore += 2000;';
+    mapPickerHTML += '  if (a.source === "OSM-Street") aScore += 1800;';
+    mapPickerHTML += '  if (b.source === "OSM-Street") bScore += 1800;';
+    mapPickerHTML += '  if (a.source === "OSM-Address") aScore += 1500;';
+    mapPickerHTML += '  if (b.source === "OSM-Address") bScore += 1500;';
+    mapPickerHTML += '  if (a.searchVariant && a.searchVariant.length < query.length) aScore += 500;';
+    mapPickerHTML += '  if (b.searchVariant && b.searchVariant.length < query.length) bScore += 500;';
+    mapPickerHTML += '}';
+    mapPickerHTML += 'if (aName === queryLower || aFullName === queryLower) aScore += 1000;';
+    mapPickerHTML += 'if (bName === queryLower || bFullName === queryLower) bScore += 1000;';
     mapPickerHTML += 'if (aName.indexOf(queryLower) === 0 && aName.length - queryLower.length <= 5) aScore += 800;';
     mapPickerHTML += 'if (bName.indexOf(queryLower) === 0 && bName.length - queryLower.length <= 5) bScore += 800;';
     mapPickerHTML += 'if (aName.indexOf(queryLower) === 0) aScore += 500;';
@@ -2136,8 +2288,8 @@ function openMapPicker(location) {
     mapPickerHTML += 'if (bFullName.includes(queryLower)) bScore += 100;';
     mapPickerHTML += 'if (a.type === "station" || a.type === "railway" || a.type === "railway_station") aScore += 50;';
     mapPickerHTML += 'if (b.type === "station" || b.type === "railway" || b.type === "railway_station") bScore += 50;';
-    mapPickerHTML += 'if (a.type === "building" || a.type === "amenity") aScore += 30;';
-    mapPickerHTML += 'if (b.type === "building" || b.type === "amenity") bScore += 30;';
+    mapPickerHTML += 'if (a.type === "building" || a.type === "amenity" || a.type === "house" || a.type === "address") aScore += 30;';
+    mapPickerHTML += 'if (b.type === "building" || b.type === "amenity" || b.type === "house" || b.type === "address") bScore += 30;';
     mapPickerHTML += 'if (a.type === "city" || a.type === "town" || a.type === "village") aScore += 10;';
     mapPickerHTML += 'if (b.type === "city" || b.type === "town" || b.type === "village") bScore += 10;';
     mapPickerHTML += 'if (aScore === bScore) {';
@@ -2149,7 +2301,7 @@ function openMapPicker(location) {
     mapPickerHTML += 'return bScore - aScore; });';
     mapPickerHTML += 'if (allResults.length === 0) {';
     mapPickerHTML += 'document.getElementById("results-list").innerHTML = ';
-    mapPickerHTML += '"<div class=\\"no-results\\">找不到 \\"" + query + "\\"<br><br>💡 搜尋建議：<br>• 更具體的地名（台北101）<br>• 加上縣市（台中火車站）<br>• 完整地址<br>• 知名景點名稱</div>";';
+    mapPickerHTML += '"<div class=\\"no-results\\">找不到 \\"" + query + "\\"<br><br>💡 搜尋建議：<br>• 完整地址格式：<br>　桃園市龍潭區中原路二段229巷33號<br>• 省略鄰號後再試：<br>　移除「第X鄰」等文字<br>• 只輸入主要道路：<br>　中原路二段<br>• 試試台/臺的不同寫法<br>• 或直接在地圖上點擊位置</div>";';
     mapPickerHTML += 'return; }';
     mapPickerHTML += 'var html = "";';
     mapPickerHTML += 'var maxDisplay = isCommonPlace ? 20 : 15;';
@@ -3581,6 +3733,9 @@ async function runAnalysisWithOpenElevation() {
         locations.push({ latitude: lat, longitude: lng });
         pathData.push({ dist: (totalDist * f).toFixed(3), lat: lat.toFixed(6), lng: lng.toFixed(6) });
     }
+    
+    // 存儲到全域變數供全畫面圖表使用
+    window.currentPathData = pathData;
 
     console.log('取樣點數:', locations.length);
 
@@ -3955,6 +4110,38 @@ function renderChart(elevations) {
         }
     };
     
+    // 插件：在X軸最右邊顯示總距離
+    const totalDistancePlugin = {
+        id: 'totalDistance',
+        afterDraw(chart) {
+            const ctx = chart.ctx;
+            const xAxis = chart.scales.x;
+            const yAxis = chart.scales.y;
+            
+            // 計算總距離
+            const totalDist = pathData[pathData.length - 1].dist;
+            
+            ctx.save();
+            // 設定字體大小與X軸標題一致 (預設12px)
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#ffd43b';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'top';
+            
+            // 在X軸右下角顯示總距離
+            const text = `總距離: ${parseFloat(totalDist).toFixed(2)} km`;
+            const x = xAxis.right - 5;
+            // 移到圖表最下方，在X軸標題「距離 (km)」下面
+            const y = yAxis.bottom + 35;
+            
+            // 繪製文字 (移除背景框，只保留文字，顏色與A點標籤一致)
+            ctx.fillStyle = '#ffe58f';
+            ctx.fillText(text, x, y);
+            
+            ctx.restore();
+        }
+    };
+    
     // 全局變數：保存當前選定的點索引
     window.currentSelectedPointIndex = -1;
     
@@ -4082,7 +4269,7 @@ function renderChart(elevations) {
                 }
             }
         },
-        plugins: [pointLabelPlugin]
+        plugins: [pointLabelPlugin, totalDistancePlugin]
     });
     
     // 添加滑鼠拖曳事件監聽器
@@ -4609,6 +4796,41 @@ function openChartFullscreen() {
             }
         };
         
+        // 插件：在全畫面X軸最右邊顯示總距離
+        const fullscreenTotalDistancePlugin = {
+            id: 'fullscreenTotalDistance',
+            afterDraw(chart) {
+                const ctx = chart.ctx;
+                const xAxis = chart.scales.x;
+                const yAxis = chart.scales.y;
+                
+                // 從全域變數獲取路徑數據
+                if (!window.currentPathData || window.currentPathData.length === 0) return;
+                
+                const pathData = window.currentPathData;
+                const totalDist = pathData[pathData.length - 1].dist;
+                
+                ctx.save();
+                // 設定字體大小與X軸標題一致 (13px)
+                ctx.font = '13px Arial';
+                ctx.fillStyle = '#ffd43b';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'top';
+                
+                // 在X軸右下角顯示總距離
+                const text = `總距離: ${parseFloat(totalDist).toFixed(2)} km`;
+                const x = xAxis.right - 8;
+                // 移到圖表最下方，在X軸標題「距離 (km)」下面
+                const y = yAxis.bottom + 38;
+                
+                // 繪製文字 (移除背景框，只保留文字，顏色與A點標籤一致)
+                ctx.fillStyle = '#ffe58f';
+                ctx.fillText(text, x, y);
+                
+                ctx.restore();
+            }
+        };
+        
         // 創建全螢幕圖表
         fullscreenChartInstance = new Chart(ctx, {
             type: 'line',
@@ -5092,7 +5314,7 @@ function openChartFullscreen() {
                     }
                 }
             },
-            plugins: [fullscreenLabelPlugin]
+            plugins: [fullscreenLabelPlugin, fullscreenTotalDistancePlugin]
         });
         
         // 同步當前選中的點到全螢幕圖表
@@ -6805,7 +7027,40 @@ function jumpToMaxObstruction() {
     }
     
     if (maxObstructionIndex === -1) {
-        alert('✓ 路徑上沒有遮蔽點');
+        // 檢查是否在全畫面模式
+        const fullscreenOverlay = document.getElementById('chartFullscreenOverlay');
+        const isInFullscreen = fullscreenOverlay && fullscreenOverlay.style.display === 'flex';
+        
+        if (isInFullscreen) {
+            // 在全畫面模式下，創建自定義提示框
+            const alertBox = document.createElement('div');
+            alertBox.style.position = 'fixed';
+            alertBox.style.top = '50%';
+            alertBox.style.left = '50%';
+            alertBox.style.transform = 'translate(-50%, -50%)';
+            alertBox.style.backgroundColor = 'rgba(39, 174, 96, 0.95)';
+            alertBox.style.color = 'white';
+            alertBox.style.padding = '30px 50px';
+            alertBox.style.borderRadius = '12px';
+            alertBox.style.fontSize = '24px';
+            alertBox.style.fontWeight = 'bold';
+            alertBox.style.zIndex = '10003';
+            alertBox.style.boxShadow = '0 8px 24px rgba(0,0,0,0.5)';
+            alertBox.style.border = '3px solid #27ae60';
+            alertBox.textContent = '✓ 路徑上沒有遮蔽點';
+            
+            fullscreenOverlay.appendChild(alertBox);
+            
+            // 3秒後自動移除
+            setTimeout(() => {
+                if (alertBox.parentNode) {
+                    alertBox.parentNode.removeChild(alertBox);
+                }
+            }, 3000);
+        } else {
+            // 非全畫面模式，使用普通alert
+            alert('✓ 路徑上沒有遮蔽點');
+        }
         return;
     }
     
@@ -7364,29 +7619,119 @@ function lsLoadTable(){
     const tr=document.createElement("tr");
     const dataStr = JSON.stringify(data).replace(/'/g, "\\'");
     tr.innerHTML=`
-      <td style="padding:8px; color:var(--title); font-weight:600; word-break:break-all;">${name}</td>
-      <td style="padding:8px; text-align:right; white-space:nowrap;">
-        <button class="btn" style="padding:6px 16px; font-size:14px;" onclick='applyFields(${dataStr})'>填入</button>
-        <button class="btn clear" style="padding:6px 16px; font-size:14px; margin-left:8px;" onclick='lsDelete("${name}")'>刪除</button>
+      <td style="padding:8px; color:var(--title); font-weight:600; word-wrap:break-word; word-break:break-all; max-width:0;">
+        <span style="cursor:pointer; text-decoration:underline; color:#5ff0d5;" onclick='fillNameWithDate("${name.replace(/'/g, "\\'")}")'>${name}</span>
+      </td>
+      <td style="padding:8px; text-align:center; white-space:nowrap;">
+        <button class="btn" style="padding:6px 12px; font-size:14px;" onclick='applyFields(${dataStr})'>填入</button>
+        <button class="btn clear" style="padding:6px 12px; font-size:14px; margin-left:4px;" onclick='lsDelete("${name}")'>刪除</button>
       </td>`;
     tb.appendChild(tr);
   });
 }
 
+// 更新名稱預覽（顯示日期後綴在最右邊）
+function updateNamePreview() {
+  const input = document.getElementById("ls_save_name");
+  const suffix = document.getElementById("ls_name_suffix");
+  
+  if (!input || !suffix) return;
+  
+  const userInput = input.value;
+  
+  // 獲取今天的日期（民國年格式）
+  const today = new Date();
+  const rocYear = today.getFullYear() - 1911;
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const dateStr = `_${rocYear}${month}${day}`;
+  
+  // 顯示日期後綴
+  if (userInput) {
+    suffix.textContent = dateStr;
+  } else {
+    suffix.textContent = '';
+  }
+}
+
+// 點擊名稱時填入基礎名稱（移除所有日期格式）
+function fillNameWithDate(name) {
+  // 移除名稱中所有的日期部分
+  // 支援格式：
+  // - _YYYMMDD 或 _YYMMDD (有底線的民國年)
+  // - YYYMMDD 或 YYMMDD (無底線的民國年，6-7位連續數字)
+  // - YYYYMMDD (西元年8位數字，例如：20241211)
+  // - 任何_xx開頭後接6-7位數字的格式
+  
+  let baseName = name;
+  
+  // 持續移除日期直到沒有日期為止
+  let previousName;
+  do {
+    previousName = baseName;
+    
+    // 1. 移除 _YYYMMDD 或 _YYMMDD (有底線的民國年日期)
+    baseName = baseName.replace(/_\d{6,7}/g, '');
+    
+    // 2. 移除 _xx + 數字的格式 (例如：_xx1030211)
+    baseName = baseName.replace(/_[a-zA-Z]{1,3}\d{6,7}/g, '');
+    
+    // 3. 移除 YYYYMMDD (西元年8位數字，例如：20241211)
+    baseName = baseName.replace(/\d{8}/g, '');
+    
+    // 4. 移除結尾的 YYYMMDD 或 YYMMDD (無底線的民國年日期)
+    // 只移除結尾的，避免誤刪中間的數字
+    baseName = baseName.replace(/\d{6,7}$/g, '');
+    
+    // 5. 清理多餘的空格和底線
+    baseName = baseName.replace(/\s+/g, ' ').trim();
+    baseName = baseName.replace(/_+$/g, ''); // 移除結尾的底線
+    
+  } while (baseName !== previousName); // 如果還有變化，繼續移除
+  
+  // 填入自訂名稱輸入框（只填基礎名稱，不加日期）
+  const nameInput = document.getElementById("ls_save_name");
+  if (nameInput) {
+    nameInput.value = baseName;
+    // 觸發 input 事件以更新日期後綴顯示
+    updateNamePreview();
+    // 聚焦到輸入框並將光標移到最後
+    nameInput.focus();
+    nameInput.setSelectionRange(baseName.length, baseName.length);
+  }
+  
+  console.log(`✓ 原始名稱: ${name}`);
+  console.log(`✓ 移除日期後: ${baseName}`);
+}
+
 function lsSave(){
-  const name=document.getElementById("ls_save_name").value.trim();
-  if(!name){
+  const inputElement = document.getElementById("ls_save_name");
+  const userInput = inputElement.value.trim();
+  
+  if(!userInput){
     alert("❌ 請輸入名稱");
     return;
   }
+  
+  // 獲取今天的日期（民國年格式）
+  const today = new Date();
+  const rocYear = today.getFullYear() - 1911;
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const dateStr = `_${rocYear}${month}${day}`;
+  
+  // 完整名稱 = 用戶輸入 + 日期後綴
+  const fullName = userInput + dateStr;
+  
   const all=JSON.parse(localStorage.getItem(LS_KEY)||"{}");
   const saveData = collectFields();
   saveData.timestamp = Date.now(); // 添加時間戳
-  all[name]=saveData;
+  all[fullName]=saveData;
   localStorage.setItem(LS_KEY,JSON.stringify(all));
-  document.getElementById("ls_save_name").value = "";
+  inputElement.value = "";
+  updateNamePreview(); // 清空後綴顯示
   lsLoadTable();
-  alert("✓ 參數已保存：" + name);
+  alert("✓ 參數已保存：" + fullName);
 }
 
 function lsDelete(name){
@@ -7430,7 +7775,10 @@ function lsImport(e){
   e.target.value = '';
 }
 
-document.addEventListener("DOMContentLoaded",lsLoadTable);
+document.addEventListener("DOMContentLoaded", () => {
+  lsLoadTable();
+  updateNamePreview(); // 初始化日期後綴顯示
+});
 </script>
 
 
