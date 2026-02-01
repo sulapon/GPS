@@ -108,8 +108,9 @@ function swapLinkTxUnit() {
 }
 
 </script> <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,minimal-ui" /><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>計算工具</title><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Google Maps JavaScript API (無需API key的開發版本) -->
-<script src="https://maps.googleapis.com/maps/api/js?v=3&callback=Function.prototype"></script>
+<!-- Leaflet 地圖庫 -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <meta name="theme-color" content="#071026"><style> :root{ --bg-0:#050a16; --bg-1:#0b1526; --muted:#a8b3c3; --label:#85c9ff; --title:#ffe58f; --value:#5ff0d5; --accent1:#5ff0d5; --accent2:#79a8ff; --orange-border: #ffaa00; --glass: rgba(255,255,255,0.06); --shadow: 0 4px 12px rgba(0,0,0,0.40); font-size:24px; --gps-error-border: #dc3545; --rf-green-start: #36c74d; --rf-green-end: #1e8030; --rf-green-border: #1e8030; --red-clear: #dd4444; --purple-accent: #bb66ff; } *{box-sizing:border-box} body{ margin:0; padding:0; background:linear-gradient(180deg,var(--bg-0),var(--bg-1)); color:#e8eef5; font-family:Inter, 'Noto Sans TC', system-ui; line-height:1.3; } header{ padding: 0 10px; background-color: var(--bg-1); border-bottom: 1px solid rgba(255,255,255,0.08); height: 0; } h1{ display: none; } main{padding:6px; max-width:880px; margin:0 auto;} .card{ background:rgba(255,255,255,0.02); padding:6px 8px; border-radius:10px; margin-bottom:6px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.03); } .gps-container .card { padding: 5px 8px; } .section-title{ color:var(--title); font-size:18px; font-weight:700; margin-bottom:4px; display:block; } .rf-header { margin-bottom: 6px; } .rf-header .section-title { color: var(--title); font-size: 18px; font-weight: 700; margin-bottom: 2px; display: block; } .unit-selector-row { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 4px 0; margin-bottom: 2px; } .unit-selector-row .unit-label { font-size: 15px; color: var(--label); margin-bottom: 0; font-weight: 700; } .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:5px; align-items:end; } label{ color:var(--label); font-size:15px; margin-bottom:1px; display:block; } input,select{ width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); } .input-with-clear-rf { display: flex; align-items: center; position: relative; } .input-with-clear-rf input { flex-grow: 1; padding-right: 35px; } .clear-btn-rf { position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--red-clear); font-size: 18px; cursor: pointer; padding: 0 8px; line-height: 1; font-weight: bold; opacity: 0.8; z-index: 10; height: 100%; display: flex; align-items: center; } #unit, #displayMode { border: 1px solid var(--purple-accent) !important; color: var(--purple-accent) !important; background-color: rgba(187, 102, 255, 0.08) !important; width: auto !important; max-width: 120px !important; padding: 3px 6px !important; font-size: 15px !important; flex-shrink: 0; } .gps-container input[type="number"], .gps-container input[type="text"] { padding: 3px 5px; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); } .controls{ margin-top:2px; display:flex; gap:5px; } .btn{ background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:8px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; } .btn.ghost{ border:1px solid var(--accent2); background:transparent; color:#e8eef5; } .btn.clear{ background:var(--red-clear); color:white; border-radius:6px; } #rf-content + .btn-row .btn { background: linear-gradient(90deg, var(--rf-green-start), var(--rf-green-end)); color: #022; border: none; } #rf-content + .btn-row .btn.ghost { background: transparent; border: 1px solid var(--rf-green-border); color: #e8eef5; } #rf-content + .btn-row .btn.clear { background: var(--red-clear); color: white; border: none; } .btn-row{ display:flex; flex-wrap:nowrap; justify-content:stretch; align-items:center; gap:12px; width:100%; box-sizing:border-box; } .btn-row .btn{ flex:1 1 0%; text-align:center; white-space:nowrap; min-width:0; } #liveInputs{ margin-top:3px; font-size:14px; color:var(--muted); } table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:16px; } thead th{ color:var(--label); padding:3px 3px; border-bottom:1px solid rgba(255,255,255,0.06); text-align:center; } tbody td{ padding:4px 3px; border-bottom:1px solid rgba(255,255,255,0.03); text-align:center; } .name{ color:#ffd369; font-weight:700; white-space:nowrap; } th:first-child, td:first-child{ width:32%; text-align:left; } .value, .percent{ color:var(--value); font-weight:800; font-variant-numeric:tabular-nums; } .small-note{ font-size:13px; margin-top:3px; color:var(--muted); } @media (max-width:640px){ .form-grid{grid-template-columns:1fr;} } .tabs{ display:flex; margin-bottom: 6px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.06); } .tab-button{ flex-shrink: 0; padding: 6px 10px; margin: 0 2px; background: transparent; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; font-weight: 600; border-radius: 8px 8px 0 0; transition: all 0.2s ease; } .tab-button.active{ background: var(--glass); color: var(--title); border-bottom: 2px solid var(--accent1); } .tab-content{ display: none; padding-top: 5px; } .tab-content.active{ display: block; } .gps-container { padding: 0; } .gps-tip { color: var(--label) !important; font-size: 13px !important; margin: 0 0 2px 0 !important; } .display-mode-container { margin-top: 3px; } .gps-ig { margin-bottom: 2px !important; padding: 3px 7px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; background-color: rgba(255,255,255,0.02); } .gps-loc-header { margin-bottom: 2px !important; font-weight: bold; color: var(--title); font-size: 17px; display: flex; align-items: center; justify-content: space-between; } .gps-loc-header > div { display: flex; align-items: center; gap: 5px; } #nameA, #nameB { width: 144px !important; max-width: 144px !important; font-size: 14px !important; text-align: center; flex-shrink: 0; padding: 4px 6px !important; } .gps-loc-header span { color: var(--muted); font-size: 13px; flex-shrink: 0; } .gps-cg { padding: 2px !important; margin-bottom: 2px !important; border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; } .gps-cl { font-weight: bold; color: var(--label); display: block; margin-bottom: 1px; font-size: 14px !important; } .gps-ddr { display: flex; align-items: center; margin-bottom: 0 !important; } .gps-ddr input { flex-grow: 1; text-align: right; padding: 4px 8px !important; font-size: 16px !important; } .gps-ddr span { color: var(--muted); font-size: 14px !important; margin-right: 4px; flex-shrink: 0; } .gps-dmsr { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 0 !important; } .gps-dmsr input { padding: 4px 8px !important; font-size: 16px !important; } .gps-dmsf { display: flex; align-items: center; flex: 1; min-width: 0; } .gps-dmsf input { text-align: center; margin-right: 3px; max-width: none; flex-grow: 1; min-width: 30px; } .gps-dmsf:nth-child(1) input { flex: 2; } .gps-dmsf:nth-child(2) input { flex: 1.5; } .gps-dmsf:nth-child(3) input { flex: 2.5; } .gps-dmsr span { color: var(--muted); font-size: 14px !important; margin-right: 0; flex-shrink: 0; } .gps-er { display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-top: 2px !important; padding-top: 2px !important; border-top: 1px dashed rgba(255,255,255,0.08); flex-wrap: nowrap !important; } .gps-er label { font-size: 15px !important; flex-shrink: 0; color: var(--label); width: 120px; margin-right: 8px; } .gps-er input { text-align: right; flex-grow: 1.2 !important; padding: 4px 8px !important; font-size: 16px !important; min-width: 60px !important; max-width: 100px !important; } .gps-er > .control-group { display: flex; align-items: center; flex-shrink: 0; min-width: 0; margin-left: auto !important; } .gps-er .control-group span { font-size: 14px !important; flex-shrink: 0; color: var(--muted); margin-left: 4px; } .gps-cb { background: none; border: none; color: #ff6347; font-size: 18px; cursor: pointer; padding: 0 5px; line-height: 1; font-weight: bold; opacity: 0.9; margin: 0; flex-shrink: 0; } .gps-ddr .gps-cb { margin-left: auto; } .gps-er .control-group .gps-cb { margin-left: 5px !important; } #gpsRes { margin-top: 5px !important; padding: 8px !important; border: 2px solid var(--accent2); border-radius: 8px; background-color: rgba(121, 168, 255, 0.05); font-size: 16px !important; font-weight: 500; text-align: left; color: #e8eef5; } #gpsRes p { margin: 4px 0 !important; } .gps-label-title { color: var(--title); font-weight: 700; margin-right: 5px; } .v-dist, .v-bearing, .v-pitch-value { font-weight: 900 !important; font-size: 1.1em; color: var(--value) !important; } .display-mode-container { display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-top: 3px; } #displayMode { width: auto !important; max-width: 170px; flex-shrink: 0; } .display-mode-container label { display: none; } .display-mode-text { font-weight: 700; color: var(--label); font-size: 14px; flex-shrink: 0; } .results-card-border { border: 2px solid var(--accent2) !important; border-radius: 8px !important; background-color: rgba(121, 168, 255, 0.05) !important; } .orange-border-card { border: 2px solid var(--orange-border) !important; border-radius: 8px !important; background-color: rgba(255, 170, 0, 0.05) !important; }
 
 /* 流水燈動畫樣式 */
@@ -603,7 +604,7 @@ div.gps-ig.orange-border-card,
     splash.style.transition = "0.4s";
     setTimeout(() => splash.remove(), 400);
   }, 500);
-</script> <header></header><main><div class="tabs"><button class="tab-button active" data-tab="rftool" onclick="showTab('rftool')">📡 RF工具</button><button class="tab-button" data-tab="rf" onclick="showTab('rf')">〰️ 線損</button><button class="tab-button" data-tab="gps" onclick="showTab('gps')">🌍 GPS</button><button class="tab-button" data-tab="elevation" onclick="showTab('elevation')">📈 高度圖</button><button class="tab-button" data-tab="archive" onclick="showTab('archive')">💾 存檔</button></div><div id="rf-content" class="tab-content"><div class="rf-header"><div class="section-title">TIMES 線損計算</div><div class="unit-selector-row"><label for="unit" class="unit-label">長度單位：</label><select id="unit"><option value="m">公尺 (m)</option><option value="ft">英尺 (ft)</option></select></div></div><section class="card orange-border-card" style="margin-top: 6px;"><div class="form-grid"><div><label for="freq">頻率 (MHz)</label><div class="input-with-clear-rf"><input id="freq" type="number" value="900" min="0" step="1"><button class="clear-btn-rf" onclick="clearRfInput('freq')">✖</button></div></div><div><label for="lenInput">長度</label><div class="input-with-clear-rf"><input id="lenInput" type="number" value="10" min="0" step="0.01"><button class="clear-btn-rf" onclick="clearRfInput('lenInput')">✖</button></div></div></div><div id="liveInputs" class="small-note">輸入並按「計算」查看結果。</div></section><div class="btn-row" style="margin-top: 6px; margin-bottom: 6px;"><button id="calc" class="btn" onclick="compute()">計算</button><button id="reset" class="btn ghost" onclick="resetRf()">預設</button><button id="clear" class="btn clear" onclick="clearRf()">清除</button></div><section class="card results-card-border"><span class="section-title">計算結果（由小到大）</span><div id="tableArea"></div></section></div><div id="gps-content" class="tab-content gps-container"><div class="card"><h2 class="section-title" style="margin-top: 0;">兩點GPS 距離、方位角與俯仰角計算</h2><p class="gps-tip">考慮地球曲率與高度差 (WGS84)</p><div class="display-mode-container"><span class="display-mode-text">顯示格式</span><select id="displayMode" style="padding:6px;border-radius:6px;font-size:14px;"><option value="decimal">度 — 十進制 (DD)</option><option value="dms">度分秒 (DMS)</option></select></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 📍 地點 A 座標 <div style="display: flex; align-items: center; gap: 5px;"><input type="text" id="nameA" placeholder="地名 A" maxlength="5"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('A')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latA" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latA_deg" placeholder="度" oninput="dmsToD('latA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latA_min" placeholder="分" oninput="dmsToD('latA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latA_sec" placeholder="秒" step="0.01" oninput="dmsToD('latA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonA" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonA_deg" placeholder="度" oninput="dmsToD('lonA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonA_min" placeholder="分" oninput="dmsToD('lonA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonA_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div></div><div class="gps-er"><label for="eleA">高度 (Elevation)</label><div style="position: relative; flex-grow: 1.2;"><input type="number" id="eleA" placeholder="請輸入數值" step="0.01"><span id="eleA-loading" style="position: absolute; top: 50%; left: 0; transform: translateY(-50%); color: #ffd43b; font-weight: bold; display: none; pointer-events: none; padding: 4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('A')">✖</button><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 6px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getElevationFromSRTM('A')">取得高度</button></div></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 🎯 地點 B 座標 <div style="display: flex; align-items: center; gap: 5px;"><input type="text" id="nameB" placeholder="地名 B" maxlength="5"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('B')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latB" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latB_deg" placeholder="度" oninput="dmsToD('latB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latB_min" placeholder="分" oninput="dmsToD('latB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latB_sec" placeholder="秒" step="0.01" oninput="dmsToD('latB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonB" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonB_deg" placeholder="度" oninput="dmsToD('lonB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonB_min" placeholder="分" oninput="dmsToD('lonB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonB_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div></div><div class="gps-er"><label for="eleB">高度 (Elevation)</label><div style="position: relative; flex-grow: 1.2;"><input type="number" id="eleB" placeholder="請輸入數值" step="0.01"><span id="eleB-loading" style="position: absolute; top: 50%; left: 0; transform: translateY(-50%); color: #ffd43b; font-weight: bold; display: none; pointer-events: none; padding: 4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('B')">✖</button><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 6px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getElevationFromSRTM('B')">取得高度</button></div></div></div><div id="gps-controls-container"><div class="btn-row" style="margin-top: 5px; margin-bottom: 5px; gap: 12px; display: flex !important; width: 100% !important; justify-content: space-between !important;"><button id="gpsCalcBtn" class="btn" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="calculate()">計算</button><button id="gpsSwapBtn" class="btn" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important; background: linear-gradient(90deg, #bb66ff, #9945ff) !important; color: #fff !important;" onclick="swapGpsCoordinates()">互換A↔B</button><button id="gpsResetBtn" class="btn ghost" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="resetGps()">預設</button><button id="gpsClearBtn" class="btn clear" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="clearAllGps()">清除</button></div><div id="gpsRes"> 點擊「計算」以顯示結果 </div></div></div><header></header><div class="tab-content active" id="rftool-content"><div class="rf-header"><div class="section-title">🚀 綜合 RF工具</div></div><div class="function-selector-container"><label for="function_selector">選擇顯示功能模組:</label><select id="function_selector" onchange="toggleSections()"><option value="ALL">ALL - 顯示所有計算器</option><option value="power">1. 功率轉換 (dBm / W)</option><option value="matching">2. 匹配度參數換算</option><option value="sensitivity">3. 系統靈敏度 (Sensitivity) 計算</option><option value="los">4. 通視最大距離計算</option><option value="fspl">5. 自由空間損耗 (FSPL)</option><option value="linkbudget">6. 通訊模擬 (Link Budget)</option></select></div><section class="card section-item" id="section-power"><div class="section-header-with-controls"><div class="section-title">1. 功率轉換 (dBm / W)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-power')">預設</button><button class="btn btn-clear" onclick="clearSection('section-power')">清除</button></div></div><div class="input-group-border"><label for="power_unit">選擇輸入單位:</label><select id="power_unit" onchange="swapAndCalculate()"><option value="w">W</option><option value="dbm">dBm</option></select><label for="power_input">輸入數值:</label><div class="input-with-clear"><input id="power_input" oninput="calculateDbmWNew()" placeholder="輸入數值" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('power_input', 'calculateDbmWNew')">×</button></div></div><div class="results-card-border" id="power_output_result">換算結果:</div></section><section class="card section-item" id="section-matching"><div class="section-header-with-controls"><div class="section-title">2. 匹配度參數換算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-matching')">預設</button><button class="btn btn-clear" onclick="clearSection('section-matching')">清除</button></div></div><div class="input-group-border"><label for="matching_unit">選擇輸入參數:</label><select id="matching_unit" onchange="swapAndConvertMatching()"><option value="rl">回波損耗 (Return Loss, RL) [dB]</option><option value="vswr">駐波比 (VSWR)</option><option value="gamma">反射係數 (V, Γ)</option><option value="refl_pct">反射功率 [%]</option><option value="pass_pct">通過功率 [%]</option></select><label for="matching_input_value" style="margin-top: 8px;">輸入數值:</label><div class="input-with-clear"><input id="matching_input_value" oninput="calculateMatching()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('matching_input_value', 'calculateMatching')">×</button></div></div><div class="results-card-border" id="matching_output"> 回波損耗 (RL) [dB]: <span class="result-value" id="rl_val"></span><br/> 駐波比 (VSWR): <span class="result-value" id="vswr_val"></span><br/> 反射係數 (V，Γ): <span class="result-value" id="gamma_val"></span><br/> 反射功率 [%]: <span class="result-value" id="refl_percent"></span><br/> 通過功率 [%]: <span class="result-value" id="pass_percent"></span></div></section><section class="card section-item" id="section-sensitivity"><div class="section-header-with-controls"><div class="section-title">3. 系統靈敏度 (Sensitivity) 計算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-sensitivity')">預設</button><button class="btn btn-clear" onclick="clearSection('section-sensitivity')">清除</button></div></div><div class="input-group-border"><label for="sensitivity_bw">訊號頻寬 (BW) [MHz]:</label><div class="input-with-clear"><input id="sensitivity_bw" oninput="calculateSensitivity()" placeholder="例如: 1 (1MHz)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_bw', 'calculateSensitivity')">×</button></div><label for="sensitivity_nf">雜訊指數 (Noise Figure, NF) [dB]:</label><div class="input-with-clear"><input id="sensitivity_nf" oninput="calculateSensitivity()" placeholder="例如: 5" type="number" value="5"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_nf', 'calculateSensitivity')">×</button></div><label for="sensitivity_sn">所需訊雜比 (S/N) [dB]:</label><div class="input-with-clear"><input id="sensitivity_sn" oninput="calculateSensitivity()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_sn', 'calculateSensitivity')">×</button></div></div><div class="results-card-border" id="sensitivity_output">接收器靈敏度 (Sensitivity):</div></section><section class="card section-item" id="section-los"><div class="section-header-with-controls"><div class="section-title">4. 通視最大距離計算 (地球曲度遮蔽)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-los')">預設</button><button class="btn btn-clear" onclick="clearSection('section-los')">清除</button></div></div><div class="input-group-border"><div class="los-point-title">A 點</div><div class="los-input-container"><div class="input-item"><label for="los_g1">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g1" oninput="calculateMaxLOS()" placeholder="例如: 100" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g1', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h1">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h1" oninput="calculateMaxLOS()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('los_h1', 'calculateMaxLOS')">×</button></div></div></div><div class="los-point-title">B 點</div><div class="los-input-container"><div class="input-item"><label for="los_g2">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g2" oninput="calculateMaxLOS()" placeholder="例如: 150" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g2', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h2">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h2" oninput="calculateMaxLOS()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('los_h2', 'calculateMaxLOS')">×</button></div></div></div></div>
+</script> <header></header><main><div class="tabs"><button class="tab-button active" data-tab="rftool" onclick="showTab('rftool')">📡 RF工具</button><button class="tab-button" data-tab="rf" onclick="showTab('rf')">〰️ 線損</button><button class="tab-button" data-tab="gps" onclick="showTab('gps')">🌍 GPS</button><button class="tab-button" data-tab="elevation" onclick="showTab('elevation')">📈 高度圖</button><button class="tab-button" data-tab="archive" onclick="showTab('archive')">💾 存檔</button></div><div id="rf-content" class="tab-content"><div class="rf-header"><div class="section-title">TIMES 線損計算</div><div class="unit-selector-row"><label for="unit" class="unit-label">長度單位：</label><select id="unit"><option value="m">公尺 (m)</option><option value="ft">英尺 (ft)</option></select></div></div><section class="card orange-border-card" style="margin-top: 6px;"><div class="form-grid"><div><label for="freq">頻率 (MHz)</label><div class="input-with-clear-rf"><input id="freq" type="number" value="900" min="0" step="1"><button class="clear-btn-rf" onclick="clearRfInput('freq')">✖</button></div></div><div><label for="lenInput">長度</label><div class="input-with-clear-rf"><input id="lenInput" type="number" value="10" min="0" step="0.01"><button class="clear-btn-rf" onclick="clearRfInput('lenInput')">✖</button></div></div></div><div id="liveInputs" class="small-note">輸入並按「計算」查看結果。</div></section><div class="btn-row" style="margin-top: 6px; margin-bottom: 6px;"><button id="calc" class="btn" onclick="compute()">計算</button><button id="reset" class="btn ghost" onclick="resetRf()">預設</button><button id="clear" class="btn clear" onclick="clearRf()">清除</button></div><section class="card results-card-border"><span class="section-title">計算結果（由小到大）</span><div id="tableArea"></div></section></div><div id="gps-content" class="tab-content gps-container"><div class="card"><h2 class="section-title" style="margin-top: 0;">兩點GPS 距離、方位角與俯仰角計算</h2><p class="gps-tip">考慮地球曲率與高度差 (WGS84)</p><div class="display-mode-container"><span class="display-mode-text">顯示格式</span><select id="displayMode" style="padding:6px;border-radius:6px;font-size:14px;"><option value="decimal">度 — 十進制 (DD)</option><option value="dms">度分秒 (DMS)</option></select></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 A <div style="display: flex; align-items: center; gap: 5px; flex: 1;"><input type="text" id="nameA" placeholder="地名 A" maxlength="5" style="flex: 1;"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('A')">✖</button><button class="btn" style="background: linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getCurrentLocation('A')" title="讀取當前GPS位置">📍</button><button class="btn" style="background: linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="openMapPicker('A')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latA" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latA_deg" placeholder="度" oninput="dmsToD('latA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latA_min" placeholder="分" oninput="dmsToD('latA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latA_sec" placeholder="秒" step="0.01" oninput="dmsToD('latA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonA" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonA_deg" placeholder="度" oninput="dmsToD('lonA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonA_min" placeholder="分" oninput="dmsToD('lonA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonA_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div></div><div class="gps-er"><label for="eleA">高度 (Elevation)</label><div style="position: relative; flex-grow: 1.2;"><input type="number" id="eleA" placeholder="請輸入數值" step="0.01"><span id="eleA-loading" style="position: absolute; top: 50%; left: 0; transform: translateY(-50%); color: #ffd43b; font-weight: bold; display: none; pointer-events: none; padding: 4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('A')">✖</button><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 6px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getElevationFromSRTM('A')">取得高度</button></div></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 B <div style="display: flex; align-items: center; gap: 5px; flex: 1;"><input type="text" id="nameB" placeholder="地名 B" maxlength="5" style="flex: 1;"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('B')">✖</button><button class="btn" style="background: linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getCurrentLocation('B')" title="讀取當前GPS位置">📍</button><button class="btn" style="background: linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="openMapPicker('B')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latB" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latB_deg" placeholder="度" oninput="dmsToD('latB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latB_min" placeholder="分" oninput="dmsToD('latB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latB_sec" placeholder="秒" step="0.01" oninput="dmsToD('latB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonB" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonB_deg" placeholder="度" oninput="dmsToD('lonB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonB_min" placeholder="分" oninput="dmsToD('lonB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonB_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div></div><div class="gps-er"><label for="eleB">高度 (Elevation)</label><div style="position: relative; flex-grow: 1.2;"><input type="number" id="eleB" placeholder="請輸入數值" step="0.01"><span id="eleB-loading" style="position: absolute; top: 50%; left: 0; transform: translateY(-50%); color: #ffd43b; font-weight: bold; display: none; pointer-events: none; padding: 4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('B')">✖</button><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 6px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getElevationFromSRTM('B')">取得高度</button></div></div></div><div id="gps-controls-container"><div class="btn-row" style="margin-top: 5px; margin-bottom: 5px; gap: 12px; display: flex !important; width: 100% !important; justify-content: space-between !important;"><button id="gpsCalcBtn" class="btn" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="calculate()">計算</button><button id="gpsSwapBtn" class="btn" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important; background: linear-gradient(90deg, #bb66ff, #9945ff) !important; color: #fff !important;" onclick="swapGpsCoordinates()">互換A↔B</button><button id="gpsResetBtn" class="btn ghost" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="resetGps()">預設</button><button id="gpsClearBtn" class="btn clear" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="clearAllGps()">清除</button></div><div id="gpsRes"> 點擊「計算」以顯示結果 </div></div></div><header></header><div class="tab-content active" id="rftool-content"><div class="rf-header"><div class="section-title">🚀 綜合 RF工具</div></div><div class="function-selector-container"><label for="function_selector">選擇顯示功能模組:</label><select id="function_selector" onchange="toggleSections()"><option value="ALL">ALL - 顯示所有計算器</option><option value="power">1. 功率轉換 (dBm / W)</option><option value="matching">2. 匹配度參數換算</option><option value="sensitivity">3. 系統靈敏度 (Sensitivity) 計算</option><option value="los">4. 通視最大距離計算</option><option value="fspl">5. 自由空間損耗 (FSPL)</option><option value="linkbudget">6. 通訊模擬 (Link Budget)</option></select></div><section class="card section-item" id="section-power"><div class="section-header-with-controls"><div class="section-title">1. 功率轉換 (dBm / W)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-power')">預設</button><button class="btn btn-clear" onclick="clearSection('section-power')">清除</button></div></div><div class="input-group-border"><label for="power_unit">選擇輸入單位:</label><select id="power_unit" onchange="swapAndCalculate()"><option value="w">W</option><option value="dbm">dBm</option></select><label for="power_input">輸入數值:</label><div class="input-with-clear"><input id="power_input" oninput="calculateDbmWNew()" placeholder="輸入數值" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('power_input', 'calculateDbmWNew')">×</button></div></div><div class="results-card-border" id="power_output_result">換算結果:</div></section><section class="card section-item" id="section-matching"><div class="section-header-with-controls"><div class="section-title">2. 匹配度參數換算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-matching')">預設</button><button class="btn btn-clear" onclick="clearSection('section-matching')">清除</button></div></div><div class="input-group-border"><label for="matching_unit">選擇輸入參數:</label><select id="matching_unit" onchange="swapAndConvertMatching()"><option value="rl">回波損耗 (Return Loss, RL) [dB]</option><option value="vswr">駐波比 (VSWR)</option><option value="gamma">反射係數 (V, Γ)</option><option value="refl_pct">反射功率 [%]</option><option value="pass_pct">通過功率 [%]</option></select><label for="matching_input_value" style="margin-top: 8px;">輸入數值:</label><div class="input-with-clear"><input id="matching_input_value" oninput="calculateMatching()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('matching_input_value', 'calculateMatching')">×</button></div></div><div class="results-card-border" id="matching_output"> 回波損耗 (RL) [dB]: <span class="result-value" id="rl_val"></span><br/> 駐波比 (VSWR): <span class="result-value" id="vswr_val"></span><br/> 反射係數 (V，Γ): <span class="result-value" id="gamma_val"></span><br/> 反射功率 [%]: <span class="result-value" id="refl_percent"></span><br/> 通過功率 [%]: <span class="result-value" id="pass_percent"></span></div></section><section class="card section-item" id="section-sensitivity"><div class="section-header-with-controls"><div class="section-title">3. 系統靈敏度 (Sensitivity) 計算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-sensitivity')">預設</button><button class="btn btn-clear" onclick="clearSection('section-sensitivity')">清除</button></div></div><div class="input-group-border"><label for="sensitivity_bw">訊號頻寬 (BW) [MHz]:</label><div class="input-with-clear"><input id="sensitivity_bw" oninput="calculateSensitivity()" placeholder="例如: 1 (1MHz)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_bw', 'calculateSensitivity')">×</button></div><label for="sensitivity_nf">雜訊指數 (Noise Figure, NF) [dB]:</label><div class="input-with-clear"><input id="sensitivity_nf" oninput="calculateSensitivity()" placeholder="例如: 5" type="number" value="5"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_nf', 'calculateSensitivity')">×</button></div><label for="sensitivity_sn">所需訊雜比 (S/N) [dB]:</label><div class="input-with-clear"><input id="sensitivity_sn" oninput="calculateSensitivity()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_sn', 'calculateSensitivity')">×</button></div></div><div class="results-card-border" id="sensitivity_output">接收器靈敏度 (Sensitivity):</div></section><section class="card section-item" id="section-los"><div class="section-header-with-controls"><div class="section-title">4. 通視最大距離計算 (地球曲度遮蔽)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-los')">預設</button><button class="btn btn-clear" onclick="clearSection('section-los')">清除</button></div></div><div class="input-group-border"><div class="los-point-title">A 點</div><div class="los-input-container"><div class="input-item"><label for="los_g1">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g1" oninput="calculateMaxLOS()" placeholder="例如: 100" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g1', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h1">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h1" oninput="calculateMaxLOS()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('los_h1', 'calculateMaxLOS')">×</button></div></div></div><div class="los-point-title">B 點</div><div class="los-input-container"><div class="input-item"><label for="los_g2">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g2" oninput="calculateMaxLOS()" placeholder="例如: 150" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g2', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h2">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h2" oninput="calculateMaxLOS()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('los_h2', 'calculateMaxLOS')">×</button></div></div></div></div>
 <div style="margin-top:6px;">
   <button class="btn ghost" onclick="toggleRefraction()" id="refBtn" style="color: #bb66ff;">目前：不含大氣折射</button>
 </div>
@@ -695,6 +696,12 @@ div.gps-ig.orange-border-card,
 <span style="color: #ea4335;">B點:</span> <span style="color: #5ff0d5;" id="route-end-info">-</span><br>
 <span style="color: #ffd43b;">直線距離:</span> <span style="color: #5ff0d5;" id="route-distance-info">-</span>
 </div>
+<button id="maximizeMapBtn" onclick="maximizeRouteMap()" style="background: linear-gradient(90deg, #4dabf7, #339af0); border: 0; padding: 5px 10px; border-radius: 6px; font-weight: 700; font-size: 13px; color: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: inline-flex; align-items: center; gap: 6px; margin-bottom: 3px;">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+</svg>
+🔍 最大化地圖
+</button>
 <div id="route-map" style="width:100%; height:450px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:2px solid #5ff0d5;"></div>
 </div>
 </div>
@@ -1717,6 +1724,544 @@ function showLoadingWithDots(elementId, message, eleInput = null) {
     }
 }
 
+// 獲取當前手機GPS位置的函數
+function getCurrentLocation(location) {
+    console.log('getCurrentLocation() 被調用，地點:', location);
+    
+    if (!navigator.geolocation) {
+        alert('❌ 您的瀏覽器不支援地理定位功能');
+        return;
+    }
+    
+    const latId = location === 'A' ? 'latA' : 'latB';
+    const lonId = location === 'A' ? 'lonA' : 'lonB';
+    const nameId = location === 'A' ? 'nameA' : 'nameB';
+    const eleId = location === 'A' ? 'eleA' : 'eleB';
+    
+    const latInput = document.getElementById(latId);
+    const lonInput = document.getElementById(lonId);
+    const nameInput = document.getElementById(nameId);
+    const eleInput = document.getElementById(eleId);
+    const originalLatValue = latInput.value;
+    const originalLonValue = lonInput.value;
+    const originalNameValue = nameInput.value;
+    const originalEleValue = eleInput.value;
+    
+    latInput.value = '定位中...';
+    lonInput.value = '定位中...';
+    nameInput.value = '取得中...';
+    eleInput.value = '取得中...';
+    latInput.disabled = true;
+    lonInput.disabled = true;
+    nameInput.disabled = true;
+    eleInput.disabled = true;
+    
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            
+            latInput.value = latitude.toFixed(6);
+            lonInput.value = longitude.toFixed(6);
+            latInput.disabled = false;
+            lonInput.disabled = false;
+            nameInput.disabled = false;
+            eleInput.disabled = false;
+            
+            updateDMSFromDecimal(latId);
+            updateDMSFromDecimal(lonId);
+            
+            console.log('地點 ' + location + ' 座標已更新: 緯度=' + latitude + ', 經度=' + longitude);
+            
+            // 自動取得地名（使用反向地理編碼）
+            getLocationName(latitude, longitude, location, nameId);
+            
+            // 自動取得高度（使用SRTM API）
+            getElevationAutomatic(latitude, longitude, location, eleId);
+        },
+        function(error) {
+            latInput.value = originalLatValue;
+            lonInput.value = originalLonValue;
+            nameInput.value = originalNameValue;
+            eleInput.value = originalEleValue;
+            latInput.disabled = false;
+            lonInput.disabled = false;
+            nameInput.disabled = false;
+            eleInput.disabled = false;
+            
+            let errorMessage = '❌ 無法獲取位置: ';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage += '使用者拒絕了地理定位請求';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage += '位置資訊不可用';
+                    break;
+                case error.TIMEOUT:
+                    errorMessage += '請求超時';
+                    break;
+                default:
+                    errorMessage += '未知錯誤';
+                    break;
+            }
+            alert(errorMessage);
+            console.error('地理定位錯誤:', error);
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+}
+
+// 打開地圖選擇座標（支援衛星圖切換和地址搜尋）
+// 打開地圖選擇座標（支援衛星圖切換和智能搜尋）
+function openMapPicker(location) {
+    console.log('openMapPicker() 被調用，地點:', location);
+    
+    const latId = location === 'A' ? 'latA' : 'latB';
+    const lonId = location === 'A' ? 'lonA' : 'lonB';
+    const currentLat = document.getElementById(latId).value || 25.0336;
+    const currentLon = document.getElementById(lonId).value || 121.5648;
+    
+    var mapPickerHTML = '<!DOCTYPE html><html><head><meta charset="utf-8">';
+    mapPickerHTML += '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    mapPickerHTML += '<title>選擇地點 ' + location + ' 的座標</title>';
+    mapPickerHTML += '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />';
+    mapPickerHTML += '<style>* { margin: 0; padding: 0; box-sizing: border-box; }';
+    mapPickerHTML += 'body { font-family: Arial, sans-serif; overflow: hidden; }';
+    mapPickerHTML += '#map { width: 100vw; height: calc(100vh - 130px); position: absolute; top: 130px; }';
+    mapPickerHTML += '#info-bar { position: fixed; top: 0; left: 0; right: 0; height: 60px;';
+    mapPickerHTML += 'background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white;';
+    mapPickerHTML += 'display: flex; align-items: center; justify-content: space-between;';
+    mapPickerHTML += 'padding: 0 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 1000; }';
+    mapPickerHTML += '#search-bar { position: fixed; top: 60px; left: 0; right: 0; height: 70px;';
+    mapPickerHTML += 'background: #f8f9fa; display: flex; flex-direction: column; gap: 6px;';
+    mapPickerHTML += 'padding: 8px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 1000; }';
+    mapPickerHTML += '.search-row { display: flex; gap: 8px; align-items: center; }';
+    mapPickerHTML += '#search-input { flex: 1; padding: 8px 12px; border: 2px solid #ddd;';
+    mapPickerHTML += 'border-radius: 6px; font-size: 14px; min-width: 0; }';
+    mapPickerHTML += '.search-btn { background: linear-gradient(90deg, #ff9500, #ffcc00);';
+    mapPickerHTML += 'border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold;';
+    mapPickerHTML += 'color: #000; cursor: pointer; font-size: 13px; white-space: nowrap; flex-shrink: 0; }';
+    mapPickerHTML += '.layer-btn { background: linear-gradient(90deg, #9b59b6, #8e44ad);';
+    mapPickerHTML += 'border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold;';
+    mapPickerHTML += 'color: #fff; cursor: pointer; font-size: 13px; white-space: nowrap; flex-shrink: 0; }';
+    mapPickerHTML += '#coords { font-size: 12px; font-weight: bold; color: #5ff0d5; }';
+    mapPickerHTML += '.btn { background: linear-gradient(90deg, #79a8ff, #5ff0d5); border: none;';
+    mapPickerHTML += 'padding: 10px 16px; border-radius: 6px; font-weight: bold; color: #022;';
+    mapPickerHTML += 'cursor: pointer; font-size: 14px; }';
+    mapPickerHTML += '#instruction { position: fixed; top: 140px; left: 50%; transform: translateX(-50%);';
+    mapPickerHTML += 'background: rgba(255, 255, 255, 0.95); padding: 8px 16px; border-radius: 8px;';
+    mapPickerHTML += 'box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1000; font-size: 12px;';
+    mapPickerHTML += 'color: #333; font-weight: bold; max-width: 90%; text-align: center; }';
+    mapPickerHTML += '#results-panel { position: fixed; top: 140px; right: 10px; width: 320px; max-width: calc(100vw - 20px);';
+    mapPickerHTML += 'height: auto; max-height: calc(100vh - 160px); background: white; border-radius: 8px;';
+    mapPickerHTML += 'box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 1001; display: none;';
+    mapPickerHTML += 'flex-direction: column; }';
+    mapPickerHTML += '#results-list { flex: 1; overflow-y: scroll; overflow-x: hidden; -webkit-overflow-scrolling: touch;';
+    mapPickerHTML += 'min-height: 100px; max-height: calc(100vh - 220px); padding-bottom: 80px; }';
+    mapPickerHTML += '.results-header { padding: 12px 15px; background: linear-gradient(90deg, #ff9500, #ffcc00);';
+    mapPickerHTML += 'color: #000; font-weight: bold; font-size: 14px; display: flex;';
+    mapPickerHTML += 'justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;';
+    mapPickerHTML += 'flex-shrink: 0; }';
+    mapPickerHTML += '.close-results { background: none; border: none; font-size: 20px; cursor: pointer;';
+    mapPickerHTML += 'color: #000; padding: 0; width: 24px; height: 24px; }';
+    mapPickerHTML += '.result-item { padding: 12px 15px; border-bottom: 1px solid #eee;';
+    mapPickerHTML += 'cursor: pointer; transition: background 0.2s; touch-action: manipulation; }';
+    mapPickerHTML += '.result-item:hover { background: #f0f8ff; }';
+    mapPickerHTML += '.result-item:active { background: #d0e8ff; }';
+    mapPickerHTML += '.result-item:last-child { border-bottom: none; padding-bottom: 20px; }';
+    mapPickerHTML += '.result-name { font-weight: bold; color: #333; margin-bottom: 4px; font-size: 14px; }';
+    mapPickerHTML += '.result-address { font-size: 12px; color: #666; line-height: 1.4; }';
+    mapPickerHTML += '.no-results { padding: 20px; text-align: center; color: #999; margin-bottom: 60px; }';
+    mapPickerHTML += '.leaflet-control-attribution { font-size: 10px; }</style></head><body>';
+    mapPickerHTML += '<div id="info-bar"><div style="flex: 1; min-width: 0;">';
+    mapPickerHTML += '<div style="font-size: 15px; font-weight: bold; margin-bottom: 2px;">地點 ' + location + '</div>';
+    mapPickerHTML += '<div id="coords">緯度: -- | 經度: --</div></div>';
+    mapPickerHTML += '<button class="btn" onclick="confirmSelection()">✓ 確認</button></div>';
+    mapPickerHTML += '<div id="search-bar">';
+    mapPickerHTML += '<div class="search-row">';
+    mapPickerHTML += '<input type="text" id="search-input" placeholder="輸入地址或地名（例如：火車站、101）">';
+    mapPickerHTML += '<button class="search-btn" onclick="searchLocation()">🔍</button></div>';
+    mapPickerHTML += '<div class="search-row">';
+    mapPickerHTML += '<button class="layer-btn" onclick="toggleLayer()" id="layer-toggle" style="flex: 1;">🗺️ 街道圖</button></div></div>';
+    mapPickerHTML += '<div id="instruction">👆 點擊地圖或搜尋地址</div>';
+    mapPickerHTML += '<div id="results-panel">';
+    mapPickerHTML += '<div class="results-header">搜尋結果 <button class="close-results" onclick="closeResults()">×</button></div>';
+    mapPickerHTML += '<div id="results-list"></div></div>';
+    mapPickerHTML += '<div id="map"></div>';
+    mapPickerHTML += '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>';
+    mapPickerHTML += '<script>';
+    mapPickerHTML += 'var map, marker, currentLayer; var selectedLat = ' + currentLat + ', selectedLng = ' + currentLon + ', selectedName = null;';
+    mapPickerHTML += 'var center = [' + currentLat + ', ' + currentLon + '];';
+    mapPickerHTML += 'map = L.map("map").setView(center, 15);';
+    mapPickerHTML += 'document.getElementById("coords").innerHTML = "緯度: " + selectedLat.toFixed(6) + " | 經度: " + selectedLng.toFixed(6);';
+    mapPickerHTML += 'marker = L.marker([selectedLat, selectedLng]).addTo(map);';
+    mapPickerHTML += 'document.getElementById("instruction").style.display = "none";';
+    mapPickerHTML += 'var streetLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {';
+    mapPickerHTML += 'attribution: "© OpenStreetMap", maxZoom: 19 });';
+    mapPickerHTML += 'var satelliteLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {';
+    mapPickerHTML += 'attribution: "© Esri", maxZoom: 19 });';
+    mapPickerHTML += 'var hybridLayer = L.layerGroup([';
+    mapPickerHTML += 'L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {';
+    mapPickerHTML += 'attribution: "© Esri", maxZoom: 19 }),';
+    mapPickerHTML += 'L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {';
+    mapPickerHTML += 'opacity: 0.3, maxZoom: 19 })';
+    mapPickerHTML += ']);';
+    mapPickerHTML += 'currentLayer = "street"; streetLayer.addTo(map);';
+    mapPickerHTML += 'function toggleLayer() {';
+    mapPickerHTML += 'var btn = document.getElementById("layer-toggle");';
+    mapPickerHTML += 'if (currentLayer === "street") {';
+    mapPickerHTML += 'map.removeLayer(streetLayer); satelliteLayer.addTo(map);';
+    mapPickerHTML += 'currentLayer = "satellite"; btn.innerHTML = "🛰️ 衛星圖";';
+    mapPickerHTML += '} else if (currentLayer === "satellite") {';
+    mapPickerHTML += 'map.removeLayer(satelliteLayer); hybridLayer.addTo(map);';
+    mapPickerHTML += 'currentLayer = "hybrid"; btn.innerHTML = "🌐 混合圖";';
+    mapPickerHTML += '} else {';
+    mapPickerHTML += 'map.removeLayer(hybridLayer); streetLayer.addTo(map);';
+    mapPickerHTML += 'currentLayer = "street"; btn.innerHTML = "🗺️ 街道圖";';
+    mapPickerHTML += '} }';
+    mapPickerHTML += 'map.on("click", function(e) {';
+    mapPickerHTML += 'selectedLat = e.latlng.lat; selectedLng = e.latlng.lng; selectedName = null;';
+    mapPickerHTML += 'document.getElementById("coords").innerHTML = "緯度: " + selectedLat.toFixed(6) + " | 經度: " + selectedLng.toFixed(6);';
+    mapPickerHTML += 'if (marker) { map.removeLayer(marker); }';
+    mapPickerHTML += 'marker = L.marker([selectedLat, selectedLng]).addTo(map);';
+    mapPickerHTML += 'document.getElementById("instruction").style.display = "none"; });';
+    mapPickerHTML += 'function searchLocation() {';
+    mapPickerHTML += 'var query = document.getElementById("search-input").value.trim();';
+    mapPickerHTML += 'if (!query) { alert("請輸入地址或地名"); return; }';
+    mapPickerHTML += 'document.getElementById("instruction").style.display = "none";';
+    mapPickerHTML += 'document.getElementById("results-list").innerHTML = "<div class=\\"no-results\\">🔍 智能搜尋中...<br><small>使用多個搜尋引擎</small></div>";';
+    mapPickerHTML += 'document.getElementById("results-panel").style.display = "flex";';
+    mapPickerHTML += 'var allResults = [];';
+    mapPickerHTML += 'var searchPromises = [];';
+    mapPickerHTML += 'var isCommonPlace = /火車站|車站|機場|港口|碼頭|醫院|大學|公園|夜市|老街/i.test(query);';
+    mapPickerHTML += 'var limitPerQuery = isCommonPlace ? 10 : 5;';
+    mapPickerHTML += 'var taiwanQueries = [query + ", 台灣", query + ", Taiwan", query];';
+    mapPickerHTML += 'taiwanQueries.forEach(function(searchQuery) {';
+    mapPickerHTML += 'searchPromises.push(';
+    mapPickerHTML += 'fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(searchQuery) + "&countrycodes=tw&limit=" + limitPerQuery + "&addressdetails=1&accept-language=zh-TW")';
+    mapPickerHTML += '.then(r => r.json()).then(data => data.map(item => ({...item, source: "OSM"})))';
+    mapPickerHTML += '.catch(e => [])';
+    mapPickerHTML += '); });';
+    mapPickerHTML += 'searchPromises.push(';
+    mapPickerHTML += 'fetch("https://photon.komoot.io/api/?q=" + encodeURIComponent(query + " taiwan") + "&limit=" + (limitPerQuery * 2) + "&lang=zh")';
+    mapPickerHTML += '.then(r => r.json()).then(data => {';
+    mapPickerHTML += 'if (data.features) {';
+    mapPickerHTML += 'return data.features.map(f => ({';
+    mapPickerHTML += 'lat: f.geometry.coordinates[1],';
+    mapPickerHTML += 'lon: f.geometry.coordinates[0],';
+    mapPickerHTML += 'display_name: f.properties.name + (f.properties.city ? ", " + f.properties.city : "") + (f.properties.country ? ", " + f.properties.country : ""),';
+    mapPickerHTML += 'type: f.properties.type || "place",';
+    mapPickerHTML += 'source: "Photon"';
+    mapPickerHTML += '})); }';
+    mapPickerHTML += 'return []; }).catch(e => [])';
+    mapPickerHTML += ');';
+    mapPickerHTML += 'searchPromises.push(';
+    mapPickerHTML += 'fetch("https://api.locationiq.com/v1/autocomplete.php?key=pk.0f147952a41c555a5b70614039fd148b&q=" + encodeURIComponent(query) + "&countrycodes=tw&limit=" + limitPerQuery + "&format=json&accept-language=zh")';
+    mapPickerHTML += '.then(r => r.json()).then(data => data.map(item => ({...item, source: "LocationIQ"})))';
+    mapPickerHTML += '.catch(e => [])';
+    mapPickerHTML += ');';
+    mapPickerHTML += 'Promise.all(searchPromises).then(function(results) {';
+    mapPickerHTML += 'results.forEach(function(data) {';
+    mapPickerHTML += 'if (data && Array.isArray(data)) {';
+    mapPickerHTML += 'data.forEach(function(item) {';
+    mapPickerHTML += 'if (!item.lat || !item.lon) return;';
+    mapPickerHTML += 'var itemLat = parseFloat(item.lat);';
+    mapPickerHTML += 'var itemLon = parseFloat(item.lon);';
+    mapPickerHTML += 'if (isNaN(itemLat) || isNaN(itemLon)) return;';
+    mapPickerHTML += 'var isDuplicate = allResults.some(function(existing) {';
+    mapPickerHTML += 'return Math.abs(existing.lat - itemLat) < 0.0005 && Math.abs(existing.lon - itemLon) < 0.0005; });';
+    mapPickerHTML += 'if (!isDuplicate) {';
+    mapPickerHTML += 'allResults.push({';
+    mapPickerHTML += 'lat: itemLat,';
+    mapPickerHTML += 'lon: itemLon,';
+    mapPickerHTML += 'display_name: item.display_name || item.name || "未知地點",';
+    mapPickerHTML += 'type: item.type || item.osm_type || "place",';
+    mapPickerHTML += 'source: item.source || "Unknown"';
+    mapPickerHTML += '}); }';
+    mapPickerHTML += '}); }});';
+    mapPickerHTML += 'allResults.sort(function(a, b) {';
+    mapPickerHTML += 'var aScore = 0, bScore = 0;';
+    mapPickerHTML += 'var queryLower = query.toLowerCase().trim();';
+    mapPickerHTML += 'var aName = (a.name || a.display_name.split(",")[0]).toLowerCase().trim();';
+    mapPickerHTML += 'var bName = (b.name || b.display_name.split(",")[0]).toLowerCase().trim();';
+    mapPickerHTML += 'var aFullName = a.display_name.toLowerCase().trim();';
+    mapPickerHTML += 'var bFullName = b.display_name.toLowerCase().trim();';
+    mapPickerHTML += 'if (aName === queryLower) aScore += 1000;';
+    mapPickerHTML += 'if (bName === queryLower) bScore += 1000;';
+    mapPickerHTML += 'if (aFullName === queryLower) aScore += 900;';
+    mapPickerHTML += 'if (bFullName === queryLower) bScore += 900;';
+    mapPickerHTML += 'if (aName.indexOf(queryLower) === 0 && aName.length - queryLower.length <= 5) aScore += 800;';
+    mapPickerHTML += 'if (bName.indexOf(queryLower) === 0 && bName.length - queryLower.length <= 5) bScore += 800;';
+    mapPickerHTML += 'if (aName.indexOf(queryLower) === 0) aScore += 500;';
+    mapPickerHTML += 'if (bName.indexOf(queryLower) === 0) bScore += 500;';
+    mapPickerHTML += 'if (aFullName.indexOf(queryLower) === 0) aScore += 300;';
+    mapPickerHTML += 'if (bFullName.indexOf(queryLower) === 0) bScore += 300;';
+    mapPickerHTML += 'var aWords = aName.split(/[\\s,()（）]+/);';
+    mapPickerHTML += 'var bWords = bName.split(/[\\s,()（）]+/);';
+    mapPickerHTML += 'for (var i = 0; i < aWords.length; i++) { if (aWords[i] === queryLower) { aScore += 700; break; } }';
+    mapPickerHTML += 'for (var i = 0; i < bWords.length; i++) { if (bWords[i] === queryLower) { bScore += 700; break; } }';
+    mapPickerHTML += 'if (aName.includes(queryLower)) aScore += 200;';
+    mapPickerHTML += 'if (bName.includes(queryLower)) bScore += 200;';
+    mapPickerHTML += 'if (aFullName.includes(queryLower)) aScore += 100;';
+    mapPickerHTML += 'if (bFullName.includes(queryLower)) bScore += 100;';
+    mapPickerHTML += 'if (a.type === "station" || a.type === "railway" || a.type === "railway_station") aScore += 50;';
+    mapPickerHTML += 'if (b.type === "station" || b.type === "railway" || b.type === "railway_station") bScore += 50;';
+    mapPickerHTML += 'if (a.type === "building" || a.type === "amenity") aScore += 30;';
+    mapPickerHTML += 'if (b.type === "building" || b.type === "amenity") bScore += 30;';
+    mapPickerHTML += 'if (a.type === "city" || a.type === "town" || a.type === "village") aScore += 10;';
+    mapPickerHTML += 'if (b.type === "city" || b.type === "town" || b.type === "village") bScore += 10;';
+    mapPickerHTML += 'if (aScore === bScore) {';
+    mapPickerHTML += 'if (a.source === "OSM" && b.source !== "OSM") aScore += 5;';
+    mapPickerHTML += 'if (b.source === "OSM" && a.source !== "OSM") bScore += 5;';
+    mapPickerHTML += 'if (aName.length < bName.length) aScore += 3;';
+    mapPickerHTML += 'if (bName.length < aName.length) bScore += 3;';
+    mapPickerHTML += '}';
+    mapPickerHTML += 'return bScore - aScore; });';
+    mapPickerHTML += 'if (allResults.length === 0) {';
+    mapPickerHTML += 'document.getElementById("results-list").innerHTML = ';
+    mapPickerHTML += '"<div class=\\"no-results\\">找不到 \\"" + query + "\\"<br><br>💡 搜尋建議：<br>• 更具體的地名（台北101）<br>• 加上縣市（台中火車站）<br>• 完整地址<br>• 知名景點名稱</div>";';
+    mapPickerHTML += 'return; }';
+    mapPickerHTML += 'var html = "";';
+    mapPickerHTML += 'var maxDisplay = isCommonPlace ? 20 : 15;';
+    mapPickerHTML += 'var displayCount = Math.min(allResults.length, maxDisplay);';
+    mapPickerHTML += 'for (var i = 0; i < displayCount; i++) {';
+    mapPickerHTML += 'var item = allResults[i];';
+    mapPickerHTML += 'var name = item.display_name.split(",")[0];';
+    mapPickerHTML += 'var address = item.display_name;';
+    mapPickerHTML += 'var typeLabel = "";';
+    mapPickerHTML += 'if (item.type === "city") typeLabel = " 🏙️";';
+    mapPickerHTML += 'else if (item.type === "town") typeLabel = " 🏘️";';
+    mapPickerHTML += 'else if (item.type === "village") typeLabel = " 🏡";';
+    mapPickerHTML += 'else if (item.type === "building") typeLabel = " 🏢";';
+    mapPickerHTML += 'else if (item.type === "amenity") typeLabel = " 📍";';
+    mapPickerHTML += 'var sourceBadge = "<small style=\\"color:#999;font-size:10px;\\"> [" + item.source + "]</small>";';
+    mapPickerHTML += 'html += "<div class=\\"result-item\\" onclick=\\"selectResult(" + item.lat + "," + item.lon + ",\\047" + name.replace(/"/g, "&quot;").replace(/\'/g, "\\047") + "\\047)\\">";';
+    mapPickerHTML += 'html += "<div class=\\"result-name\\">" + name + typeLabel + sourceBadge + "</div>";';
+    mapPickerHTML += 'html += "<div class=\\"result-address\\">" + address + "</div></div>"; }';
+    mapPickerHTML += 'if (allResults.length > displayCount) {';
+    mapPickerHTML += 'html += "<div class=\\"no-results\\" style=\\"background:#f0f8ff;color:#333;padding:10px;\\">顯示前 " + displayCount + " 個結果（共找到 " + allResults.length + " 個）</div>"; }';
+    mapPickerHTML += 'document.getElementById("results-list").innerHTML = html;';
+    mapPickerHTML += '}).catch(function(e) {';
+    mapPickerHTML += 'document.getElementById("results-list").innerHTML = "<div class=\\"no-results\\">❌ 搜尋失敗<br><br>" + e.message + "</div>";';
+    mapPickerHTML += '}); }';
+    mapPickerHTML += 'function selectResult(lat, lng, name) {';
+    mapPickerHTML += 'map.setView([lat, lng], 16);';
+    mapPickerHTML += 'selectedLat = lat; selectedLng = lng; selectedName = name;';
+    mapPickerHTML += 'document.getElementById("coords").innerHTML = "緯度: " + lat.toFixed(6) + " | 經度: " + lng.toFixed(6);';
+    mapPickerHTML += 'if (marker) { map.removeLayer(marker); }';
+    mapPickerHTML += 'marker = L.marker([lat, lng]).addTo(map).bindPopup(name).openPopup();';
+    mapPickerHTML += 'closeResults(); }';
+    mapPickerHTML += 'function closeResults() {';
+    mapPickerHTML += 'document.getElementById("results-panel").style.display = "none"; }';
+    mapPickerHTML += 'document.getElementById("search-input").addEventListener("keypress", function(e) {';
+    mapPickerHTML += 'if (e.key === "Enter") { searchLocation(); } });';
+    mapPickerHTML += 'function confirmSelection() {';
+    mapPickerHTML += 'if (selectedLat === null || selectedLng === null) {';
+    mapPickerHTML += 'alert("❌ 請先點擊地圖或搜尋位置"); return; }';
+    mapPickerHTML += 'if (window.opener && !window.opener.closed) {';
+    mapPickerHTML += 'window.opener.receiveMapCoordinates("' + location + '", selectedLat, selectedLng, selectedName);';
+    mapPickerHTML += 'window.close(); } else { alert("❌ 無法與主視窗通訊"); } }';
+    mapPickerHTML += '<\/script></body></html>';
+    
+    var width = Math.min(900, window.screen.width - 50);
+    var height = Math.min(700, window.screen.height - 50);
+    var left = (window.screen.width - width) / 2;
+    var top = (window.screen.height - height) / 2;
+    
+    var mapPickerWindow = window.open('', 'mapPicker', 
+        'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',toolbar=no,location=no,menubar=no');
+    
+    if (mapPickerWindow) {
+        mapPickerWindow.document.write(mapPickerHTML);
+        mapPickerWindow.document.close();
+    } else {
+        alert('❌ 無法打開地圖視窗，請允許彈出視窗');
+    }
+}
+
+// 接收從地圖選擇器傳回的座標
+function receiveMapCoordinates(location, lat, lng, searchedName) {
+    console.log('receiveMapCoordinates() 被調用: 地點=' + location + ', 緯度=' + lat + ', 經度=' + lng + ', 搜尋地名=' + searchedName);
+    
+    const latId = location === 'A' ? 'latA' : 'latB';
+    const lonId = location === 'A' ? 'lonA' : 'lonB';
+    const nameId = location === 'A' ? 'nameA' : 'nameB';
+    const eleId = location === 'A' ? 'eleA' : 'eleB';
+    
+    document.getElementById(latId).value = lat.toFixed(6);
+    document.getElementById(lonId).value = lng.toFixed(6);
+    
+    updateDMSFromDecimal(latId);
+    updateDMSFromDecimal(lonId);
+    
+    console.log('地點 ' + location + ' 座標已從地圖更新');
+    
+    // 如果有搜尋時選中的地名，直接使用；否則進行反向地理編碼
+    if (searchedName && searchedName.trim() !== '') {
+        // 使用搜尋時的地名，限制長度為5個字元
+        let locationName = searchedName.trim();
+        if (locationName.length > 5) {
+            locationName = locationName.substring(0, 5);
+        }
+        
+        document.getElementById(nameId).value = locationName;
+        console.log('使用搜尋地名:', locationName);
+        
+        // 自動取得高度
+        getElevationAutomatic(lat, lng, location, eleId);
+        
+        alert(`✓ 地點 ${location} 已更新\n` +
+              `座標: ${lat.toFixed(6)}, ${lng.toFixed(6)}\n` +
+              `地名: ${locationName}\n` +
+              `正在取得高度...`);
+    } else {
+        // 沒有搜尋地名，使用反向地理編碼取得地名
+        getLocationName(lat, lng, location, nameId);
+        
+        // 自動取得高度
+        getElevationAutomatic(lat, lng, location, eleId);
+    }
+}
+
+// 反向地理編碼：根據座標取得地名
+async function getLocationName(lat, lng, location, nameId) {
+    const nameInput = document.getElementById(nameId);
+    
+    try {
+        console.log('開始反向地理編碼: ', lat, lng);
+        
+        // 使用 Nominatim 反向地理編碼 API
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=zh-TW`
+        );
+        
+        if (!response.ok) {
+            throw new Error('反向地理編碼請求失敗');
+        }
+        
+        const data = await response.json();
+        console.log('反向地理編碼結果:', data);
+        
+        if (data && data.address) {
+            /* 
+             * 系統會自動選擇最具體的地名，優先順序：
+             * 1. 建築物名稱 - 「台北101」、「總統府」
+             * 2. 設施名稱 - 「火車站」、「醫院」
+             * 3. 道路名稱 - 「市府路」、「中山路」
+             * 4. 村里名稱 - 「永康里」、「大安村」
+             * 5. 鄉鎮市區 - 「信義區」、「中正區」
+             * 6. 縣市名稱 - 「台北市」、「新竹縣」
+             */
+            let locationName = '';
+            
+            // 首先檢查是否有具體的地點名稱（name欄位）
+            // 這個欄位通常包含建築物、景點的實際名稱
+            if (data.name && data.name.trim() !== '' && 
+                !data.name.match(/^[0-9\-]+$/) && // 排除純數字或代碼
+                data.name.length <= 20) { // 確保不是過長的描述
+                locationName = data.name;
+                console.log('使用地點名稱(name):', locationName);
+            }
+            // 1. 建築物名稱（最高優先級）- 但要確保不是建築類型代碼
+            else if (data.address.building && 
+                     data.address.building.trim() !== '' &&
+                     !data.address.building.match(/^(yes|house|residential|commercial|retail|apartments|office)$/i)) {
+                locationName = data.address.building;
+                console.log('使用建築物名稱:', locationName);
+            } 
+            // 2. 設施名稱（amenity: 車站、醫院、學校等公共設施）
+            else if (data.address.amenity) {
+                locationName = data.address.amenity;
+                console.log('使用設施名稱:', locationName);
+            }
+            // 3. 道路名稱
+            else if (data.address.road) {
+                locationName = data.address.road;
+                console.log('使用道路名稱:', locationName);
+            } 
+            // 4. 村里名稱
+            else if (data.address.village || data.address.hamlet || data.address.suburb) {
+                locationName = data.address.village || data.address.hamlet || data.address.suburb;
+                console.log('使用村里名稱:', locationName);
+            } 
+            // 5. 鄉鎮市區
+            else if (data.address.town || data.address.city_district) {
+                locationName = data.address.town || data.address.city_district;
+                console.log('使用鄉鎮市區:', locationName);
+            } 
+            // 6. 縣市名稱（最低優先級）
+            else if (data.address.city || data.address.county || data.address.state) {
+                locationName = data.address.city || data.address.county || data.address.state;
+                console.log('使用縣市名稱:', locationName);
+            } 
+            // 7. 如果以上都沒有，使用顯示名稱的第一部分
+            else if (data.display_name) {
+                const parts = data.display_name.split(',');
+                locationName = parts[0].trim();
+                console.log('使用顯示名稱:', locationName);
+            }
+            
+            // 限制長度為 5 個字元
+            if (locationName.length > 5) {
+                locationName = locationName.substring(0, 5);
+            }
+            
+            if (locationName) {
+                nameInput.value = locationName;
+                console.log('地名已更新:', locationName);
+                
+                alert(`✓ 地點 ${location} 已更新\n` +
+                      `座標: ${lat.toFixed(6)}, ${lng.toFixed(6)}\n` +
+                      `地名: ${locationName}`);
+            } else {
+                throw new Error('無法取得地名');
+            }
+        } else {
+            throw new Error('反向地理編碼無結果');
+        }
+        
+    } catch (error) {
+        console.error('取得地名失敗:', error);
+        
+        // 如果失敗，使用座標作為地名
+        const simpleName = `點${location}`;
+        nameInput.value = simpleName;
+        
+        alert(`✓ 地點 ${location} 座標已更新\n` +
+              `緯度: ${lat.toFixed(6)}\n` +
+              `經度: ${lng.toFixed(6)}\n\n` +
+              `⚠️ 無法自動取得地名，請手動輸入`);
+    }
+}
+
+// 輔助函數：從十進制更新DMS格式
+function updateDMSFromDecimal(coordId) {
+    const decimalInput = document.getElementById(coordId);
+    const decimalValue = parseFloat(decimalInput.value);
+    
+    if (isNaN(decimalValue)) return;
+    
+    const isNegative = decimalValue < 0;
+    const absValue = Math.abs(decimalValue);
+    
+    const degrees = Math.floor(absValue);
+    const minutesDecimal = (absValue - degrees) * 60;
+    const minutes = Math.floor(minutesDecimal);
+    const seconds = (minutesDecimal - minutes) * 60;
+    
+    const degInput = document.getElementById(coordId + '_deg');
+    const minInput = document.getElementById(coordId + '_min');
+    const secInput = document.getElementById(coordId + '_sec');
+    
+    if (degInput) degInput.value = isNegative ? -degrees : degrees;
+    if (minInput) minInput.value = minutes;
+    if (secInput) secInput.value = seconds.toFixed(2);
+}
+
 async function getElevationFromSRTM(location) {
     console.log('getElevationFromSRTM() 被調用，地點:', location);
     
@@ -1850,6 +2395,72 @@ async function getElevationFromSRTM(location) {
         gpsRes.innerHTML = originalContent;
         gpsRes.style.color = originalColor;
         gpsRes.style.background = originalBg;
+    }
+}
+
+// 自動獲取高度（用於GPS定位和地圖選擇後）
+// 不會顯示錯誤彈窗，靜默處理失敗
+async function getElevationAutomatic(lat, lon, location, eleId) {
+    console.log(`getElevationAutomatic() 被調用，座標: ${lat}, ${lon}, 地點: ${location}`);
+    
+    const eleInput = document.getElementById(eleId);
+    const originalValue = eleInput.value;
+    
+    // 顯示載入狀態
+    const loadingId = eleInput.id === 'eleA' ? 'eleA-loading' : 'eleB-loading';
+    const loadingSpan = document.getElementById(loadingId);
+    if (loadingSpan) {
+        loadingSpan.innerHTML = '讀取中<span class="loading-dots"></span>';
+        loadingSpan.style.display = 'inline';
+        eleInput.style.opacity = '0.5';
+    }
+    
+    try {
+        // 調用 Open-Elevation API 取得高度
+        console.log(`調用 SRTM API，座標: ${lat}, ${lon}`);
+        
+        const response = await fetch('https://api.open-elevation.com/api/v1/lookup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                locations: [{ latitude: lat, longitude: lon }]
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API 返回狀態 ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('SRTM API 響應:', result);
+        
+        if (!result.results || result.results.length === 0) {
+            throw new Error('無法取得該位置的高度數據');
+        }
+        
+        const elevation = result.results[0].elevation;
+        
+        if (elevation === null || elevation === undefined) {
+            throw new Error('該位置的高度數據不可用');
+        }
+        
+        // 設置高度值（不顯示小數點）
+        eleInput.value = Math.round(parseFloat(elevation));
+        
+        console.log(`地點${location}高度已自動更新: ${elevation}m`);
+        
+    } catch (err) {
+        console.error('自動取得高度失敗:', err);
+        // 靜默失敗，保留原值或設為空
+        if (!originalValue || originalValue === '取得中...') {
+            eleInput.value = '';
+        }
+    } finally {
+        // 隱藏loading提示
+        if (loadingSpan) {
+            loadingSpan.style.display = 'none';
+            eleInput.style.opacity = '1';
+        }
     }
 }
 
@@ -3173,6 +3784,14 @@ function renderChart(elevations) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 20,  // 增加右側padding以容納最右邊的黃點
+                    top: 5,
+                    bottom: 5
+                }
+            },
             onClick: (event, elements) => {
                 // ✅ 清空同高度點記錄，開始新的選擇
                 selectedPointsInCurrentHeight.clear();
@@ -3826,7 +4445,7 @@ function openChartFullscreen() {
                 layout: {
                     padding: {
                         left: 10,
-                        right: 10,
+                        right: 20,  // 增加右側padding以容納最右邊的黃點（半徑8 + 邊框2 + 安全距離）
                         top: 5,
                         bottom: 5
                     }
@@ -4723,7 +5342,7 @@ function toggleObstructionColor() {
     }
     
     if (obstructionColorEnabled) {
-        // 開啟：將有遮蔽的線段變成紅色
+        // 開啟：將地形高於視距線的線段變成紅色
         toggleBtn.classList.remove('disabled');
         toggleBtn.style.opacity = '1';
         
@@ -4733,7 +5352,7 @@ function toggleObstructionColor() {
         const losData = losDataset.data;
         
         for (let i = 0; i < terrainData.length - 1; i++) {
-            // 檢查這個線段是否有遮蔽
+            // 只要線段的起點或終點有一個高於視距線，就認為這個線段有遮蔽
             const isObstructed = terrainData[i] > losData[i] || terrainData[i + 1] > losData[i + 1];
             
             segmentColors.push({
@@ -5028,8 +5647,13 @@ function showMap(index, height) {
     // mapContainer.scrollIntoView({ behavior: 'smooth' });
 }
 
-// 新增：顯示起點終點路徑地圖
+// 新增：顯示起點終點路徑地圖（使用Leaflet，與GPS分頁相同）
 let routeMapInstance = null;
+let routeCurrentLayer = null;
+let routeStreetLayer = null;
+let routeSatelliteLayer = null;
+let routeHybridLayer = null;
+let routeLayerControl = null;
 
 function showRouteMap() {
     console.log('showRouteMap() 被調用');
@@ -5097,106 +5721,351 @@ function showRouteMap() {
     // 清空容器
     routeMapDiv.innerHTML = '';
     
-    // 等待 Google Maps API 載入
-    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
-        console.error('Google Maps API 尚未載入');
-        routeMapDiv.innerHTML = '<div style="padding:20px; color:#ff6b6b; text-align:center;">Google Maps 載入中...</div>';
-        
-        // 嘗試重新載入
-        setTimeout(() => {
-            if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
-                showRouteMap();
-            }
-        }, 2000);
+    // 檢查Leaflet是否已載入
+    if (typeof L === 'undefined') {
+        console.error('Leaflet 尚未載入');
+        routeMapDiv.innerHTML = '<div style="padding:20px; color:#ff6b6b; text-align:center;">地圖載入中...</div>';
         return;
     }
     
-    // 創建地圖
-    routeMapInstance = new google.maps.Map(routeMapDiv, {
-        center: { lat: centerLat, lng: centerLng },
+    // 如果地圖已存在，先移除
+    if (routeMapInstance) {
+        routeMapInstance.remove();
+        routeMapInstance = null;
+    }
+    
+    // 創建 Leaflet 圖層
+    routeStreetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19
+    });
+    
+    routeSatelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '© Esri',
+        maxZoom: 19
+    });
+    
+    routeHybridLayer = L.layerGroup([
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri',
+            maxZoom: 19
+        }),
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            opacity: 0.3,
+            maxZoom: 19
+        })
+    ]);
+    
+    // 創建地圖（預設使用衛星圖）
+    routeMapInstance = L.map(routeMapDiv, {
+        center: [centerLat, centerLng],
         zoom: zoom,
-        mapTypeId: 'satellite' // 使用衛星圖
+        layers: [routeSatelliteLayer]
     });
     
-    // 創建起點標記（藍色）
-    const startMarker = new google.maps.Marker({
-        position: { lat: startLat, lng: startLng },
-        map: routeMapInstance,
-        title: `${nameA} (起點)`,
-        label: {
-            text: 'A',
-            color: 'white',
-            fontWeight: 'bold'
-        },
-        icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: '#0066FF',
-            fillOpacity: 1,
-            strokeColor: '#FFFFFF',
-            strokeWeight: 2,
-            scale: 10
-        }
+    routeCurrentLayer = 'satellite';
+    
+    // 創建圖層控制按鈕
+    const layerControlHTML = `
+        <div style="position: absolute; top: 10px; right: 10px; z-index: 1000; background: rgba(0,0,0,0.7); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px;">
+            <button id="route-layer-toggle" style="background: linear-gradient(90deg, #9b59b6, #8e44ad); border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; color: #fff; cursor: pointer; font-size: 13px; white-space: nowrap;">🛰️ 衛星圖</button>
+        </div>
+    `;
+    
+    // 添加圖層控制按鈕
+    const controlDiv = document.createElement('div');
+    controlDiv.innerHTML = layerControlHTML;
+    controlDiv.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 1000;';
+    routeMapDiv.appendChild(controlDiv);
+    
+    // 圖層切換功能
+    const toggleButton = document.getElementById('route-layer-toggle');
+    if (toggleButton) {
+        toggleButton.onclick = function() {
+            if (routeCurrentLayer === 'street') {
+                routeMapInstance.removeLayer(routeStreetLayer);
+                routeSatelliteLayer.addTo(routeMapInstance);
+                routeCurrentLayer = 'satellite';
+                this.innerHTML = '🛰️ 衛星圖';
+            } else if (routeCurrentLayer === 'satellite') {
+                routeMapInstance.removeLayer(routeSatelliteLayer);
+                routeHybridLayer.addTo(routeMapInstance);
+                routeCurrentLayer = 'hybrid';
+                this.innerHTML = '🔀 混合圖';
+            } else {
+                routeMapInstance.removeLayer(routeHybridLayer);
+                routeStreetLayer.addTo(routeMapInstance);
+                routeCurrentLayer = 'street';
+                this.innerHTML = '🗺️ 街道圖';
+            }
+        };
+    }
+    
+    // 自定義A點標記圖標（藍色）
+    const startIcon = L.divIcon({
+        className: 'custom-marker',
+        html: '<div style="background: #0066FF; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">A</div>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
     });
     
-    // 創建終點標記（紅色）
-    const endMarker = new google.maps.Marker({
-        position: { lat: endLat, lng: endLng },
-        map: routeMapInstance,
-        title: `${nameB} (終點)`,
-        label: {
-            text: 'B',
-            color: 'white',
-            fontWeight: 'bold'
-        },
-        icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: '#FF0000',
-            fillOpacity: 1,
-            strokeColor: '#FFFFFF',
-            strokeWeight: 2,
-            scale: 10
-        }
+    // 自定義B點標記圖標（紅色）
+    const endIcon = L.divIcon({
+        className: 'custom-marker',
+        html: '<div style="background: #FF0000; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">B</div>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
     });
     
-    // 添加資訊視窗
-    const startInfoWindow = new google.maps.InfoWindow({
-        content: `<div style="color:#000; padding:5px;"><strong>${nameA}</strong><br>起點<br>${startLat}, ${startLng}</div>`
-    });
+    // 添加起點標記
+    const startMarker = L.marker([startLat, startLng], { icon: startIcon }).addTo(routeMapInstance);
+    startMarker.bindPopup(`<div style="color:#000; padding:5px;"><strong>${nameA}</strong><br>起點<br>${startLat.toFixed(6)}, ${startLng.toFixed(6)}</div>`);
     
-    const endInfoWindow = new google.maps.InfoWindow({
-        content: `<div style="color:#000; padding:5px;"><strong>${nameB}</strong><br>終點<br>${endLat}, ${endLng}</div>`
-    });
-    
-    // 點擊標記顯示資訊
-    startMarker.addListener('click', () => {
-        startInfoWindow.open(routeMapInstance, startMarker);
-    });
-    
-    endMarker.addListener('click', () => {
-        endInfoWindow.open(routeMapInstance, endMarker);
-    });
+    // 添加終點標記
+    const endMarker = L.marker([endLat, endLng], { icon: endIcon }).addTo(routeMapInstance);
+    endMarker.bindPopup(`<div style="color:#000; padding:5px;"><strong>${nameB}</strong><br>終點<br>${endLat.toFixed(6)}, ${endLng.toFixed(6)}</div>`);
     
     // 畫直線連接兩點（黃色）
-    const line = new google.maps.Polyline({
-        path: [
-            { lat: startLat, lng: startLng },
-            { lat: endLat, lng: endLng }
-        ],
-        geodesic: true,
-        strokeColor: '#FFFF00',
-        strokeOpacity: 1.0,
-        strokeWeight: 3,
-        map: routeMapInstance
-    });
+    const line = L.polyline([
+        [startLat, startLng],
+        [endLat, endLng]
+    ], {
+        color: '#FFFF00',
+        weight: 3,
+        opacity: 1.0
+    }).addTo(routeMapInstance);
     
     // 調整視圖以包含所有標記
-    const bounds = new google.maps.LatLngBounds();
-    bounds.extend({ lat: startLat, lng: startLng });
-    bounds.extend({ lat: endLat, lng: endLng });
-    routeMapInstance.fitBounds(bounds);
+    const bounds = L.latLngBounds([
+        [startLat, startLng],
+        [endLat, endLng]
+    ]);
+    routeMapInstance.fitBounds(bounds, { padding: [50, 50] });
     
-    console.log('路徑地圖已生成 (使用 Google Maps JavaScript API)');
+    console.log('路徑地圖已生成 (使用 Leaflet，與GPS分頁相同)');
 }
+
+// ========== 最大化地圖功能 ==========
+let isMapMaximized = false;
+let originalMapStyles = {};
+let exitFullscreenBtn = null;
+
+function maximizeRouteMap() {
+    const container = document.getElementById('route-map-container');
+    const mapDiv = document.getElementById('route-map');
+    const btn = document.getElementById('maximizeMapBtn');
+    const details = document.getElementById('route-map-details');
+    
+    if (!container || !mapDiv || !btn) return;
+    
+    if (!isMapMaximized) {
+        // 進入全屏模式
+        if (container.requestFullscreen) {
+            container.requestFullscreen();
+        } else if (container.webkitRequestFullscreen) {
+            container.webkitRequestFullscreen();
+        } else if (container.mozRequestFullScreen) {
+            container.mozRequestFullScreen();
+        } else if (container.msRequestFullscreen) {
+            container.msRequestFullscreen();
+        }
+        
+        // 保存原始樣式
+        originalMapStyles = {
+            containerBackground: container.style.background,
+            containerPadding: container.style.padding,
+            containerDisplay: container.style.display,
+            mapHeight: mapDiv.style.height,
+            mapBorder: mapDiv.style.border,
+            mapBorderRadius: mapDiv.style.borderRadius
+        };
+        
+        // 全屏樣式
+        container.style.background = '#000';
+        container.style.padding = '0';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.justifyContent = 'center';
+        container.style.alignItems = 'center';
+        
+        if (details) details.style.display = 'none';
+        btn.style.display = 'none';
+        
+        // 地圖填滿整個屏幕
+        mapDiv.style.width = '100%';
+        mapDiv.style.height = '100%';
+        mapDiv.style.border = '2px solid #5ff0d5';
+        mapDiv.style.borderRadius = '0';
+        mapDiv.style.boxSizing = 'border-box';
+        
+        // 創建浮動關閉按鈕
+        exitFullscreenBtn = document.createElement('button');
+        exitFullscreenBtn.id = 'exitFullscreenBtn';
+        exitFullscreenBtn.innerHTML = '✕';
+        exitFullscreenBtn.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            background: rgba(220, 38, 38, 0.95);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 999999;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            padding: 0;
+            line-height: 1;
+        `;
+        
+        exitFullscreenBtn.onmouseover = function() {
+            this.style.background = 'rgba(185, 28, 28, 0.95)';
+            this.style.transform = 'scale(1.1)';
+        };
+        
+        exitFullscreenBtn.onmouseout = function() {
+            this.style.background = 'rgba(220, 38, 38, 0.95)';
+            this.style.transform = 'scale(1)';
+        };
+        
+        exitFullscreenBtn.onclick = function() {
+            exitFullscreen();
+        };
+        
+        container.appendChild(exitFullscreenBtn);
+        
+        // 移動圖層切換按鈕到上方中間位置
+        const layerToggleBtn = document.getElementById('route-layer-toggle');
+        const layerToggleContainer = layerToggleBtn?.parentElement;
+        if (layerToggleContainer) {
+            layerToggleContainer.style.position = 'fixed';
+            layerToggleContainer.style.top = '10px';
+            layerToggleContainer.style.left = '50%';
+            layerToggleContainer.style.right = 'auto';
+            layerToggleContainer.style.transform = 'translateX(-50%)';
+            layerToggleContainer.style.zIndex = '999998';
+        }
+        
+        isMapMaximized = true;
+        
+        // 刷新地圖
+        setTimeout(() => {
+            if (routeMapInstance) {
+                routeMapInstance.invalidateSize();
+                const sLat = parseFloat(document.getElementById('sLat')?.value);
+                const sLng = parseFloat(document.getElementById('sLng')?.value);
+                const eLat = parseFloat(document.getElementById('eLat')?.value);
+                const eLng = parseFloat(document.getElementById('eLng')?.value);
+                
+                if (!isNaN(sLat) && !isNaN(sLng) && !isNaN(eLat) && !isNaN(eLng)) {
+                    const bounds = L.latLngBounds([[sLat, sLng], [eLat, eLng]]);
+                    routeMapInstance.fitBounds(bounds, { padding: [50, 50] });
+                }
+            }
+        }, 150);
+        
+    }
+}
+
+// 退出全屏函數
+function exitFullscreen() {
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+    }
+}
+
+// 監聽全屏狀態變化
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+function handleFullscreenChange() {
+    const container = document.getElementById('route-map-container');
+    const mapDiv = document.getElementById('route-map');
+    const btn = document.getElementById('maximizeMapBtn');
+    const details = document.getElementById('route-map-details');
+    
+    if (!document.fullscreenElement && !document.webkitFullscreenElement && 
+        !document.mozFullScreenElement && !document.msFullscreenElement) {
+        // 退出全屏，恢復原始狀態
+        if (container && mapDiv && btn) {
+            container.style.background = originalMapStyles.containerBackground || 'transparent';
+            container.style.padding = originalMapStyles.containerPadding || '0';
+            container.style.display = '';
+            container.style.flexDirection = '';
+            container.style.justifyContent = '';
+            container.style.alignItems = '';
+            
+            if (details) details.style.display = 'block';
+            btn.style.display = '';
+            
+            mapDiv.style.width = '';
+            mapDiv.style.height = originalMapStyles.mapHeight || '450px';
+            mapDiv.style.border = originalMapStyles.mapBorder || '2px solid #5ff0d5';
+            mapDiv.style.borderRadius = originalMapStyles.mapBorderRadius || '8px';
+            mapDiv.style.boxSizing = '';
+            
+            // 恢復圖層切換按鈕的原始位置
+            const layerToggleBtn = document.getElementById('route-layer-toggle');
+            const layerToggleContainer = layerToggleBtn?.parentElement;
+            if (layerToggleContainer) {
+                layerToggleContainer.style.position = 'absolute';
+                layerToggleContainer.style.top = '10px';
+                layerToggleContainer.style.right = '10px';
+                layerToggleContainer.style.left = 'auto';
+                layerToggleContainer.style.transform = '';
+                layerToggleContainer.style.zIndex = '1000';
+            }
+            
+            // 移除關閉按鈕
+            if (exitFullscreenBtn && exitFullscreenBtn.parentNode) {
+                exitFullscreenBtn.parentNode.removeChild(exitFullscreenBtn);
+                exitFullscreenBtn = null;
+            }
+            
+            isMapMaximized = false;
+            
+            // 刷新地圖
+            setTimeout(() => {
+                if (routeMapInstance) {
+                    routeMapInstance.invalidateSize();
+                    const sLat = parseFloat(document.getElementById('sLat')?.value);
+                    const sLng = parseFloat(document.getElementById('sLng')?.value);
+                    const eLat = parseFloat(document.getElementById('eLat')?.value);
+                    const eLng = parseFloat(document.getElementById('eLng')?.value);
+                    
+                    if (!isNaN(sLat) && !isNaN(sLng) && !isNaN(eLat) && !isNaN(eLng)) {
+                        const bounds = L.latLngBounds([[sLat, sLng], [eLat, eLng]]);
+                        routeMapInstance.fitBounds(bounds, { padding: [50, 50] });
+                    }
+                }
+            }, 150);
+        }
+    }
+}
+
+// ESC 鍵退出全屏（瀏覽器會自動處理，但我們也可以手動處理）
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && isMapMaximized) {
+        exitFullscreen();
+    }
+});
+
+// 全屏模式下瀏覽器會自動處理旋轉，不需要額外監聽
 
 
 function updatePointFromInput() {
