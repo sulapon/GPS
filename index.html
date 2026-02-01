@@ -4940,6 +4940,16 @@ function openChartFullscreen() {
                         // 更新全域變數
                         window.currentSelectedPointIndex = idx;
                         
+                        // 更新點輸入欄位
+                        const fullscreenPointInput = document.getElementById('fullscreenPointInput');
+                        if (fullscreenPointInput) {
+                            fullscreenPointInput.value = idx + 1;
+                            // 強制瀏覽器重新渲染
+                            fullscreenPointInput.style.display = 'none';
+                            fullscreenPointInput.offsetHeight; // 觸發回流
+                            fullscreenPointInput.style.display = '';
+                        }
+                        
                         // 同步更新主圖表的選擇點
                         if (typeof chartInstance !== 'undefined' && chartInstance) {
                             // 更新主圖表的點顏色和大小
@@ -5036,6 +5046,16 @@ function openChartFullscreen() {
                     if (idx >= 0 && idx !== window.currentSelectedPointIndex) {
                         // 更新全域變數（修復：拖曳時也要更新選中點索引）
                         window.currentSelectedPointIndex = idx;
+                        
+                        // 更新點輸入欄位
+                        const fullscreenPointInput = document.getElementById('fullscreenPointInput');
+                        if (fullscreenPointInput) {
+                            fullscreenPointInput.value = idx + 1;
+                            // 強制瀏覽器重新渲染
+                            fullscreenPointInput.style.display = 'none';
+                            fullscreenPointInput.offsetHeight; // 觸發回流
+                            fullscreenPointInput.style.display = '';
+                        }
                         
                         // 更新黃點位置
                         const fullscreenDataset = chart.data.datasets.find(d => 
