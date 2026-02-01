@@ -863,6 +863,7 @@ div.gps-ig.orange-border-card,
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
       <h3 class="section-title" style="margin:0">💾 參數保存 / 備份</h3>
       <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="loadGpsNamesToArchive()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0; background: linear-gradient(90deg, #bb66ff, #9945ff); color: #fff;" title="從GPS分頁讀取地名">🌍↔️</button>
         <button class="btn ghost" onclick="lsExport()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">匯出</button>
         <button class="btn ghost" onclick="document.getElementById('ls_import').click()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">讀取</button>
         <input id="ls_import" type="file" accept="application/json" style="display:none" onchange="lsImport(event)">
@@ -873,7 +874,7 @@ div.gps-ig.orange-border-card,
         <input id="ls_save_name" placeholder="自訂名稱" style="border:none; background:transparent; outline:none; color:var(--value); font-size:16px; padding:0; flex:1; min-width:60px;" oninput="updateNamePreview()">
         <span id="ls_name_suffix" style="color:rgba(255,255,255,0.5); font-size:16px; white-space:nowrap; margin-left:8px;"></span>
       </div>
-      <button class="btn" onclick="lsSave()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">保存</button>
+      <button class="btn" onclick="lsSave()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0; min-width:38px;" title="保存參數">💾</button>
     </div>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:nowrap;">
       <label style="color:var(--label); font-size:15px; font-weight:600; white-space:nowrap;">排列方式：</label>
@@ -888,8 +889,8 @@ div.gps-ig.orange-border-card,
       <table style="width:100%; table-layout:fixed;">
         <thead>
           <tr>
-            <th style="text-align:left; padding:8px; width:65%;">名稱</th>
-            <th style="text-align:center; padding:8px; width:35%;">操作</th>
+            <th style="text-align:left; padding:8px 8px 8px 4px; width:75%;">名稱</th>
+            <th style="text-align:center; padding:4px 2px; width:25%;">操作</th>
           </tr>
         </thead>
         <tbody id="ls_table"></tbody>
@@ -7619,12 +7620,12 @@ function lsLoadTable(){
     const tr=document.createElement("tr");
     const dataStr = JSON.stringify(data).replace(/'/g, "\\'");
     tr.innerHTML=`
-      <td style="padding:8px; color:var(--title); font-weight:600; word-wrap:break-word; word-break:break-all; max-width:0;">
+      <td style="padding:8px 8px 8px 4px; color:var(--title); font-weight:600; white-space:nowrap;">
         <span style="cursor:pointer; text-decoration:underline; color:#5ff0d5;" onclick='fillNameWithDate("${name.replace(/'/g, "\\'")}")'>${name}</span>
       </td>
-      <td style="padding:8px; text-align:center; white-space:nowrap;">
-        <button class="btn" style="padding:6px 12px; font-size:14px;" onclick='applyFields(${dataStr})'>填入</button>
-        <button class="btn clear" style="padding:6px 12px; font-size:14px; margin-left:4px;" onclick='lsDelete("${name}")'>刪除</button>
+      <td style="padding:4px 6px; text-align:center; white-space:nowrap;">
+        <button style="background:none; border:none; padding:4px 6px; font-size:20px; cursor:pointer; color:#5ff0d5; line-height:1;" onclick='applyFields(${dataStr})' title="填入參數">📂</button>
+        <button style="background:none; border:none; padding:4px 6px; font-size:20px; cursor:pointer; color:#ff6b6b; margin-left:4px; line-height:1;" onclick='lsDelete("${name}")' title="刪除">🗑️</button>
       </td>`;
     tb.appendChild(tr);
   });
@@ -7702,6 +7703,29 @@ function fillNameWithDate(name) {
   
   console.log(`✓ 原始名稱: ${name}`);
   console.log(`✓ 移除日期後: ${baseName}`);
+}
+
+// 從GPS分頁讀取A點和B點地名，填入存檔名稱欄位
+function loadGpsNamesToArchive() {
+  const nameA = document.getElementById('nameA').value.trim();
+  const nameB = document.getElementById('nameB').value.trim();
+  const inputElement = document.getElementById('ls_save_name');
+  
+  if (!nameA && !nameB) {
+    alert('❌ GPS分頁的A點和B點地名都是空的，請先填寫地名');
+    return;
+  }
+  
+  if (!nameA || !nameB) {
+    alert('⚠️ 只有一個地名有值，建議填寫完整的A點和B點地名');
+  }
+  
+  // 組合格式：A點名稱↔B點名稱
+  const combinedName = nameA && nameB ? `${nameA}↔${nameB}` : (nameA || nameB);
+  inputElement.value = combinedName;
+  updateNamePreview();
+  
+  console.log(`✓ 已讀取GPS地名: ${combinedName}`);
 }
 
 function lsSave(){
