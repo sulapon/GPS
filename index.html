@@ -7775,7 +7775,7 @@ function lsExport(){
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   const date = new Date().toISOString().slice(0,10);
-  a.download=`backup_${date}.json`;
+  a.download=`RF工具箱backup_${date}.json`;
   a.click();
   alert("✓ JSON 檔案已匯出");
 }
