@@ -876,7 +876,7 @@ div.gps-ig.orange-border-card,
     </div>
     <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:nowrap;">
       <button class="btn" onclick="loadGpsNamesToArchive()" style="flex:1; padding:5.6px 11.2px; font-size:16px; white-space:nowrap; background: linear-gradient(90deg, #bb66ff, #9945ff); color: #fff;" title="從GPS分頁讀取地名">🌍↔️</button>
-      <button id="los_toggle_btn" class="btn" onclick="toggleLosStatus()" style="flex:1; padding:5.6px 11.2px; font-size:16px; white-space:nowrap; background: linear-gradient(90deg, #95a5a6, #7f8c8d); color: #fff;" title="切換狀態：預設/LOS/NLOS">─ ─</button>
+      <button id="los_toggle_btn" class="btn" onclick="toggleLosStatus()" style="flex:1; padding:5.6px 11.2px; font-size:16px; white-space:nowrap; background: linear-gradient(90deg, #95a5a6, #7f8c8d); color: #fff;" title="切換狀態：未指定/視距/非視距">N/A</button>
       <button class="btn" onclick="lsSave()" style="flex:1; padding:5.6px 11.2px; font-size:16px; white-space:nowrap;" title="保存參數">💾</button>
     </div>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:nowrap;">
@@ -7770,9 +7770,9 @@ function toggleLosStatus() {
     nameContainer.style.borderColor = '#e74c3c'; // 紅色邊框
     nameInput.style.color = '#e74c3c';
   } else {
-    // 從NLOS切換回預設 -- (白色)
+    // 從NLOS切換回預設 N/A (白色)
     currentLosStatus = '--';
-    btn.innerHTML = '─ ─';
+    btn.innerHTML = 'N/A';
     btn.style.background = 'linear-gradient(90deg, #95a5a6, #7f8c8d)';
     nameContainer.style.borderColor = '#ffffff'; // 白色邊框
     nameInput.style.color = '#ffffff';
@@ -7864,7 +7864,7 @@ function lsSave(){
   currentLosStatus = '--';
   const btn = document.getElementById('los_toggle_btn');
   const nameContainer = document.getElementById('ls_name_container');
-  btn.innerHTML = '─ ─';
+  btn.innerHTML = 'N/A';
   btn.style.background = 'linear-gradient(90deg, #95a5a6, #7f8c8d)';
   nameContainer.style.borderColor = '#ffffff'; // 白色邊框
   inputElement.style.color = '#ffffff';
