@@ -5263,6 +5263,12 @@ function openChartFullscreen() {
                     }
                 },
                 onHover: (event, elements, chart) => {
+                    // 🔥 如果正在執行按鈕操作，禁止拖曳更新
+                    if (preventHoverUpdate) {
+                        console.log('按鈕操作進行中，禁止拖曳更新');
+                        return;
+                    }
+                    
                     // 只有在資訊框開啟時才處理 hover
                     if (typeof fullscreenInfoVisible === 'undefined' || !fullscreenInfoVisible) {
                         return;
@@ -5275,10 +5281,10 @@ function openChartFullscreen() {
                     }
                     
                     if (idx >= 0 && idx !== window.currentSelectedPointIndex) {
-                        // 更新全域變數（修復：拖曳時也要更新選中點索引）
+                        // 使用強制同步函數（包含更新全域變數、輸入欄位等）
                         window.currentSelectedPointIndex = idx;
                         
-                        // 更新點輸入欄位
+                        // 更新點輸入欄位（全螢幕）
                         const fullscreenPointInput = document.getElementById('fullscreenPointInput');
                         if (fullscreenPointInput) {
                             fullscreenPointInput.value = idx + 1;
@@ -5286,6 +5292,12 @@ function openChartFullscreen() {
                             fullscreenPointInput.style.display = 'none';
                             fullscreenPointInput.offsetHeight; // 觸發回流
                             fullscreenPointInput.style.display = '';
+                        }
+                        
+                        // 同步下方輸入欄位
+                        const selectedPointInput = document.getElementById('selectedPointIndex');
+                        if (selectedPointInput) {
+                            selectedPointInput.value = idx + 1;
                         }
                         
                         // 更新黃點位置
@@ -5319,6 +5331,142 @@ function openChartFullscreen() {
                             fullscreenDataset.pointBorderColor = fullscreenPointBorderColor;
                             fullscreenDataset.pointBorderWidth = 2;
                             chart.update('none');
+                        }
+                        
+                        // 🔥 关键修改：拖曳时直接更新tooltip内容，而不调用showMap
+                        // 这样可以避免showMap重新设置currentSelectedPointIndex导致后续按钮失效
+                        const canvas = document.getElementById('elevationChartFullscreen');
+                        const fullscreenContainer = document.getElementById('chartFullscreenOverlay');
+                        
+                        if (canvas && fullscreenContainer && fullscreenChartInstance) {
+                            const xScale = fullscreenChartInstance.scales.x;
+                            const yScale = fullscreenChartInstance.scales.y;
+                            const dataset = fullscreenChartInstance.data.datasets.find(d => 
+                                d.label && d.label.includes('地形海拔')
+                            );
+                            
+                            if (dataset && dataset.data[idx] !== undefined) {
+                                const pixelX = xScale.getPixelForValue(idx);
+                                const pixelY = yScale.getPixelForValue(dataset.data[idx]);
+                                
+                                let tooltipEl = fullscreenContainer.querySelector('#chartjs-tooltip-fullscreen');
+                                if (!tooltipEl) {
+                                    tooltipEl = document.createElement('div');
+                                    tooltipEl.id = 'chartjs-tooltip-fullscreen';
+                                    tooltipEl.style.background = 'rgba(13, 71, 161, 0.35)';
+                                    tooltipEl.style.borderRadius = '8px';
+                                    tooltipEl.style.color = 'white';
+                                    tooltipEl.style.opacity = '0';
+                                    tooltipEl.style.pointerEvents = 'none';
+                                    tooltipEl.style.position = 'fixed';
+                                    tooltipEl.style.transform = 'translate(-50%, -120%)';
+                                    tooltipEl.style.transition = 'all .1s ease';
+                                    tooltipEl.style.padding = '10px 12px';
+                                    tooltipEl.style.border = '2px solid #4dabf7';
+                                    tooltipEl.style.fontSize = '13px';
+                                    tooltipEl.style.lineHeight = '1.5';
+                                    tooltipEl.style.zIndex = '10002';
+                                    tooltipEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                                    tooltipEl.style.whiteSpace = 'nowrap';
+                                    fullscreenContainer.appendChild(tooltipEl);
+                                }
+                                
+                                const dataValue = dataset.data[idx];
+                                const totalPoints = dataset.data.length;
+                                const sLat = parseFloat(document.getElementById('sLat').value);
+                                const sLng = parseFloat(document.getElementById('sLng').value);
+                                const eLat = parseFloat(document.getElementById('eLat').value);
+                                const eLng = parseFloat(document.getElementById('eLng').value);
+                                const totalDistance = getDistance(sLat, sLng, eLat, eLng);
+                                
+                                const distanceFromStart = (idx / (totalPoints - 1)) * totalDistance;
+                                const distanceFromEnd = totalDistance - distanceFromStart;
+                                
+                                const fraction = idx / (totalPoints - 1);
+                                const currentLat = sLat + (eLat - sLat) * fraction;
+                                const currentLng = sLng + (eLng - sLng) * fraction;
+                                
+                                const startName = window.elevationPointAName || 'A點';
+                                const endName = window.elevationPointBName || 'B點';
+                                
+                                let clearanceValue = 0;
+                                let clearanceText = '';
+                                const losDataset = fullscreenChartInstance.data.datasets.find(d => d.label && d.label.includes('視距連線'));
+                                if (losDataset && losDataset.data[idx] !== undefined) {
+                                    const losHeight = losDataset.data[idx];
+                                    clearanceValue = losHeight - dataValue;
+                                    
+                                    if (clearanceValue > 0) {
+                                        clearanceText = `+${clearanceValue.toFixed(2)} m`;
+                                    } else if (clearanceValue < 0) {
+                                        clearanceText = `${clearanceValue.toFixed(2)} m`;
+                                    } else {
+                                        clearanceText = '0.00 m';
+                                    }
+                                }
+                                
+                                const clearanceColor = clearanceValue >= 0 ? '#4caf50' : '#ff4444';
+                                
+                                const innerHTML = `
+                                    <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">位置資訊: ${idx + 1}</div>
+                                    <div>距離${startName}: ${distanceFromStart.toFixed(3)} km</div>
+                                    <div>距離${endName}: ${distanceFromEnd.toFixed(3)} km</div>
+                                    <div>海拔高度: ${dataValue.toFixed(0)} m</div>
+                                    <div>座標: ${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}</div>
+                                    <div style="color: ${clearanceColor}; font-weight: bold;">遮蔽: ${clearanceText}</div>
+                                `;
+                                
+                                tooltipEl.innerHTML = innerHTML;
+                                
+                                const rect = canvas.getBoundingClientRect();
+                                let tooltipX = rect.left + pixelX;
+                                let tooltipY = rect.top + pixelY;
+                                
+                                tooltipEl.style.left = tooltipX + 'px';
+                                tooltipEl.style.top = tooltipY + 'px';
+                                tooltipEl.style.opacity = '0';
+                                tooltipEl.style.display = 'block';
+                                
+                                const tooltipRect = tooltipEl.getBoundingClientRect();
+                                const tooltipWidth = tooltipRect.width;
+                                const tooltipHeight = tooltipRect.height;
+                                
+                                const viewportWidth = window.innerWidth;
+                                const viewportHeight = window.innerHeight;
+                                
+                                let transformX = '-50%';
+                                let transformY = '-120%';
+                                
+                                const spaceAbove = tooltipY;
+                                const spaceBelow = viewportHeight - tooltipY;
+                                
+                                if (spaceAbove < tooltipHeight + 30) {
+                                    if (spaceBelow > tooltipHeight + 30) {
+                                        transformY = '20%';
+                                    } else {
+                                        transformY = '-50%';
+                                        tooltipY = spaceAbove > spaceBelow 
+                                            ? Math.min(tooltipY, spaceAbove - tooltipHeight/2)
+                                            : Math.max(tooltipY, tooltipHeight/2);
+                                    }
+                                }
+                                
+                                const spaceLeft = tooltipX;
+                                const spaceRight = viewportWidth - tooltipX;
+                                
+                                if (spaceLeft < tooltipWidth/2 + 10) {
+                                    transformX = '10%';
+                                    tooltipX = Math.max(tooltipX, tooltipWidth/2 + 10);
+                                } else if (spaceRight < tooltipWidth/2 + 10) {
+                                    transformX = '-110%';
+                                    tooltipX = Math.min(tooltipX, viewportWidth - tooltipWidth/2 - 10);
+                                }
+                                
+                                tooltipEl.style.left = tooltipX + 'px';
+                                tooltipEl.style.top = tooltipY + 'px';
+                                tooltipEl.style.transform = `translate(${transformX}, ${transformY})`;
+                                tooltipEl.style.opacity = '1';
+                            }
                         }
                     }
                 }
@@ -5594,247 +5742,282 @@ function toggleLandscapeFullscreen() {
 // 全螢幕資訊框與黃點的顯示狀態
 let fullscreenInfoVisible = true;
 
+// 🔥 新增：阻止拖曳干擾按鈕操作的標誌
+let preventHoverUpdate = false;
+
+// 強制同步所有相關元素：輸入欄位、黃點、訊息框
+function forceSync(targetIndex) {
+    console.log('=== 強制同步開始 ===，目標索引:', targetIndex);
+    
+    // 1. 更新全域變數
+    window.currentSelectedPointIndex = targetIndex;
+    
+    // 2. 同步下方輸入欄位
+    const selectedPointInput = document.getElementById('selectedPointIndex');
+    if (selectedPointInput) {
+        selectedPointInput.value = targetIndex + 1;
+        console.log('同步下方輸入欄位:', targetIndex + 1);
+    }
+    
+    // 3. 同步全螢幕輸入欄位
+    const fullscreenPointInput = document.getElementById('fullscreenPointInput');
+    if (fullscreenPointInput) {
+        fullscreenPointInput.value = targetIndex + 1;
+        console.log('同步全螢幕輸入欄位:', targetIndex + 1);
+    }
+    
+    // 4. 檢查是否在全螢幕模式下
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    const isInFullscreen = overlay && overlay.classList.contains('active');
+    
+    // 5. 如果在全螢幕模式下，強制同步全螢幕圖表的黃點和訊息框
+    if (isInFullscreen && fullscreenChartInstance) {
+        console.log('在全螢幕模式下，強制同步全螢幕圖表');
+        syncFullscreenChartAfterButtonClick(targetIndex);
+    }
+    
+    console.log('=== 強制同步完成 ===');
+}
+
 // 在全螢幕模式下按鈕點擊後強制同步黃點和訊息框
 function syncFullscreenChartAfterButtonClick(targetIndex) {
+    console.log('=== syncFullscreenChartAfterButtonClick 開始 ===');
+    console.log('目標索引:', targetIndex);
+    console.log('當前 currentSelectedPointIndex:', window.currentSelectedPointIndex);
+    
+    // 🔥 設置標誌，阻止拖曳干擾
+    preventHoverUpdate = true;
+    
     // 檢查是否在全螢幕模式下
     const overlay = document.getElementById('chartFullscreenOverlay');
     if (!overlay || !overlay.classList.contains('active')) {
         console.log('非全螢幕模式，無需同步');
+        preventHoverUpdate = false;
         return;
     }
     
     // 檢查全螢幕圖表是否存在
     if (!fullscreenChartInstance) {
         console.log('全螢幕圖表不存在，無需同步');
+        preventHoverUpdate = false;
         return;
     }
     
     console.log('執行全螢幕模式同步，目標索引:', targetIndex);
     
-    // 模擬兩次訊息框開關來強制更新
-    // 第一次：關閉訊息框
-    if (fullscreenInfoVisible) {
-        fullscreenInfoVisible = false;
-        
-        const toggleBtn = document.querySelector('.chart-fullscreen-info-toggle');
-        if (toggleBtn) {
-            toggleBtn.classList.add('disabled');
-            toggleBtn.style.opacity = '0.6';
-        }
-        
-        // 隱藏tooltip
-        const fullscreenContainer = document.getElementById('chartFullscreenOverlay');
-        let tooltipEl = fullscreenContainer ? fullscreenContainer.querySelector('#chartjs-tooltip-fullscreen') : null;
-        if (tooltipEl) {
-            tooltipEl.style.opacity = '0';
-            tooltipEl.style.display = 'none';
-        }
-        
-        // 隱藏所有點
-        const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d => 
-            d.label && d.label.includes('地形海拔')
-        );
-        
-        if (fullscreenDataset && fullscreenDataset.data) {
-            const pointCount = fullscreenDataset.data.length;
-            fullscreenDataset.pointBackgroundColor = new Array(pointCount).fill('transparent');
-            fullscreenDataset.pointRadius = new Array(pointCount).fill(0);
-            fullscreenDataset.pointHoverRadius = new Array(pointCount).fill(0);
-            fullscreenDataset.pointBorderColor = new Array(pointCount).fill('transparent');
-            fullscreenChartInstance.update('none');
-        }
+    // 🔥 強制更新全域變數
+    window.currentSelectedPointIndex = targetIndex;
+    
+    // 🔥 強制更新輸入欄位
+    const fullscreenPointInput = document.getElementById('fullscreenPointInput');
+    if (fullscreenPointInput) {
+        fullscreenPointInput.value = targetIndex + 1;
     }
     
-    // 第二次：開啟訊息框並定位到正確的點
-    setTimeout(() => {
+    const selectedPointInput = document.getElementById('selectedPointIndex');
+    if (selectedPointInput) {
+        selectedPointInput.value = targetIndex + 1;
+    }
+    
+    // 確保訊息框是開啟的
+    if (!fullscreenInfoVisible) {
         fullscreenInfoVisible = true;
-        
         const toggleBtn = document.querySelector('.chart-fullscreen-info-toggle');
         if (toggleBtn) {
             toggleBtn.classList.remove('disabled');
             toggleBtn.style.opacity = '1';
         }
+    }
+    
+    // 更新全螢幕圖表的黃點位置
+    const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d => 
+        d.label && d.label.includes('地形海拔')
+    );
+    
+    if (fullscreenDataset && fullscreenDataset.data) {
+        const pointCount = fullscreenDataset.data.length;
+        const fullscreenPointColors = new Array(pointCount);
+        const fullscreenPointRadius = new Array(pointCount);
+        const fullscreenPointHoverRadius = new Array(pointCount);
+        const fullscreenPointBorderColor = new Array(pointCount);
         
-        // 更新全螢幕圖表的黃點位置
-        const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d => 
+        for (let i = 0; i < pointCount; i++) {
+            if (i === targetIndex) {
+                fullscreenPointColors[i] = '#ffd43b';
+                fullscreenPointRadius[i] = 8;
+                fullscreenPointHoverRadius[i] = 12;
+                fullscreenPointBorderColor[i] = '#fff';
+            } else {
+                fullscreenPointColors[i] = 'transparent';
+                fullscreenPointRadius[i] = 0;
+                fullscreenPointHoverRadius[i] = 6;
+                fullscreenPointBorderColor[i] = 'transparent';
+            }
+        }
+        
+        fullscreenDataset.pointBackgroundColor = fullscreenPointColors;
+        fullscreenDataset.pointRadius = fullscreenPointRadius;
+        fullscreenDataset.pointHoverRadius = fullscreenPointHoverRadius;
+        fullscreenDataset.pointBorderColor = fullscreenPointBorderColor;
+        fullscreenDataset.pointBorderWidth = 2;
+        fullscreenChartInstance.update('none');
+        
+        console.log('全螢幕圖表黃點已更新到索引:', targetIndex);
+    }
+    
+    // 手動觸發tooltip顯示
+    const canvas = document.getElementById('elevationChartFullscreen');
+    const fullscreenContainer = document.getElementById('chartFullscreenOverlay');
+    
+    if (canvas && fullscreenContainer && fullscreenChartInstance) {
+        // 獲取點的像素位置
+        const xScale = fullscreenChartInstance.scales.x;
+        const yScale = fullscreenChartInstance.scales.y;
+        const dataset = fullscreenChartInstance.data.datasets.find(d => 
             d.label && d.label.includes('地形海拔')
         );
         
-        if (fullscreenDataset && fullscreenDataset.data) {
-            const pointCount = fullscreenDataset.data.length;
-            const fullscreenPointColors = new Array(pointCount);
-            const fullscreenPointRadius = new Array(pointCount);
-            const fullscreenPointHoverRadius = new Array(pointCount);
-            const fullscreenPointBorderColor = new Array(pointCount);
+        if (dataset && dataset.data[targetIndex] !== undefined) {
+            const pixelX = xScale.getPixelForValue(targetIndex);
+            const pixelY = yScale.getPixelForValue(dataset.data[targetIndex]);
             
-            for (let i = 0; i < pointCount; i++) {
-                if (i === targetIndex) {
-                    fullscreenPointColors[i] = '#ffd43b';
-                    fullscreenPointRadius[i] = 8;
-                    fullscreenPointHoverRadius[i] = 12;
-                    fullscreenPointBorderColor[i] = '#fff';
-                } else {
-                    fullscreenPointColors[i] = 'transparent';
-                    fullscreenPointRadius[i] = 0;
-                    fullscreenPointHoverRadius[i] = 6;
-                    fullscreenPointBorderColor[i] = 'transparent';
-                }
-            }
-            
-            fullscreenDataset.pointBackgroundColor = fullscreenPointColors;
-            fullscreenDataset.pointRadius = fullscreenPointRadius;
-            fullscreenDataset.pointHoverRadius = fullscreenPointHoverRadius;
-            fullscreenDataset.pointBorderColor = fullscreenPointBorderColor;
-            fullscreenDataset.pointBorderWidth = 2;
-            fullscreenChartInstance.update('none');
-        }
-        
-        // 手動觸發tooltip顯示
-        const canvas = document.getElementById('elevationChartFullscreen');
-        const fullscreenContainer = document.getElementById('chartFullscreenOverlay');
-        
-        if (canvas && fullscreenContainer && fullscreenChartInstance) {
-            // 獲取點的像素位置
-            const xScale = fullscreenChartInstance.scales.x;
-            const yScale = fullscreenChartInstance.scales.y;
-            const dataset = fullscreenChartInstance.data.datasets.find(d => 
-                d.label && d.label.includes('地形海拔')
-            );
-            
-            if (dataset && dataset.data[targetIndex] !== undefined) {
-                const pixelX = xScale.getPixelForValue(targetIndex);
-                const pixelY = yScale.getPixelForValue(dataset.data[targetIndex]);
-                
-                // 創建或獲取tooltip元素
-                let tooltipEl = fullscreenContainer.querySelector('#chartjs-tooltip-fullscreen');
-                if (!tooltipEl) {
-                    tooltipEl = document.createElement('div');
-                    tooltipEl.id = 'chartjs-tooltip-fullscreen';
-                    tooltipEl.style.background = 'rgba(13, 71, 161, 0.35)';
-                    tooltipEl.style.borderRadius = '8px';
-                    tooltipEl.style.color = 'white';
-                    tooltipEl.style.opacity = '0';
-                    tooltipEl.style.pointerEvents = 'none';
-                    tooltipEl.style.position = 'fixed';
-                    tooltipEl.style.transform = 'translate(-50%, -120%)';
-                    tooltipEl.style.transition = 'all .1s ease';
-                    tooltipEl.style.padding = '10px 12px';
-                    tooltipEl.style.border = '2px solid #4dabf7';
-                    tooltipEl.style.fontSize = '13px';
-                    tooltipEl.style.lineHeight = '1.5';
-                    tooltipEl.style.zIndex = '10002';
-                    tooltipEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
-                    tooltipEl.style.whiteSpace = 'nowrap';
-                    fullscreenContainer.appendChild(tooltipEl);
-                }
-                
-                // 計算tooltip內容
-                const dataValue = dataset.data[targetIndex];
-                const totalPoints = dataset.data.length;
-                const sLat = parseFloat(document.getElementById('sLat').value);
-                const sLng = parseFloat(document.getElementById('sLng').value);
-                const eLat = parseFloat(document.getElementById('eLat').value);
-                const eLng = parseFloat(document.getElementById('eLng').value);
-                const totalDistance = getDistance(sLat, sLng, eLat, eLng);
-                
-                const distanceFromStart = (targetIndex / (totalPoints - 1)) * totalDistance;
-                const distanceFromEnd = totalDistance - distanceFromStart;
-                
-                const fraction = targetIndex / (totalPoints - 1);
-                const currentLat = sLat + (eLat - sLat) * fraction;
-                const currentLng = sLng + (eLng - sLng) * fraction;
-                
-                const startName = window.elevationPointAName || 'A點';
-                const endName = window.elevationPointBName || 'B點';
-                
-                // 計算遮蔽資訊
-                let clearanceValue = 0;
-                let clearanceText = '';
-                const losDataset = fullscreenChartInstance.data.datasets.find(d => d.label && d.label.includes('視距連線'));
-                if (losDataset && losDataset.data[targetIndex] !== undefined) {
-                    const losHeight = losDataset.data[targetIndex];
-                    clearanceValue = losHeight - dataValue;
-                    
-                    if (clearanceValue > 0) {
-                        clearanceText = `+${clearanceValue.toFixed(2)} m`;
-                    } else if (clearanceValue < 0) {
-                        clearanceText = `${clearanceValue.toFixed(2)} m`;
-                    } else {
-                        clearanceText = '0.00 m';
-                    }
-                }
-                
-                const clearanceColor = clearanceValue >= 0 ? '#4caf50' : '#ff4444';
-                
-                const innerHTML = `
-                    <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">位置資訊: ${targetIndex + 1}</div>
-                    <div>距離${startName}: ${distanceFromStart.toFixed(3)} km</div>
-                    <div>距離${endName}: ${distanceFromEnd.toFixed(3)} km</div>
-                    <div>海拔高度: ${dataValue.toFixed(0)} m</div>
-                    <div>座標: ${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}</div>
-                    <div style="color: ${clearanceColor}; font-weight: bold;">遮蔽: ${clearanceText}</div>
-                `;
-                
-                tooltipEl.innerHTML = innerHTML;
-                
-                // 計算tooltip位置（確保不會被切掉）
-                const rect = canvas.getBoundingClientRect();
-                let tooltipX = rect.left + pixelX;
-                let tooltipY = rect.top + pixelY;
-                
-                // 設置初始位置以獲取尺寸
-                tooltipEl.style.left = tooltipX + 'px';
-                tooltipEl.style.top = tooltipY + 'px';
+            // 創建或獲取tooltip元素
+            let tooltipEl = fullscreenContainer.querySelector('#chartjs-tooltip-fullscreen');
+            if (!tooltipEl) {
+                tooltipEl = document.createElement('div');
+                tooltipEl.id = 'chartjs-tooltip-fullscreen';
+                tooltipEl.style.background = 'rgba(13, 71, 161, 0.35)';
+                tooltipEl.style.borderRadius = '8px';
+                tooltipEl.style.color = 'white';
                 tooltipEl.style.opacity = '0';
-                tooltipEl.style.display = 'block';
-                
-                // 獲取tooltip實際尺寸
-                const tooltipRect = tooltipEl.getBoundingClientRect();
-                const tooltipWidth = tooltipRect.width;
-                const tooltipHeight = tooltipRect.height;
-                
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-                
-                // 智能定位
-                let transformX = '-50%';
-                let transformY = '-120%';
-                
-                const spaceAbove = tooltipY;
-                const spaceBelow = viewportHeight - tooltipY;
-                
-                if (spaceAbove < tooltipHeight + 30) {
-                    if (spaceBelow > tooltipHeight + 30) {
-                        transformY = '20%';
-                    } else {
-                        transformY = '-50%';
-                        tooltipY = spaceAbove > spaceBelow 
-                            ? Math.min(tooltipY, spaceAbove - tooltipHeight/2)
-                            : Math.max(tooltipY, tooltipHeight/2);
-                    }
-                }
-                
-                const spaceLeft = tooltipX;
-                const spaceRight = viewportWidth - tooltipX;
-                
-                if (spaceLeft < tooltipWidth/2 + 10) {
-                    transformX = '10%';
-                    tooltipX = Math.max(tooltipX, tooltipWidth/2 + 10);
-                } else if (spaceRight < tooltipWidth/2 + 10) {
-                    transformX = '-110%';
-                    tooltipX = Math.min(tooltipX, viewportWidth - tooltipWidth/2 - 10);
-                }
-                
-                // 應用最終位置
-                tooltipEl.style.left = tooltipX + 'px';
-                tooltipEl.style.top = tooltipY + 'px';
-                tooltipEl.style.transform = `translate(${transformX}, ${transformY})`;
-                tooltipEl.style.opacity = '1';
+                tooltipEl.style.pointerEvents = 'none';
+                tooltipEl.style.position = 'fixed';
+                tooltipEl.style.transform = 'translate(-50%, -120%)';
+                tooltipEl.style.transition = 'all .1s ease';
+                tooltipEl.style.padding = '10px 12px';
+                tooltipEl.style.border = '2px solid #4dabf7';
+                tooltipEl.style.fontSize = '13px';
+                tooltipEl.style.lineHeight = '1.5';
+                tooltipEl.style.zIndex = '10002';
+                tooltipEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                tooltipEl.style.whiteSpace = 'nowrap';
+                fullscreenContainer.appendChild(tooltipEl);
             }
+            
+            // 計算tooltip內容
+            const dataValue = dataset.data[targetIndex];
+            const totalPoints = dataset.data.length;
+            const sLat = parseFloat(document.getElementById('sLat').value);
+            const sLng = parseFloat(document.getElementById('sLng').value);
+            const eLat = parseFloat(document.getElementById('eLat').value);
+            const eLng = parseFloat(document.getElementById('eLng').value);
+            const totalDistance = getDistance(sLat, sLng, eLat, eLng);
+            
+            const distanceFromStart = (targetIndex / (totalPoints - 1)) * totalDistance;
+            const distanceFromEnd = totalDistance - distanceFromStart;
+            
+            const fraction = targetIndex / (totalPoints - 1);
+            const currentLat = sLat + (eLat - sLat) * fraction;
+            const currentLng = sLng + (eLng - sLng) * fraction;
+            
+            const startName = window.elevationPointAName || 'A點';
+            const endName = window.elevationPointBName || 'B點';
+            
+            // 計算遮蔽資訊
+            let clearanceValue = 0;
+            let clearanceText = '';
+            const losDataset = fullscreenChartInstance.data.datasets.find(d => d.label && d.label.includes('視距連線'));
+            if (losDataset && losDataset.data[targetIndex] !== undefined) {
+                const losHeight = losDataset.data[targetIndex];
+                clearanceValue = losHeight - dataValue;
+                
+                if (clearanceValue > 0) {
+                    clearanceText = `+${clearanceValue.toFixed(2)} m`;
+                } else if (clearanceValue < 0) {
+                    clearanceText = `${clearanceValue.toFixed(2)} m`;
+                } else {
+                    clearanceText = '0.00 m';
+                }
+            }
+            
+            const clearanceColor = clearanceValue >= 0 ? '#4caf50' : '#ff4444';
+            
+            const innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">位置資訊: ${targetIndex + 1}</div>
+                <div>距離${startName}: ${distanceFromStart.toFixed(3)} km</div>
+                <div>距離${endName}: ${distanceFromEnd.toFixed(3)} km</div>
+                <div>海拔高度: ${dataValue.toFixed(0)} m</div>
+                <div>座標: ${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}</div>
+                <div style="color: ${clearanceColor}; font-weight: bold;">遮蔽: ${clearanceText}</div>
+            `;
+            
+            tooltipEl.innerHTML = innerHTML;
+            
+            // 計算tooltip位置（確保不會被切掉）
+            const rect = canvas.getBoundingClientRect();
+            let tooltipX = rect.left + pixelX;
+            let tooltipY = rect.top + pixelY;
+            
+            // 設置初始位置以獲取尺寸
+            tooltipEl.style.left = tooltipX + 'px';
+            tooltipEl.style.top = tooltipY + 'px';
+            tooltipEl.style.opacity = '0';
+            tooltipEl.style.display = 'block';
+            
+            // 獲取tooltip實際尺寸
+            const tooltipRect = tooltipEl.getBoundingClientRect();
+            const tooltipWidth = tooltipRect.width;
+            const tooltipHeight = tooltipRect.height;
+            
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // 智能定位
+            let transformX = '-50%';
+            let transformY = '-120%';
+            
+            const spaceAbove = tooltipY;
+            const spaceBelow = viewportHeight - tooltipY;
+            
+            if (spaceAbove < tooltipHeight + 30) {
+                if (spaceBelow > tooltipHeight + 30) {
+                    transformY = '20%';
+                } else {
+                    transformY = '-50%';
+                    tooltipY = spaceAbove > spaceBelow 
+                        ? Math.min(tooltipY, spaceAbove - tooltipHeight/2)
+                        : Math.max(tooltipY, tooltipHeight/2);
+                }
+            }
+            
+            const spaceLeft = tooltipX;
+            const spaceRight = viewportWidth - tooltipX;
+            
+            if (spaceLeft < tooltipWidth/2 + 10) {
+                transformX = '10%';
+                tooltipX = Math.max(tooltipX, tooltipWidth/2 + 10);
+            } else if (spaceRight < tooltipWidth/2 + 10) {
+                transformX = '-110%';
+                tooltipX = Math.min(tooltipX, viewportWidth - tooltipWidth/2 - 10);
+            }
+            
+            // 應用最終位置
+            tooltipEl.style.left = tooltipX + 'px';
+            tooltipEl.style.top = tooltipY + 'px';
+            tooltipEl.style.transform = `translate(${transformX}, ${transformY})`;
+            tooltipEl.style.opacity = '1';
         }
-        
-        console.log('全螢幕模式同步完成，黃點和訊息框已更新到索引:', targetIndex);
-    }, 100);
+    }
+    
+    console.log('全螢幕模式同步完成，黃點和訊息框已更新到索引:', targetIndex);
+    
+    // 🔥 200ms後解除阻止標誌
+    setTimeout(() => {
+        preventHoverUpdate = false;
+        console.log('解除拖曳阻止標誌');
+    }, 200);
+    
+    console.log('=== syncFullscreenChartAfterButtonClick 結束 ===');
 }
 
 function toggleFullscreenInfo() {
@@ -7018,6 +7201,9 @@ function jumpToMaxPoint() {
 
 // 跳到最大遮蔽點
 function jumpToMaxObstruction() {
+    console.log('=== jumpToMaxObstruction 開始 ===');
+    console.log('當前 currentSelectedPointIndex:', window.currentSelectedPointIndex);
+    
     // 清空同高度點記錄
     selectedPointsInCurrentHeight.clear();
     
@@ -7088,10 +7274,16 @@ function jumpToMaxObstruction() {
     }
     
     console.log('跳到最大遮蔽點：索引', maxObstructionIndex, '遮蔽量', Math.abs(maxObstruction).toFixed(2), 'm');
+    console.log('調用 showMap 前的 currentSelectedPointIndex:', window.currentSelectedPointIndex);
+    
     showMap(maxObstructionIndex, elevationData[maxObstructionIndex]);
+    
+    console.log('調用 showMap 後的 currentSelectedPointIndex:', window.currentSelectedPointIndex);
     
     // 如果在全螢幕模式下，強制同步更新全螢幕圖表的黃點和訊息框
     syncFullscreenChartAfterButtonClick(maxObstructionIndex);
+    
+    console.log('=== jumpToMaxObstruction 結束 ===');
 }
 
 // 跳到距離起點第一個遮蔽點
