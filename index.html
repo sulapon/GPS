@@ -863,18 +863,21 @@ div.gps-ig.orange-border-card,
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
       <h3 class="section-title" style="margin:0">💾 參數保存 / 備份</h3>
       <div style="display:flex; gap:8px;">
-        <button class="btn" onclick="loadGpsNamesToArchive()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0; background: linear-gradient(90deg, #bb66ff, #9945ff); color: #fff;" title="從GPS分頁讀取地名">🌍↔️</button>
         <button class="btn ghost" onclick="lsExport()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">匯出</button>
         <button class="btn ghost" onclick="document.getElementById('ls_import').click()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0;">讀取</button>
         <input id="ls_import" type="file" accept="application/json" style="display:none" onchange="lsImport(event)">
       </div>
     </div>
     <div style="display:flex;gap:8px; margin-bottom:12px; align-items:center; flex-wrap:nowrap;">
-      <div style="flex:1;min-width:150px; position:relative; display:flex; align-items:center; justify-content:space-between; padding:8px 12px; font-size:16px; background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
-        <input id="ls_save_name" placeholder="自訂名稱" style="border:none; background:transparent; outline:none; color:var(--value); font-size:16px; padding:0; flex:1; min-width:60px;" oninput="updateNamePreview()">
+      <div id="ls_name_container" style="flex:1;min-width:150px; position:relative; display:flex; align-items:center; justify-content:space-between; padding:8px 12px; font-size:16px; background:transparent; border-radius:6px; border:1px solid #ffffff;">
+        <input id="ls_save_name" placeholder="自訂名稱" style="border:none; background:transparent; outline:none; color:#ffffff; font-size:16px; padding:0; flex:1; min-width:60px;" oninput="updateNamePreview()">
         <span id="ls_name_suffix" style="color:rgba(255,255,255,0.5); font-size:16px; white-space:nowrap; margin-left:8px;"></span>
       </div>
-      <button class="btn" onclick="lsSave()" style="padding:5.6px 11.2px; font-size:16px; white-space:nowrap; flex-shrink:0; min-width:38px;" title="保存參數">💾</button>
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:nowrap;">
+      <button class="btn" onclick="loadGpsNamesToArchive()" style="flex:1; padding:5.6px 11.2px; font-size:16px; white-space:nowrap; background: linear-gradient(90deg, #bb66ff, #9945ff); color: #fff;" title="從GPS分頁讀取地名">🌍↔️</button>
+      <button id="los_toggle_btn" class="btn" onclick="toggleLosStatus()" style="flex:1; padding:5.6px 11.2px; font-size:16px; white-space:nowrap; background: linear-gradient(90deg, #95a5a6, #7f8c8d); color: #fff;" title="切換狀態：預設/LOS/NLOS">─ ─</button>
+      <button class="btn" onclick="lsSave()" style="flex:1; padding:5.6px 11.2px; font-size:16px; white-space:nowrap;" title="保存參數">💾</button>
     </div>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:nowrap;">
       <label style="color:var(--label); font-size:15px; font-weight:600; white-space:nowrap;">排列方式：</label>
@@ -2060,11 +2063,13 @@ function openMapPicker(location) {
     mapPickerHTML += 'document.getElementById("instruction").style.display = "none";';
     mapPickerHTML += 'var streetLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {';
     mapPickerHTML += 'attribution: "© OpenStreetMap", maxZoom: 19 });';
-    mapPickerHTML += 'var satelliteLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {';
-    mapPickerHTML += 'attribution: "© Esri", maxZoom: 19 });';
+    mapPickerHTML += 'var satelliteLayer = L.tileLayer("http://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {';
+    mapPickerHTML += 'attribution: "© Google Maps", maxZoom: 20, subdomains: ["0", "1", "2", "3"] });';
+    mapPickerHTML += 'var earthLayer = L.tileLayer("http://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}", {';
+    mapPickerHTML += 'attribution: "© Google Earth", maxZoom: 20, subdomains: ["0", "1", "2", "3"] });';
     mapPickerHTML += 'var hybridLayer = L.layerGroup([';
-    mapPickerHTML += 'L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {';
-    mapPickerHTML += 'attribution: "© Esri", maxZoom: 19 }),';
+    mapPickerHTML += 'L.tileLayer("http://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {';
+    mapPickerHTML += 'attribution: "© Google Maps", maxZoom: 20, subdomains: ["0", "1", "2", "3"] }),';
     mapPickerHTML += 'L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {';
     mapPickerHTML += 'opacity: 0.3, maxZoom: 19 })';
     mapPickerHTML += ']);';
@@ -2075,8 +2080,11 @@ function openMapPicker(location) {
     mapPickerHTML += 'map.removeLayer(streetLayer); satelliteLayer.addTo(map);';
     mapPickerHTML += 'currentLayer = "satellite"; btn.innerHTML = "🛰️ 衛星圖";';
     mapPickerHTML += '} else if (currentLayer === "satellite") {';
-    mapPickerHTML += 'map.removeLayer(satelliteLayer); hybridLayer.addTo(map);';
-    mapPickerHTML += 'currentLayer = "hybrid"; btn.innerHTML = "🌐 混合圖";';
+    mapPickerHTML += 'map.removeLayer(satelliteLayer); earthLayer.addTo(map);';
+    mapPickerHTML += 'currentLayer = "earth"; btn.innerHTML = "🌍 地形圖";';
+    mapPickerHTML += '} else if (currentLayer === "earth") {';
+    mapPickerHTML += 'map.removeLayer(earthLayer); hybridLayer.addTo(map);';
+    mapPickerHTML += 'currentLayer = "hybrid"; btn.innerHTML = "🔀 混合圖";';
     mapPickerHTML += '} else {';
     mapPickerHTML += 'map.removeLayer(hybridLayer); streetLayer.addTo(map);';
     mapPickerHTML += 'currentLayer = "street"; btn.innerHTML = "🗺️ 街道圖";';
@@ -6469,15 +6477,24 @@ function showRouteMap() {
         maxZoom: 19
     });
     
-    routeSatelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: '© Esri',
-        maxZoom: 19
+    routeSatelliteLayer = L.tileLayer('http://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        attribution: '© Google Maps',
+        maxZoom: 20,
+        subdomains: ['0', '1', '2', '3']
+    });
+    
+    // Google Earth 地形圖（帶3D地形陰影）
+    routeEarthLayer = L.tileLayer('http://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+        attribution: '© Google Earth',
+        maxZoom: 20,
+        subdomains: ['0', '1', '2', '3']
     });
     
     routeHybridLayer = L.layerGroup([
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri',
-            maxZoom: 19
+        L.tileLayer('http://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            attribution: '© Google Maps',
+            maxZoom: 20,
+            subdomains: ['0', '1', '2', '3']
         }),
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             opacity: 0.3,
@@ -6518,6 +6535,11 @@ function showRouteMap() {
                 this.innerHTML = '🛰️ 衛星圖';
             } else if (routeCurrentLayer === 'satellite') {
                 routeMapInstance.removeLayer(routeSatelliteLayer);
+                routeEarthLayer.addTo(routeMapInstance);
+                routeCurrentLayer = 'earth';
+                this.innerHTML = '🌍 地形圖';
+            } else if (routeCurrentLayer === 'earth') {
+                routeMapInstance.removeLayer(routeEarthLayer);
                 routeHybridLayer.addTo(routeMapInstance);
                 routeCurrentLayer = 'hybrid';
                 this.innerHTML = '🔀 混合圖';
@@ -7578,6 +7600,14 @@ function applyFields(data){
   });
   window.scrollTo({top:0,behavior:"smooth"});
   alert("✓ 參數已成功填入");
+  
+  // 在後台執行「從GPS分頁讀取座標」，不切換分頁
+  setTimeout(() => {
+    if (typeof importFromGPS === 'function') {
+      importFromGPS();
+      console.log('✓ 已在後台讀取GPS座標到高度圖分頁');
+    }
+  }, 100);
 }
 
 function lsLoadTable(){
@@ -7619,9 +7649,21 @@ function lsLoadTable(){
   entries.forEach(([name, data])=>{
     const tr=document.createElement("tr");
     const dataStr = JSON.stringify(data).replace(/'/g, "\\'");
+    
+    // 根據 LOS 狀態決定名稱顏色
+    const losStatus = data.losStatus || '--';
+    let nameColor;
+    if (losStatus === 'NLOS') {
+      nameColor = '#e74c3c'; // 紅色
+    } else if (losStatus === 'LOS') {
+      nameColor = '#5ff0d5'; // 青色
+    } else {
+      nameColor = '#ffffff'; // 白色（預設）
+    }
+    
     tr.innerHTML=`
       <td style="padding:8px 8px 8px 4px; color:var(--title); font-weight:600; white-space:nowrap;">
-        <span style="cursor:pointer; text-decoration:underline; color:#5ff0d5;" onclick='fillNameWithDate("${name.replace(/'/g, "\\'")}")'>${name}</span>
+        <span style="cursor:pointer; text-decoration:underline; color:${nameColor};" onclick='fillNameWithDate("${name.replace(/'/g, "\\'")}")'>${name}</span>
       </td>
       <td style="padding:4px 6px; text-align:center; white-space:nowrap;">
         <button style="background:none; border:none; padding:4px 6px; font-size:20px; cursor:pointer; color:#5ff0d5; line-height:1;" onclick='applyFields(${dataStr})' title="填入參數">📂</button>
@@ -7705,6 +7747,40 @@ function fillNameWithDate(name) {
   console.log(`✓ 移除日期後: ${baseName}`);
 }
 
+// LOS/NLOS 狀態切換
+let currentLosStatus = '--'; // 預設為 -- (白色)
+
+function toggleLosStatus() {
+  const btn = document.getElementById('los_toggle_btn');
+  const nameContainer = document.getElementById('ls_name_container');
+  const nameInput = document.getElementById('ls_save_name');
+  
+  if (currentLosStatus === '--') {
+    // 從預設切換到 LOS (藍色)
+    currentLosStatus = 'LOS';
+    btn.innerHTML = 'LOS';
+    btn.style.background = 'linear-gradient(90deg, #3498db, #2980b9)';
+    nameContainer.style.borderColor = '#3498db'; // 藍色邊框
+    nameInput.style.color = '#5ff0d5';
+  } else if (currentLosStatus === 'LOS') {
+    // 從LOS切換到 NLOS (紅色)
+    currentLosStatus = 'NLOS';
+    btn.innerHTML = 'NLOS';
+    btn.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
+    nameContainer.style.borderColor = '#e74c3c'; // 紅色邊框
+    nameInput.style.color = '#e74c3c';
+  } else {
+    // 從NLOS切換回預設 -- (白色)
+    currentLosStatus = '--';
+    btn.innerHTML = '─ ─';
+    btn.style.background = 'linear-gradient(90deg, #95a5a6, #7f8c8d)';
+    nameContainer.style.borderColor = '#ffffff'; // 白色邊框
+    nameInput.style.color = '#ffffff';
+  }
+  
+  console.log(`✓ LOS狀態切換為: ${currentLosStatus}`);
+}
+
 // 從GPS分頁讀取A點和B點地名，填入存檔名稱欄位
 function loadGpsNamesToArchive() {
   const nameA = document.getElementById('nameA').value.trim();
@@ -7748,14 +7824,58 @@ function lsSave(){
   const fullName = userInput + dateStr;
   
   const all=JSON.parse(localStorage.getItem(LS_KEY)||"{}");
+  
+  // 檢查是否有相同的基礎名稱（不考慮日期）
+  const existingNames = Object.keys(all);
+  let hasDuplicateBaseName = false;
+  let duplicateFullName = '';
+  
+  for (let existingName of existingNames) {
+    // 移除日期後綴來比對基礎名稱
+    // 支援格式：_YYYMMDD 或 _YYMMDD (6-7位數字)
+    const baseName = existingName.replace(/_\d{6,7}$/g, '');
+    
+    if (baseName === userInput) {
+      hasDuplicateBaseName = true;
+      duplicateFullName = existingName;
+      break;
+    }
+  }
+  
+  // 如果發現重複的基礎名稱，顯示確認對話框
+  if (hasDuplicateBaseName) {
+    const confirmMsg = `⚠️ 已存在相同名稱的檔案：\n\n「${duplicateFullName}」\n\n是否要覆蓋此檔案？`;
+    if (!confirm(confirmMsg)) {
+      return; // 使用者選擇取消，不儲存
+    }
+    // 使用者確認覆蓋，刪除舊檔案
+    delete all[duplicateFullName];
+  }
+  
   const saveData = collectFields();
   saveData.timestamp = Date.now(); // 添加時間戳
+  saveData.losStatus = currentLosStatus; // 保存 LOS 狀態
   all[fullName]=saveData;
   localStorage.setItem(LS_KEY,JSON.stringify(all));
   inputElement.value = "";
   updateNamePreview(); // 清空後綴顯示
+  
+  // 重置 LOS 狀態為預設值 --
+  currentLosStatus = '--';
+  const btn = document.getElementById('los_toggle_btn');
+  const nameContainer = document.getElementById('ls_name_container');
+  btn.innerHTML = '─ ─';
+  btn.style.background = 'linear-gradient(90deg, #95a5a6, #7f8c8d)';
+  nameContainer.style.borderColor = '#ffffff'; // 白色邊框
+  inputElement.style.color = '#ffffff';
+  
   lsLoadTable();
-  alert("✓ 參數已保存：" + fullName);
+  
+  if (hasDuplicateBaseName) {
+    alert("✓ 參數已覆蓋保存：" + fullName);
+  } else {
+    alert("✓ 參數已保存：" + fullName);
+  }
 }
 
 function lsDelete(name){
