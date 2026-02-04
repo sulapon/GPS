@@ -659,7 +659,7 @@ div.gps-ig.orange-border-card,
 <div style="grid-column: span 3; display: flex; gap: 10px; align-items: flex-end; margin-bottom: 8px;">
 <div style="display: flex; align-items: center; gap: 5px; flex: 1;">
 <label style="color:var(--label); font-size:15px; margin-bottom:0; display:block; flex-shrink:0;">採樣點數</label>
-<input type="number" id="samples" value="100" min="2" max="2000" style="flex: 1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
+<input type="number" id="samples" value="500" min="2" max="2000" style="flex: 1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
 </div>
 <button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; white-space:nowrap; height:34px; flex-shrink:0; min-width:42px;" onclick="smartIncreaseSamples(100)">100</button>
 <button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:6px; font-weight:700; font-size:16px; color:#022; cursor:pointer; white-space:nowrap; height:34px; flex-shrink:0; min-width:42px;" onclick="smartIncreaseSamples(1000)">1K</button>
@@ -2068,32 +2068,52 @@ async function getElevationFromSRTM(location) {
     const originalColor = gpsRes.style.color;
     const originalBg = gpsRes.style.background;
     showLoadingWithDots('gpsRes', '讀取中', eleInput);
+    const GOOGLE_API_KEY = 'AIzaSyBwd_GtAZq2eW6KgRRkro__aG7h5ZECJwo';
     try {
-        console.log(`調用 SRTM API，座標: ${lat}, ${lon}`);
-        const response = await fetch('https://api.open-elevation.com/api/v1/lookup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                locations: [{ latitude: lat, longitude: lon }]
-            })
+        console.log(`調用 Google Maps Elevation API，座標: ${lat}, ${lon}`);
+        
+        // 確保 Google Maps API 已載入
+        if (!window.google || !window.google.maps) {
+            gpsRes.innerHTML = '<span style="color: #ffd43b;">正在載入 Google Maps API<span class="loading-dots"></span></span>';
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
+                script.async = true;
+                script.defer = true;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+        
+        gpsRes.innerHTML = '<span style="color: #ffd43b;">正在取得高度資料<span class="loading-dots"></span></span>';
+        
+        // 使用 Google Maps ElevationService
+        const elevator = new google.maps.ElevationService();
+        const result = await new Promise((resolve, reject) => {
+            elevator.getElevationForLocations({
+                locations: [{lat: lat, lng: lon}]
+            }, (results, status) => {
+                if (status === 'OK' && results && results.length > 0) {
+                    resolve(results[0]);
+                } else {
+                    reject(new Error(`Google Maps API 狀態: ${status}`));
+                }
+            });
         });
-        if (!response.ok) {
-            throw new Error(`API 返回狀態 ${response.status}`);
-        }
-        const result = await response.json();
-        console.log('API 響應:', result);
-        if (!result.results || result.results.length === 0) {
-            throw new Error('無法取得該位置的高度數據');
-        }
-        const elevation = result.results[0].elevation;
+        
+        const elevation = result.elevation;
+        console.log('Google Maps API 響應:', result);
+        
         if (elevation === null || elevation === undefined) {
             throw new Error('該位置的高度數據不可用');
         }
+        
         eleInput.value = Math.round(parseFloat(elevation));
         console.log(`地點${location}高度已更新: ${elevation}m`);
         calculate();
         const currentResult = gpsRes.innerHTML;
-        const successMsg = `<span style="color: #ffd43b; font-weight: bold;">✓ 地點${location}高度已從 SRTM 資料更新：<strong>${Math.round(parseFloat(elevation))} m</strong></span><br><br>${currentResult}`;
+        const successMsg = `<span style="color: #ffd43b; font-weight: bold;">✓ 地點${location}高度已從 Google Maps 更新：<strong>${Math.round(parseFloat(elevation))} m</strong></span><br><br>${currentResult}`;
         gpsRes.innerHTML = successMsg;
         const loadingId = eleInput.id === 'eleA' ? 'eleA-loading' : 'eleB-loading';
         const loadingSpan = document.getElementById(loadingId);
@@ -2213,26 +2233,43 @@ async function getElevationAutomatic(lat, lon, location, eleId) {
         loadingSpan.style.display = 'inline';
         eleInput.style.opacity = '0.5';
     }
+    const GOOGLE_API_KEY = 'AIzaSyBwd_GtAZq2eW6KgRRkro__aG7h5ZECJwo';
     try {
-        console.log(`調用 SRTM API，座標: ${lat}, ${lon}`);
+        console.log(`調用 Google Maps Elevation API，座標: ${lat}, ${lon}`);
         updateDialogElevationStatus(eleId, '正在連接高度資料庫...', true);
-        const response = await fetch('https://api.open-elevation.com/api/v1/lookup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                locations: [{ latitude: lat, longitude: lon }]
-            })
-        });
-        if (!response.ok) {
-            throw new Error(`API 返回狀態 ${response.status}`);
+        
+        // 確保 Google Maps API 已載入
+        if (!window.google || !window.google.maps) {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
+                script.async = true;
+                script.defer = true;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
         }
+        
         updateDialogElevationStatus(eleId, '正在解析高度資料...', true);
-        const result = await response.json();
-        console.log('SRTM API 響應:', result);
-        if (!result.results || result.results.length === 0) {
-            throw new Error('無法取得該位置的高度數據');
-        }
-        const elevation = result.results[0].elevation;
+        
+        // 使用 Google Maps ElevationService
+        const elevator = new google.maps.ElevationService();
+        const result = await new Promise((resolve, reject) => {
+            elevator.getElevationForLocations({
+                locations: [{lat: lat, lng: lon}]
+            }, (results, status) => {
+                if (status === 'OK' && results && results.length > 0) {
+                    resolve(results[0]);
+                } else {
+                    reject(new Error(`Google Maps API 狀態: ${status}`));
+                }
+            });
+        });
+        
+        console.log('Google Maps Elevation API 響應:', result);
+        
+        const elevation = result.elevation;
         if (elevation === null || elevation === undefined) {
             throw new Error('該位置的高度數據不可用');
         }
