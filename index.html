@@ -2,109 +2,111 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>DSM 遮蔽剖面分析儀</title>
+    <title>DSM 剖面分析 - GitHub 雲端版</title>
     <script src="https://cdn.jsdelivr.net/npm/geotiff"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: sans-serif; max-width: 900px; margin: auto; padding: 20px; background: #f0f2f5; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        #status { margin-top:10px; padding: 10px; border-radius: 5px; background: #eee; min-height: 20px; }
-        .error { color: #d9534f; background: #f2dede !important; }
+        body { font-family: sans-serif; max-width: 1100px; margin: auto; padding: 20px; background: #f0f2f5; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 6px; }
+        button { padding: 12px 25px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        #log { background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 6px; font-family: 'Consolas', monospace; font-size: 13px; margin-top: 15px; white-space: pre-wrap; line-height: 1.5; }
+        .loading { color: #ff9f43; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>⛰️ 兩點遮蔽剖面分析 (3m 天線)</h2>
-        <p>A點: 25.214458, 121.563209 | B點: 24.499911, 121.087641</p>
-        <button id="btn" onclick="analyze()" style="padding: 10px 20px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px;">
-            🚀 開始分析
-        </button>
-        <div id="status">準備就緒，請點擊按鈕</div>
+
+<div class="card">
+    <h2>⛰️ DSM 剖面分析 (GitHub 雲端版)</h2>
+    <p style="color: #666;">目前讀取目標：<span style="color:#007bff; font-family:monospace;">taiwan_dsm_wgs84_cog.tif</span></p>
+    
+    <div class="input-group">
+        <div><label>A 點 (Lat, Lon)</label><input type="text" id="posA" value="25.214458, 121.563209"></div>
+        <div><label>B 點 (Lat, Lon)</label><input type="text" id="posB" value="24.499911, 121.087641"></div>
+        <button onclick="startAnalysis()">開始分析剖面</button>
     </div>
-    <div style="height:400px; margin-top:20px;">
-        <canvas id="profileChart"></canvas>
-    </div>
+
+    <div id="log">準備就緒，請點擊分析按鈕...</div>
+</div>
+
+<div style="height:500px; margin-top:20px; background:white; padding:20px; border-radius:12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    <canvas id="profileChart"></canvas>
+</div>
 
 <script>
-async function analyze() {
-    const status = document.getElementById('status');
-    const btn = document.getElementById('btn');
-    status.classList.remove('error');
-    status.innerText = "⏳ 正在讀取 TIF 標頭數據...";
-    btn.disabled = true;
+async function startAnalysis() {
+    const log = document.getElementById('log');
+    const pA = document.getElementById('posA').value.split(',').map(v => parseFloat(v.trim()));
+    const pB = document.getElementById('posB').value.split(',').map(v => parseFloat(v.trim()));
+    const tifUrl = "taiwan_dsm_wgs84_cog.tif"; // 確保此檔案與 HTML 在同一層目錄
 
-    // 這裡我們直接用相對路徑，GitHub Pages 下這最穩定
-    const tifUrl = "taiwan_dsm_wgs84_cog.tif";
+    log.innerHTML = `<span class="loading">⏳ 正在從伺服器串流讀取 COG 圖資...</span>\n`;
 
     try {
-        // 1. 初始化 GeoTIFF
-        const tiff = await GeoTIFF.fromUrl(tifUrl, { allowFullFile: false });
+        // 從 URL 讀取，GeoTIFF.js 會自動發送 Range Requests
+        const tiff = await GeoTIFF.fromUrl(tifUrl);
         const image = await tiff.getImage();
         const bbox = image.getBoundingBox(); 
         const [w, h] = [image.getWidth(), image.getHeight()];
 
-        const p1 = [25.214458, 121.563209]; // Lat, Lon
-        const p2 = [24.499911, 121.087641];
-        
-        let elevData = [], losLine = [], labels = [];
-        const samples = 100;
+        log.innerHTML += `🛠️ 影像對接成功！\n`;
+        log.innerHTML += `範圍：Lon(${bbox[0].toFixed(4)}~${bbox[2].toFixed(4)}), Lat(${bbox[1].toFixed(4)}~${bbox[3].toFixed(4)})\n`;
 
-        status.innerText = `⏳ 正在採樣地形剖面 (0/100)...`;
+        const samples = 400;
+        let terrain = [];
 
         for (let i = 0; i <= samples; i++) {
             const r = i / samples;
-            const lat = p1[0] + (p2[0] - p1[0]) * r;
-            const lon = p1[1] + (p2[1] - p1[1]) * r;
+            const lat = pA[0] + (pB[0] - pA[0]) * r;
+            const lon = pA[1] + (pB[1] - pA[1]) * r;
 
-            // 經緯度座標轉為影像像素座標
-            const x = Math.floor(((lon - bbox[0]) / (bbox[2] - bbox[0])) * w);
-            const y = Math.floor(((bbox[3] - lat) / (bbox[3] - bbox[1])) * h);
+            let x = ((lon - bbox[0]) / (bbox[2] - bbox[0])) * w;
+            let y = ((bbox[3] - lat) / (bbox[3] - bbox[1])) * h;
 
-            // 讀取該像素的高程數據
-            const raster = await image.readRasters({ window: [x, y, x + 1, y + 1] });
-            elevData.push(raster[0][0]);
-            labels.push(i % 10 === 0 ? `${(i/samples*100).toFixed(0)}%` : "");
+            // 邊界安全修正
+            const safeX = Math.max(0, Math.min(w - 1, Math.floor(x)));
+            const safeY = Math.max(0, Math.min(h - 1, Math.floor(y)));
+
+            // 僅抓取該像素的數據，COG 效率極高
+            const raster = await image.readRasters({ window: [safeX, safeY, safeX + 1, safeY + 1] });
+            let val = raster[0][0];
+
+            if (i === samples) {
+                log.innerHTML += `✅ B 點海拔：${val.toFixed(1)} m\n`;
+            }
+
+            terrain.push(val > -1000 ? val : 0);
         }
 
-        // 計算視距線 (起點與終點各加 3 米天線高)
-        const startH = elevData[0] + 3;
-        const endH = elevData[samples] + 3;
-        let blocked = false;
-
-        for (let i = 0; i <= samples; i++) {
-            const losH = startH + (endH - startH) * (i/samples);
-            losLine.push(losH);
-            if(elevData[i] > losH) blocked = true;
-        }
-
-        renderChart(labels, elevData, losLine);
-        status.innerHTML = `✅ 分析完成！結果：<strong>${blocked ? "❌ 發現地形遮蔽" : "✅ 視線良好"}</strong>`;
+        renderChart(terrain);
+        log.innerHTML += `✨ 剖面圖生成完畢。`;
     } catch (err) {
-        status.classList.add('error');
-        status.innerText = "❌ 發生錯誤: " + err.message + "\n請確認 TIF 檔案與 HTML 是否在同一資料夾且名稱正確。";
-        console.error(err);
+        log.innerHTML = `<span style="color:red;">❌ 讀取失敗：${err.message}</span>\n提示：請確保檔案名稱正確且已上傳至 GitHub。`;
     }
-    btn.disabled = false;
 }
 
-function renderChart(labels, terrain, los) {
+function renderChart(terrain) {
     const ctx = document.getElementById('profileChart').getContext('2d');
-    if(window.myChart) window.myChart.destroy();
+    if (window.myChart) window.myChart.destroy();
+
+    const startH = terrain[0] + 3;
+    const endH = terrain[terrain.length - 1] + 3;
+    const los = terrain.map((_, i) => startH + (endH - startH) * (i / (terrain.length - 1)));
+
     window.myChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels,
+            labels: terrain.map(() => ""),
             datasets: [
-                { label: '3m 視距線 (LOS)', data: los, borderColor: '#ff9800', borderWidth: 2, pointRadius: 0, fill: false },
-                { label: '地形剖面 (DSM)', data: terrain, backgroundColor: 'rgba(139, 69, 19, 0.4)', borderColor: '#5d4037', fill: true, pointRadius: 0 }
+                { label: '3m 視距 (LoS)', data: los, borderColor: '#ff9f43', borderWidth: 2, pointRadius: 0, fill: false },
+                { label: '地形剖面', data: terrain, backgroundColor: 'rgba(52, 73, 94, 0.6)', borderColor: '#2c3e50', fill: true, pointRadius: 0 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: { title: { display: true, text: '高度 (m)' } }
-            }
+            scales: { y: { beginAtZero: false } }
         }
     });
 }
