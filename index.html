@@ -2,125 +2,142 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>DSM 通訊剖面分析 - GitHub 版</title>
+    <title>GPS 通訊分析診斷儀</title>
     <script src="https://cdn.jsdelivr.net/npm/geotiff"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: sans-serif; max-width: 1100px; margin: auto; padding: 20px; background: #f0f2f5; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .input-group { display: grid; grid-template-columns: 1fr 1fr 1fr 100px; gap: 10px; margin-bottom: 15px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { padding: 10px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        #log { background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 13px; margin-top: 15px; white-space: pre-wrap; height: 100px; overflow-y: auto; }
-        .chart-container { height: 500px; margin-top: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        body { font-family: -apple-system, sans-serif; background: #f4f4f9; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        #log { background: #222; color: #0f0; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px; height: 150px; overflow-y: auto; margin: 15px 0; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr 120px; gap: 10px; margin-bottom: 20px; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .error { color: #ff4757; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>📡 通訊安全距離分析 (含費涅爾區)</h2>
-    <p style="color: 666; font-size: 14px;">讀取目標：<span style="color:#007bff;">taiwan_dsm_wgs84_cog.tif</span> (請確保檔案在同資料夾)</p>
-    
-    <div class="input-group">
-        <div><label>A 點 (Lat, Lon)</label><input type="text" id="posA" value="25.214458, 121.563209"></div>
-        <div><label>B 點 (Lat, Lon)</label><input type="text" id="posB" value="24.499911, 121.087641"></div>
-        <div><label>頻率 (MHz)</label><input type="number" id="freq" value="2400"></div>
-        <button onclick="startAnalysis()" style="margin-top: 20px;">執行</button>
+<div class="container">
+    <h2>📡 安全通訊距離分析 (Fresnel Radius)</h2>
+    <div class="controls">
+        <input type="text" id="posA" value="25.214458, 121.563209" placeholder="A點 (Lat, Lon)">
+        <input type="text" id="posB" value="24.499911, 121.087641" placeholder="B點 (Lat, Lon)">
+        <button onclick="runDiagnostic()">執行分析</button>
     </div>
+    
+    <div>頻率: <input type="number" id="freq" value="2400" style="width:80px"> MHz | 天線高: <input type="number" id="antH" value="5" style="width:50px"> m</div>
 
-    <div id="log">等待分析...</div>
-</div>
-
-<div class="chart-container">
-    <canvas id="profileChart"></canvas>
+    <div id="log">準備就緒。點擊「執行分析」開始診斷...</div>
+    
+    <div style="height:400px;">
+        <canvas id="mainChart"></canvas>
+    </div>
 </div>
 
 <script>
-async function startAnalysis() {
+async function runDiagnostic() {
     const log = document.getElementById('log');
-    const pA = document.getElementById('posA').value.split(',').map(v => parseFloat(v.trim()));
-    const pB = document.getElementById('posB').value.split(',').map(v => parseFloat(v.trim()));
-    const freq = parseFloat(document.getElementById('freq').value);
-    
-    // 這裡直接填寫相對路徑，只要在 GitHub 同資料夾即可
-    const tifUrl = "taiwan_dsm_wgs84_cog.tif"; 
-
-    log.innerHTML = `⏳ 正在連接雲端 COG 數據源...\n`;
+    const filename = "taiwan_dsm_wgs84_cog.tif";
+    log.innerHTML = `[${new Date().toLocaleTimeString()}] 開始診斷...\n`;
 
     try {
-        // 使用 fromUrl 讀取 GitHub 上的資料
-        const tiff = await GeoTIFF.fromUrl(tifUrl);
+        // --- 1. 檔案存在性與大小檢查 ---
+        log.innerHTML += `📡 嘗試讀取檔案: ${filename}...\n`;
+        const response = await fetch(filename, { method: 'GET', headers: { 'Range': 'bytes=0-1024' } });
+        
+        if (!response.ok) {
+            throw new Error(`找不到檔案 (HTTP ${response.status})。請確認檔案是否在 Repo 根目錄且檔名正確。`);
+        }
+
+        const contentLength = response.headers.get('content-range') || "未知";
+        log.innerHTML += `✅ 伺服器響應正常。數據片段已獲取。\n`;
+
+        // --- 2. LFS 檢查 ---
+        const blob = await response.blob();
+        const text = await blob.text();
+        if (text.includes("version https://git-lfs.github.com")) {
+            log.innerHTML += `<span class="error">❌ 偵測到 Git LFS 指針！</span>\n`;
+            log.innerHTML += `原因：GitHub Pages 不支援直接讀取 LFS 原始檔。\n`;
+            log.innerHTML += `解決：請在本地執行 'git lfs untrack "${filename}"'，然後重新上傳為普通檔案（需小於 100MB），或將 TIF 放在其他支援直連的空間。\n`;
+            return;
+        }
+
+        // --- 3. 開始 GeoTIFF 處理 ---
+        const tiff = await GeoTIFF.fromUrl(filename);
         const image = await tiff.getImage();
-        const bbox = image.getBoundingBox(); 
+        const bbox = image.getBoundingBox();
         const [w, h] = [image.getWidth(), image.getHeight()];
 
-        log.innerHTML += `✅ 連接成功！範圍：Lon(${bbox[0].toFixed(3)}~${bbox[2].toFixed(3)})\n`;
+        log.innerHTML += `✅ GeoTIFF 解析成功！解析度: ${w}x${h}\n`;
 
-        const samples = 300;
-        let terrain = [], labels = [], fresnelLower = [], los = [];
+        // --- 4. 計算剖面與費涅爾區 ---
+        const pA = document.getElementById('posA').value.split(',').map(v => parseFloat(v.trim()));
+        const pB = document.getElementById('posB').value.split(',').map(v => parseFloat(v.trim()));
+        const freq = parseFloat(document.getElementById('freq').value);
+        const antH = parseFloat(document.getElementById('antH').value);
         
-        // 簡易距離計算 (用於費涅爾區)
-        const distKM = Math.sqrt(Math.pow(pA[0]-pB[0], 2) + Math.pow(pA[1]-pB[1], 2)) * 111; 
+        const samples = 200;
+        let terrain = [], los = [], fresnel = [], labels = [];
+        
+        // 簡單距離估算 (km)
+        const distKM = Math.sqrt(Math.pow(pA[0]-pB[0],2) + Math.pow(pA[1]-pB[1],2)) * 111;
 
         for (let i = 0; i <= samples; i++) {
             const r = i / samples;
             const lat = pA[0] + (pB[0] - pA[0]) * r;
             const lon = pA[1] + (pB[1] - pA[1]) * r;
 
-            // 你的對位邏輯（已確認解決偏移問題）
             const x = Math.max(0, Math.min(w - 1, ((lon - bbox[0]) / (bbox[2] - bbox[0])) * w));
             const y = Math.max(0, Math.min(h - 1, ((bbox[3] - lat) / (bbox[3] - bbox[1])) * h));
 
             const raster = await image.readRasters({ window: [Math.floor(x), Math.floor(y), Math.floor(x) + 1, Math.floor(y) + 1] });
-            const val = raster[0][0] > -1000 ? raster[0][0] : 0;
-
-            // 費涅爾半徑計算 (F1 = 17.32 * sqrt((d1*d2)/(f*D)))
-            const d1 = (distKM * r);
-            const d2 = distKM - d1;
+            const elev = raster[0][0] > -500 ? raster[0][0] : 0;
+            
+            // 地球曲率修正 (h = d1*d2 / 12.74)
+            const d1 = distKM * r;
+            const d2 = distKM * (1 - r);
+            const drop = (d1 * d2) / 12.742; // 公里轉公尺的簡化公式
+            
+            // 費涅爾半徑 F1 = 17.32 * sqrt( (d1*d2) / (f*D) )
             const f1 = 17.32 * Math.sqrt((d1 * d2) / ((freq / 1000) * distKM));
 
-            terrain.push(val);
+            terrain.push(elev + drop);
             labels.push(d1.toFixed(1));
-            fresnelLower.push(f1); // 存入半徑待後續處理
+            fresnel.push(f1);
         }
 
-        // 建立視距線 (假設天線各架高 5m)
-        const startH = terrain[0] + 5;
-        const endH = terrain[samples] + 5;
-        for (let i = 0; i <= samples; i++) {
+        // 計算視距線與安全區
+        const startH = terrain[0] + antH;
+        const endH = terrain[samples] + antH;
+        const finalFresnel = terrain.map((t, i) => {
             const r = i / samples;
-            const lineVal = startH + (endH - startH) * r;
-            los.push(lineVal);
-            fresnelLower[i] = lineVal - (fresnelLower[i] * 0.6); // 60% 費涅爾區安全線
-        }
+            const line = startH + (endH - startH) * r;
+            los.push(line);
+            return line - (fresnel[i] * 0.6); // 60% 費涅爾區
+        });
 
-        renderChart(labels, terrain, los, fresnelLower);
-        log.innerHTML += `✨ 分析完成。總長度約 ${distKM.toFixed(2)} km`;
+        draw(labels, terrain, los, finalFresnel);
+        log.innerHTML += `✨ 分析完成！總路徑：${distKM.toFixed(2)} km\n`;
 
     } catch (err) {
-        log.innerHTML += `❌ 讀取失敗：${err.message}\n提示：請確認是否已開啟 GitHub Pages。`;
+        log.innerHTML += `<span class="error">❌ 錯誤：${err.message}</span>\n`;
     }
 }
 
-function renderChart(labels, terrain, los, fresnel) {
-    const ctx = document.getElementById('profileChart').getContext('2d');
+function draw(labels, terrain, los, fresnel) {
+    const ctx = document.getElementById('mainChart').getContext('2d');
     if (window.myChart) window.myChart.destroy();
-
     window.myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [
-                { label: '60% 費涅爾安全線', data: fresnel, borderColor: '#e74c3c', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, fill: false },
-                { label: '視距 (LoS)', data: los, borderColor: '#f1c40f', borderWidth: 2, pointRadius: 0, fill: false },
-                { label: '地形剖面', data: terrain, backgroundColor: 'rgba(52, 73, 94, 0.6)', borderColor: '#2c3e50', fill: true, pointRadius: 0 }
+                { label: '視距 (LoS)', data: los, borderColor: '#f1c40f', pointRadius: 0, fill: false },
+                { label: '60% 費涅爾安全線', data: fresnel, borderColor: '#e74c3c', borderDash: [5,5], pointRadius: 0, fill: false },
+                { label: '修正地形 (含曲率)', data: terrain, backgroundColor: 'rgba(44, 62, 80, 0.6)', fill: true, pointRadius: 0 }
             ]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { y: { beginAtZero: false }, x: { ticks: { maxTicksLimit: 10 } } }
-        }
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }
 </script>
