@@ -2,107 +2,123 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>安全通訊距離分析儀 (Fresnel Radius)</title>
+    <title>安全通訊距離分析 - 費涅爾區修正版</title>
     <script src="https://cdn.jsdelivr.net/npm/geotiff"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: system-ui; background: #f4f7f6; padding: 20px; }
-        .card { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .inputs { display: flex; gap: 10px; margin-bottom: 15px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
-        button { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        #status { font-size: 13px; color: #666; margin-bottom: 10px; }
+        body { font-family: sans-serif; background: #f4f7f9; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .input-row { display: grid; grid-template-columns: 1fr 1fr 100px 80px; gap: 10px; margin-bottom: 20px; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        #log { background: #222; color: #adbac7; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px; height: 120px; overflow-y: auto; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>📡 安全通訊距離計算機 (COG 支援版)</h2>
-    <div class="inputs">
-        <input type="text" id="pA" value="25.214, 121.563" placeholder="A點座標">
-        <input type="text" id="pB" value="24.499, 121.087" placeholder="B點座標">
-        <input type="number" id="freq" value="2400" placeholder="頻率 (MHz)">
-        <button onclick="analyze()">開始分析</button>
+<div class="container">
+    <h2>📡 通訊剖面分析 (考慮費涅爾區 & 曲率)</h2>
+    <div class="input-row">
+        <input type="text" id="posA" value="25.214458, 121.563209" placeholder="A點 (緯, 經)">
+        <input type="text" id="posB" value="24.499911, 121.087641" placeholder="B點 (緯, 經)">
+        <input type="number" id="freq" value="2400" placeholder="MHz">
+        <input type="number" id="antH" value="5" placeholder="天線(m)">
+        <button onclick="startAnalysis()">分析</button>
     </div>
-    <div id="status">準備就緒。確認檔案為 taiwan_dsm_wgs84_cog.tif</div>
-    <div style="height: 400px;"><canvas id="myChart"></canvas></div>
+    
+    <div id="log">請確認附件 <b>taiwan_dsm_wgs84_cog.tif</b> 已上傳且非 LFS 狀態。</div>
+    
+    <div style="height: 450px;">
+        <canvas id="profileChart"></canvas>
+    </div>
 </div>
 
 <script>
-async function analyze() {
-    const status = document.getElementById('status');
-    const url = "taiwan_dsm_wgs84_cog.tif"; // 直接讀取同目錄下的 COG
-    
+async function startAnalysis() {
+    const log = document.getElementById('log');
+    const filename = "taiwan_dsm_wgs84_cog.tif";
+    log.innerHTML = `[${new Date().toLocaleTimeString()}] 開始讀取 COG 數據...<br>`;
+
     try {
-        status.innerText = "🔍 正在透過 COG 讀取特定高度數據...";
-        const tiff = await GeoTIFF.fromUrl(url); // 關鍵：geotiff.js 會自動發送 Range Request
+        const tiff = await GeoTIFF.fromUrl(filename);
         const image = await tiff.getImage();
-        const bbox = image.getBoundingBox();
+        const bbox = image.getBoundingBox(); // [minLon, minLat, maxLon, maxLat]
         const [w, h] = [image.getWidth(), image.getHeight()];
 
-        // 參數解析
-        const coordA = document.getElementById('pA').value.split(',').map(n => parseFloat(n));
-        const coordB = document.getElementById('pB').value.split(',').map(n => parseFloat(n));
-        const fMHz = parseFloat(document.getElementById('freq').value);
-        const distKM = Math.sqrt(Math.pow(coordA[0]-coordB[0],2) + Math.pow(coordA[1]-coordB[1],2)) * 111;
+        const pA = document.getElementById('posA').value.split(',').map(v => parseFloat(v.trim()));
+        const pB = document.getElementById('posB').value.split(',').map(v => parseFloat(v.trim()));
+        const freq = parseFloat(document.getElementById('freq').value) / 1000; // 轉為 GHz
+        const antH = parseFloat(document.getElementById('antH').value);
 
-        let data_terrain = [], data_los = [], data_safety = [], labels = [];
-        const steps = 100;
+        // 距離計算 (Haversine 簡化版)
+        const distKM = Math.sqrt(Math.pow(pA[0]-pB[0],2) + Math.pow(pA[1]-pB[1],2)) * 111.32;
+        
+        let terrain = [], los = [], safety = [], labels = [];
+        const samples = 150;
 
-        for (let i = 0; i <= steps; i++) {
-            const ratio = i / steps;
-            const lat = coordA[0] + (coordB[0] - coordA[0]) * ratio;
-            const lon = coordA[1] + (coordB[1] - coordA[1]) * ratio;
+        for (let i = 0; i <= samples; i++) {
+            const r = i / samples;
+            const lat = pA[0] + (pB[0] - pA[0]) * r;
+            const lon = pA[1] + (pB[1] - pA[1]) * r;
 
-            // 從 COG 讀取該點像素
-            const x = ((lon - bbox[0]) / (bbox[2] - bbox[0])) * w;
-            const y = ((bbox[3] - lat) / (bbox[3] - bbox[1])) * h;
-            const pixel = await image.readRasters({ window: [Math.floor(x), Math.floor(y), Math.floor(x)+1, Math.floor(y)+1] });
-            const height = pixel[0][0] > -500 ? pixel[0][0] : 0;
+            // 1. 座標對位 (COG 關鍵)
+            const x = Math.floor(((lon - bbox[0]) / (bbox[2] - bbox[0])) * w);
+            const y = Math.floor(((bbox[3] - lat) / (bbox[3] - bbox[1])) * h);
 
-            // 計算費涅爾半徑 (Fresnel Radius)
-            const d1 = distKM * ratio;
-            const d2 = distKM * (1 - ratio);
-            const fresnel = 17.32 * Math.sqrt((d1 * d2) / ((fMHz/1000) * distKM));
-            
-            // 地球曲率
-            const drop = (d1 * d2 * 1000) / 12.742;
+            let elev = 0;
+            if (x >= 0 && x < w && y >= 0 && y < h) {
+                const raster = await image.readRasters({ window: [x, y, x + 1, y + 1] });
+                elev = raster[0][0] > -500 ? raster[0][0] : 0;
+            }
 
-            data_terrain.push(height + drop);
+            // 2. 地球曲率修正 (Earth Curvature)
+            const d1 = distKM * r;
+            const d2 = distKM * (1 - r);
+            const drop = (d1 * d2) / 12.742; // 公尺
+
+            // 3. 費涅爾半徑 (Fresnel Zone)
+            const f1 = 17.32 * Math.sqrt((d1 * d2) / (freq * distKM));
+
+            terrain.push(elev + drop);
             labels.push(d1.toFixed(1));
-            data_safety.push(fresnel);
+            
+            // 視距線 (假設 A, B 點天線高度)
+            const lineH = (terrain[0] + antH) + ((elev + antH) - (terrain[0] + antH)) * r; // 這裡簡化計算，實際會由 render 處理
+            safety.push(f1);
         }
 
-        // 視距線 (假設天線高 5m)
-        const lineStart = data_terrain[0] + 5;
-        const lineEnd = data_terrain[steps] + 5;
-        const finalSafety = data_terrain.map((t, i) => {
-            const line = lineStart + (lineEnd - lineStart) * (i/steps);
-            data_los.push(line);
-            return line - (data_safety[i] * 0.6); // 60% 安全區域
-        });
-
-        render(labels, data_terrain, data_los, finalSafety);
-        status.innerText = `✅ 分析完成！距離：${distKM.toFixed(2)} km`;
-    } catch (e) {
-        status.innerText = "❌ 錯誤：" + e.message;
+        render(labels, terrain, antH, safety);
+        log.innerHTML += `✅ 分析完成。距離: ${distKM.toFixed(2)} km<br>`;
+    } catch (err) {
+        log.innerHTML += `<span style="color:red">❌ 錯誤: ${err.message}</span>`;
     }
 }
 
-function render(labels, terrain, los, safety) {
-    const ctx = document.getElementById('myChart').getContext('2d');
-    if (window.chartInst) window.chartInst.destroy();
-    window.chartInst = new Chart(ctx, {
+function render(labels, terrain, antH, f1_array) {
+    const ctx = document.getElementById('profileChart').getContext('2d');
+    if (window.myChart) window.myChart.destroy();
+
+    const startH = terrain[0] + antH;
+    const endH = terrain[terrain.length - 1] + antH;
+    
+    const los = terrain.map((_, i) => startH + (endH - startH) * (i / (terrain.length - 1)));
+    const fresnel60 = los.map((val, i) => val - (f1_array[i] * 0.6));
+
+    window.myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [
-                { label: '地形剖面', data: terrain, backgroundColor: 'rgba(0,0,0,0.3)', fill: true, pointRadius: 0 },
-                { label: '視距線', data: los, borderColor: 'orange', fill: false, pointRadius: 0 },
-                { label: '60% 費涅爾安全線', data: safety, borderColor: 'red', borderDash: [5,5], fill: false, pointRadius: 0 }
+                { label: '視距 (LoS)', data: los, borderColor: '#f1c40f', pointRadius: 0, fill: false },
+                { label: '60% 費涅爾安全線', data: fresnel60, borderColor: '#e74c3c', borderDash: [5,5], pointRadius: 0, fill: false },
+                { label: '修正地形 (含曲率)', data: terrain, backgroundColor: 'rgba(44, 62, 80, 0.7)', fill: true, pointRadius: 0 }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            scales: { x: { title: { display: true, text: '距離 (km)' } }, y: { title: { display: true, text: '海拔高度 (m)' } } }
+        }
     });
 }
 </script>
