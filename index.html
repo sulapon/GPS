@@ -2,163 +2,108 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>DSM 地形剖面遮蔽分析儀</title>
+    <title>DSM 遮蔽剖面分析儀</title>
     <script src="https://cdn.jsdelivr.net/npm/geotiff"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; max-width: 1000px; margin: auto; padding: 20px; background: #f4f7f6; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .input-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .input-group { flex: 1; min-width: 200px; }
-        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #0056b3; }
-        #status { margin-top: 15px; color: #666; font-weight: bold; text-align: center; }
-        canvas { background: white; margin-top: 20px; border-radius: 8px; }
+        body { font-family: sans-serif; max-width: 900px; margin: auto; padding: 20px; background: #f0f2f5; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        #status { margin-top:10px; padding: 10px; border-radius: 5px; background: #eee; min-height: 20px; }
+        .error { color: #d9534f; background: #f2dede !important; }
     </style>
 </head>
 <body>
-
-<div class="card">
-    <h2>⛰️ 地形剖面遮蔽分析 (DSM)</h2>
-    
-    <div class="input-row">
-        <div class="input-group">
-            <label>A 點座標 (Lat, Lon):</label>
-            <input type="text" id="p1" value="25.214458, 121.563209">
-        </div>
-        <div class="input-group">
-            <label>A 點天線高 (m):</label>
-            <input type="number" id="h1" value="3">
-        </div>
+    <div class="card">
+        <h2>⛰️ 兩點遮蔽剖面分析 (3m 天線)</h2>
+        <p>A點: 25.214458, 121.563209 | B點: 24.499911, 121.087641</p>
+        <button id="btn" onclick="analyze()" style="padding: 10px 20px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px;">
+            🚀 開始分析
+        </button>
+        <div id="status">準備就緒，請點擊按鈕</div>
     </div>
-
-    <div class="input-row">
-        <div class="input-group">
-            <label>B 點座標 (Lat, Lon):</label>
-            <input type="text" id="p2" value="24.499911, 121.087641">
-        </div>
-        <div class="input-group">
-            <label>B 點天線高 (m):</label>
-            <input type="number" id="h2" value="3">
-        </div>
+    <div style="height:400px; margin-top:20px;">
+        <canvas id="profileChart"></canvas>
     </div>
-
-    <div class="input-row">
-        <div class="input-group">
-            <label>TIF 檔案名稱或路徑:</label>
-            <input type="text" id="tifUrl" value="taiwan_dsm_wgs84_cog.tif">
-        </div>
-    </div>
-
-    <button onclick="runAnalysis()">開始生成剖面圖</button>
-    <div id="status">準備就緒，點擊按鈕開始分析</div>
-</div>
-
-<div style="height: 500px;">
-    <canvas id="profileChart"></canvas>
-</div>
 
 <script>
-let chart;
-
-async function runAnalysis() {
-    const tifPath = document.getElementById('tifUrl').value;
-    const h1 = parseFloat(document.getElementById('h1').value);
-    const h2 = parseFloat(document.getElementById('h2').value);
+async function analyze() {
     const status = document.getElementById('status');
+    const btn = document.getElementById('btn');
+    status.classList.remove('error');
+    status.innerText = "⏳ 正在讀取 TIF 標頭數據...";
+    btn.disabled = true;
+
+    // 這裡我們直接用相對路徑，GitHub Pages 下這最穩定
+    const tifUrl = "taiwan_dsm_wgs84_cog.tif";
 
     try {
-        status.innerText = "⏳ 正在讀取 TIF 數據...";
-        
-        // 讀取 GeoTIFF
-        const tiff = await GeoTIFF.fromUrl(tifPath);
+        // 1. 初始化 GeoTIFF
+        const tiff = await GeoTIFF.fromUrl(tifUrl, { allowFullFile: false });
         const image = await tiff.getImage();
         const bbox = image.getBoundingBox(); 
         const [w, h] = [image.getWidth(), image.getHeight()];
 
-        // 解析座標 (注意：使用者輸入通常是 Lat, Lon，TIF 需要 Lon, Lat)
-        const coord1 = document.getElementById('p1').value.split(',').map(n => parseFloat(n.trim()));
-        const coord2 = document.getElementById('p2').value.split(',').map(n => parseFloat(n.trim()));
+        const p1 = [25.214458, 121.563209]; // Lat, Lon
+        const p2 = [24.499911, 121.087641];
         
-        const lat1 = coord1[0], lon1 = coord1[1];
-        const lat2 = coord2[0], lon2 = coord2[1];
-
+        let elevData = [], losLine = [], labels = [];
         const samples = 100;
-        let elevData = [];
-        let labels = [];
-        let losLine = [];
+
+        status.innerText = `⏳ 正在採樣地形剖面 (0/100)...`;
 
         for (let i = 0; i <= samples; i++) {
-            const ratio = i / samples;
-            const curLat = lat1 + (lat2 - lat1) * ratio;
-            const curLon = lon1 + (lon2 - lon1) * ratio;
+            const r = i / samples;
+            const lat = p1[0] + (p2[0] - p1[0]) * r;
+            const lon = p1[1] + (p2[1] - p1[1]) * r;
 
-            // 經緯度轉像素
-            const x = Math.floor(((curLon - bbox[0]) / (bbox[2] - bbox[0])) * w);
-            const y = Math.floor(((bbox[3] - curLat) / (bbox[3] - bbox[1])) * h);
+            // 經緯度座標轉為影像像素座標
+            const x = Math.floor(((lon - bbox[0]) / (bbox[2] - bbox[0])) * w);
+            const y = Math.floor(((bbox[3] - lat) / (bbox[3] - bbox[1])) * h);
 
-            // 讀取該點高度
+            // 讀取該像素的高程數據
             const raster = await image.readRasters({ window: [x, y, x + 1, y + 1] });
-            const groundEle = raster[0][0];
-            elevData.push(groundEle);
-            labels.push(i === 0 ? "A 點" : i === samples ? "B 點" : "");
+            elevData.push(raster[0][0]);
+            labels.push(i % 10 === 0 ? `${(i/samples*100).toFixed(0)}%` : "");
         }
 
-        // 計算直視線 (LOS)
-        const startTotalEle = elevData[0] + h1;
-        const endTotalEle = elevData[samples] + h2;
+        // 計算視距線 (起點與終點各加 3 米天線高)
+        const startH = elevData[0] + 3;
+        const endH = elevData[samples] + 3;
+        let blocked = false;
 
         for (let i = 0; i <= samples; i++) {
-            const ratio = i / samples;
-            losLine.push(startTotalEle + (endTotalEle - startTotalEle) * ratio);
+            const losH = startH + (endH - startH) * (i/samples);
+            losLine.push(losH);
+            if(elevData[i] > losH) blocked = true;
         }
 
         renderChart(labels, elevData, losLine);
-        status.innerText = "✅ 分析完成！橘線為視距，咖啡色為地形。";
-
-    } catch (e) {
-        status.innerText = "❌ 錯誤: " + e.message + " (請確認 TIF 檔案在正確位置)";
-        console.error(e);
+        status.innerHTML = `✅ 分析完成！結果：<strong>${blocked ? "❌ 發現地形遮蔽" : "✅ 視線良好"}</strong>`;
+    } catch (err) {
+        status.classList.add('error');
+        status.innerText = "❌ 發生錯誤: " + err.message + "\n請確認 TIF 檔案與 HTML 是否在同一資料夾且名稱正確。";
+        console.error(err);
     }
+    btn.disabled = false;
 }
 
 function renderChart(labels, terrain, los) {
     const ctx = document.getElementById('profileChart').getContext('2d');
-    if (chart) chart.destroy();
-    chart = new Chart(ctx, {
+    if(window.myChart) window.myChart.destroy();
+    window.myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [
-                {
-                    label: '直視訊號 (LOS)',
-                    data: los,
-                    borderColor: '#FF8C00',
-                    borderWidth: 3,
-                    fill: false,
-                    pointRadius: 0
-                },
-                {
-                    label: '地形高程 (DSM)',
-                    data: terrain,
-                    backgroundColor: 'rgba(139, 69, 19, 0.5)',
-                    borderColor: '#5D4037',
-                    fill: true,
-                    pointRadius: 0,
-                    stepped: false
-                }
+                { label: '3m 視距線 (LOS)', data: los, borderColor: '#ff9800', borderWidth: 2, pointRadius: 0, fill: false },
+                { label: '地形剖面 (DSM)', data: terrain, backgroundColor: 'rgba(139, 69, 19, 0.4)', borderColor: '#5d4037', fill: true, pointRadius: 0 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: { title: { display: true, text: '海拔高度 (m)' }, beginAtZero: false },
-                x: { ticks: { autoSkip: false } }
-            },
-            plugins: {
-                legend: { position: 'top' }
+                y: { title: { display: true, text: '高度 (m)' } }
             }
         }
     });
