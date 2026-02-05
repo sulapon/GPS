@@ -2,130 +2,111 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>GPS 通訊分析診斷儀</title>
+    <title>GPS 通訊剖面分析儀 (GitHub 版)</title>
     <script src="https://cdn.jsdelivr.net/npm/geotiff"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f4f4f9; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        #log { background: #222; color: #0f0; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px; height: 150px; overflow-y: auto; margin: 15px 0; }
-        .controls { display: grid; grid-template-columns: 1fr 1fr 120px; gap: 10px; margin-bottom: 20px; }
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        #log { background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 13px; height: 120px; overflow-y: auto; margin-top: 15px; }
+        .input-box { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 20px; }
         input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .error { color: #ff4757; font-weight: bold; }
+        button { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #218838; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📡 安全通訊距離分析 (Fresnel Radius)</h2>
-    <div class="controls">
+    <h2>📡 通訊安全距離剖面分析 (94km 修正版)</h2>
+    <div class="input-box">
         <input type="text" id="posA" value="25.214458, 121.563209" placeholder="A點 (Lat, Lon)">
         <input type="text" id="posB" value="24.499911, 121.087641" placeholder="B點 (Lat, Lon)">
-        <button onclick="runDiagnostic()">執行分析</button>
+        <input type="number" id="freq" value="2400" placeholder="頻率 MHz">
+        <button onclick="analyze()">開始分析</button>
     </div>
-    
-    <div>頻率: <input type="number" id="freq" value="2400" style="width:80px"> MHz | 天線高: <input type="number" id="antH" value="5" style="width:50px"> m</div>
-
-    <div id="log">準備就緒。點擊「執行分析」開始診斷...</div>
-    
-    <div style="height:400px;">
-        <canvas id="mainChart"></canvas>
+    <div id="log">等待操作... (檔案需命名為 taiwan_dsm_wgs84_cog.tif)</div>
+    <div style="height: 450px; margin-top: 20px;">
+        <canvas id="profileChart"></canvas>
     </div>
 </div>
 
 <script>
-async function runDiagnostic() {
+async function analyze() {
     const log = document.getElementById('log');
-    const filename = "taiwan_dsm_wgs84_cog.tif";
-    log.innerHTML = `[${new Date().toLocaleTimeString()}] 開始診斷...\n`;
+    const tifUrl = "taiwan_dsm_wgs84_cog.tif"; // 確保檔名大小寫完全一致
+    log.innerHTML = `⏳ 正在連線至雲端數據源...<br>`;
 
     try {
-        // --- 1. 檔案存在性與大小檢查 ---
-        log.innerHTML += `📡 嘗試讀取檔案: ${filename}...\n`;
-        const response = await fetch(filename, { method: 'GET', headers: { 'Range': 'bytes=0-1024' } });
-        
-        if (!response.ok) {
-            throw new Error(`找不到檔案 (HTTP ${response.status})。請確認檔案是否在 Repo 根目錄且檔名正確。`);
-        }
-
-        const contentLength = response.headers.get('content-range') || "未知";
-        log.innerHTML += `✅ 伺服器響應正常。數據片段已獲取。\n`;
-
-        // --- 2. LFS 檢查 ---
-        const blob = await response.blob();
-        const text = await blob.text();
-        if (text.includes("version https://git-lfs.github.com")) {
-            log.innerHTML += `<span class="error">❌ 偵測到 Git LFS 指針！</span>\n`;
-            log.innerHTML += `原因：GitHub Pages 不支援直接讀取 LFS 原始檔。\n`;
-            log.innerHTML += `解決：請在本地執行 'git lfs untrack "${filename}"'，然後重新上傳為普通檔案（需小於 100MB），或將 TIF 放在其他支援直連的空間。\n`;
-            return;
-        }
-
-        // --- 3. 開始 GeoTIFF 處理 ---
-        const tiff = await GeoTIFF.fromUrl(filename);
+        // 1. 改用 fromUrl 讀取 GitHub 上的檔案
+        const tiff = await GeoTIFF.fromUrl(tifUrl);
         const image = await tiff.getImage();
         const bbox = image.getBoundingBox();
         const [w, h] = [image.getWidth(), image.getHeight()];
 
-        log.innerHTML += `✅ GeoTIFF 解析成功！解析度: ${w}x${h}\n`;
-
-        // --- 4. 計算剖面與費涅爾區 ---
+        // 2. 取得輸入座標與頻率
         const pA = document.getElementById('posA').value.split(',').map(v => parseFloat(v.trim()));
         const pB = document.getElementById('posB').value.split(',').map(v => parseFloat(v.trim()));
         const freq = parseFloat(document.getElementById('freq').value);
-        const antH = parseFloat(document.getElementById('antH').value);
-        
-        const samples = 200;
-        let terrain = [], los = [], fresnel = [], labels = [];
-        
-        // 簡單距離估算 (km)
-        const distKM = Math.sqrt(Math.pow(pA[0]-pB[0],2) + Math.pow(pA[1]-pB[1],2)) * 111;
+        const antH = 5; // 假設天線架高 5 米
+
+        // 3. 計算總距離 (Haversine 算大圓距離)
+        const R_earth = 6371; 
+        const dLat = (pB[0]-pA[0]) * Math.PI/180;
+        const dLon = (pB[1]-pA[1]) * Math.PI/180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(pA[0]*Math.PI/180) * Math.cos(pB[0]*Math.PI/180) * Math.sin(dLon/2)**2;
+        const totalDist = 2 * R_earth * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); // km
+
+        log.innerHTML += `✅ 成功載入 TIF！總距離：${totalDist.toFixed(2)} km<br>`;
+
+        const samples = 150;
+        let terrainData = [], losData = [], fresnelData = [], labels = [];
 
         for (let i = 0; i <= samples; i++) {
             const r = i / samples;
             const lat = pA[0] + (pB[0] - pA[0]) * r;
             const lon = pA[1] + (pB[1] - pA[1]) * r;
 
+            // 座標對位 (之前已解決偏移)
             const x = Math.max(0, Math.min(w - 1, ((lon - bbox[0]) / (bbox[2] - bbox[0])) * w));
             const y = Math.max(0, Math.min(h - 1, ((bbox[3] - lat) / (bbox[3] - bbox[1])) * h));
 
             const raster = await image.readRasters({ window: [Math.floor(x), Math.floor(y), Math.floor(x) + 1, Math.floor(y) + 1] });
-            const elev = raster[0][0] > -500 ? raster[0][0] : 0;
-            
-            // 地球曲率修正 (h = d1*d2 / 12.74)
-            const d1 = distKM * r;
-            const d2 = distKM * (1 - r);
-            const drop = (d1 * d2) / 12.742; // 公里轉公尺的簡化公式
-            
-            // 費涅爾半徑 F1 = 17.32 * sqrt( (d1*d2) / (f*D) )
-            const f1 = 17.32 * Math.sqrt((d1 * d2) / ((freq / 1000) * distKM));
+            const baseElev = raster[0][0] > -500 ? raster[0][0] : 0;
 
-            terrain.push(elev + drop);
+            // 4. 地球曲率修正：在中段高度會增加 (d1 * d2) / 12.742
+            const d1 = totalDist * r;
+            const d2 = totalDist * (1 - r);
+            const curvature = (d1 * d2 * 1000) / 12742; // 公尺
+
+            // 5. 第一費涅爾區半徑 (60% 清空區)
+            const f1 = 17.32 * Math.sqrt((d1 * d2) / ((freq/1000) * totalDist));
+
+            terrainData.push(baseElev + curvature);
             labels.push(d1.toFixed(1));
-            fresnel.push(f1);
+            fresnelData.push(f1);
         }
 
-        // 計算視距線與安全區
-        const startH = terrain[0] + antH;
-        const endH = terrain[samples] + antH;
-        const finalFresnel = terrain.map((t, i) => {
+        // 建立視距線 (LoS)
+        const startH = terrainData[0] + antH;
+        const endH = terrainData[samples] + antH;
+        for (let i = 0; i <= samples; i++) {
             const r = i / samples;
             const line = startH + (endH - startH) * r;
-            los.push(line);
-            return line - (fresnel[i] * 0.6); // 60% 費涅爾區
-        });
+            losData.push(line);
+            fresnelData[i] = line - (fresnelData[i] * 0.6); // 減去 60% F1 半徑
+        }
 
-        draw(labels, terrain, los, finalFresnel);
-        log.innerHTML += `✨ 分析完成！總路徑：${distKM.toFixed(2)} km\n`;
+        renderChart(labels, terrainData, losData, fresnelData);
+        log.innerHTML += `✨ 分析完畢。紅色虛線為 60% 費涅爾安全區。`;
 
     } catch (err) {
-        log.innerHTML += `<span class="error">❌ 錯誤：${err.message}</span>\n`;
+        log.innerHTML = `<span style="color:red">❌ 讀取失敗：${err.message}</span><br>提示：請檢查檔案是否被 Git LFS 鎖定，或檔名是否正確。`;
     }
 }
 
-function draw(labels, terrain, los, fresnel) {
-    const ctx = document.getElementById('mainChart').getContext('2d');
+function renderChart(labels, terrain, los, fresnel) {
+    const ctx = document.getElementById('profileChart').getContext('2d');
     if (window.myChart) window.myChart.destroy();
     window.myChart = new Chart(ctx, {
         type: 'line',
@@ -133,11 +114,15 @@ function draw(labels, terrain, los, fresnel) {
             labels: labels,
             datasets: [
                 { label: '視距 (LoS)', data: los, borderColor: '#f1c40f', pointRadius: 0, fill: false },
-                { label: '60% 費涅爾安全線', data: fresnel, borderColor: '#e74c3c', borderDash: [5,5], pointRadius: 0, fill: false },
-                { label: '修正地形 (含曲率)', data: terrain, backgroundColor: 'rgba(44, 62, 80, 0.6)', fill: true, pointRadius: 0 }
+                { label: '60% 費涅爾安全線', data: fresnel, borderColor: '#e74c3c', borderDash: [5, 5], pointRadius: 0, fill: false },
+                { label: '修正地形 (含曲率)', data: terrain, backgroundColor: 'rgba(52, 73, 94, 0.6)', fill: true, pointRadius: 0 }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            scales: { x: { title: { display: true, text: '距離 (km)' } }, y: { title: { display: true, text: '海拔 (m)' } } }
+        }
     });
 }
 </script>
