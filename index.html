@@ -54,15 +54,31 @@ function setMaxEffectivePoints() {
         alert('❌ 座標值無效');
         return;
     }
+    
+    // 取得選擇的資料來源
+    const apiSelector = document.getElementById('elevationApiSelector');
+    const selectedApi = apiSelector ? apiSelector.value : 'taiwan-dsm';
+    
+    // 根據資料來源決定點密度
+    let pointsPerKm;
+    let apiName;
+    if (selectedApi === 'taiwan-dsm') {
+        pointsPerKm = 50;  // 內政部 DSM 20m：每公里50點
+        apiName = '內政部 DSM 20m';
+    } else {
+        pointsPerKm = 33.333333;  // 其他資料源：每公里33.33點
+        apiName = '其他資料源';
+    }
+    
     const distance = getDistance(sLat, sLng, eLat, eLng);
-    const maxEffectivePoints = Math.ceil(distance * 33.333333);
+    const maxEffectivePoints = Math.ceil(distance * pointsPerKm);
     document.getElementById('samples').value = maxEffectivePoints;
     const summary = document.getElementById('summary');
     summary.innerHTML = `✓ 已設置最大有效點數：<strong>${maxEffectivePoints}</strong> 點<br>
-    <span style="font-size: 12px; color: var(--muted);">距離: ${distance.toFixed(2)} km | 點密度: 33.33點/km</span>`;
+    <span style="font-size: 12px; color: var(--muted);">距離: ${distance.toFixed(2)} km | 點密度: ${pointsPerKm.toFixed(2)}點/km (${apiName})</span>`;
     summary.style.color = '#27ae60';
     summary.style.background = 'rgba(39, 174, 96, 0.1)';
-    console.log('最大有效點數設置為:', maxEffectivePoints, '(距離:', distance.toFixed(2), 'km)');
+    console.log('最大有效點數設置為:', maxEffectivePoints, '(距離:', distance.toFixed(2), 'km, 點密度:', pointsPerKm, '點/km)');
 }
 function swapLinkTxUnit() {
     const unitSel = document.getElementById('link_tx_power_unit');
@@ -666,18 +682,22 @@ div.gps-ig.orange-border-card,
 <button class="btn" style="background: linear-gradient(90deg, #2f9e44, #2b8a3e); border:0; padding:5px 8px; border-radius:6px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; white-space:nowrap; height:34px; flex-shrink:0;" onclick="setMaxEffectivePoints()">滿格採樣</button>
 </div>
 <div style="display: flex; gap: 10px; align-items: flex-start;">
-<div style="flex: 1; display: flex; flex-direction: column; gap: 3px;"><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">最小高度 (m)</label><div style="display: flex; gap: 3px;"><input type="number" id="minElevation" placeholder="自動" style="flex: 1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:fit-content;" onclick="document.getElementById('minElevation').value=''; document.getElementById('minElevation').placeholder='自動';">自動</button></div></div>
-<div style="flex: 1; display: flex; flex-direction: column; gap: 3px;"><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">最大高度 (m)</label><div style="display: flex; gap: 3px;"><input type="number" id="maxElevation" placeholder="自動" style="flex: 1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:fit-content;" onclick="document.getElementById('maxElevation').value=''; document.getElementById('maxElevation').placeholder='自動';">自動</button></div></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 3px;"><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">最小高度 (m)</label><div style="display: flex; gap: 3px;"><input type="number" id="minElevation" placeholder="自動" oninput="updateChartYAxis()" style="flex: 1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:fit-content;" onclick="document.getElementById('minElevation').value=''; document.getElementById('minElevation').placeholder='自動'; updateChartYAxis();">自動</button></div></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 3px;"><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">最大高度 (m)</label><div style="display: flex; gap: 3px;"><input type="number" id="maxElevation" placeholder="自動" oninput="updateChartYAxis()" style="flex: 1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:fit-content;" onclick="document.getElementById('maxElevation').value=''; document.getElementById('maxElevation').placeholder='自動'; updateChartYAxis();">自動</button></div></div>
+</div>
+<div style="display: flex; gap: 10px; align-items: flex-start; margin-top: 10px;">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 3px;"><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">起始距離 (點)</label><div style="display: flex; gap: 3px;"><input type="number" id="minDistance" placeholder="自動" oninput="updateChartXAxis()" style="flex: 1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:fit-content;" onclick="document.getElementById('minDistance').value=''; document.getElementById('minDistance').placeholder='自動'; updateChartXAxis();">自動</button></div></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 3px;"><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">結束距離 (點)</label><div style="display: flex; gap: 3px;"><input type="number" id="maxDistance" placeholder="自動" oninput="updateChartXAxis()" style="flex: 1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:fit-content;" onclick="document.getElementById('maxDistance').value=''; document.getElementById('maxDistance').placeholder='自動'; updateChartXAxis();">自動</button></div></div>
 </div>
 </div>
 <div style="margin-bottom: 12px; padding: 10px 8px; background: rgba(187, 102, 255, 0.08); border: 1px solid var(--purple-accent); border-radius: 6px;">
 <label style="color: var(--label); font-size: 15px; font-weight: 700; display: block; margin-bottom: 6px;">高度資料來源選擇</label>
 <select id="elevationApiSelector" style="width: 100%; padding: 6px 8px; font-size: 15px; color: var(--value); background: transparent; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">
+<option value="taiwan-dsm" selected>🇹🇼 內政部 DSM 20m (台灣專用) - 預設</option>
+<option value="google-maps">🗺️ Google Maps Elevation API</option>
 <option value="open-elevation">🗻 Open-Elevation SRTM (30m)</option>
-<option value="google-maps" selected>🗺️ Google Maps Elevation API - 預設</option>
 <option value="openmeteo">🌍 Open-Meteo API (90米)</option>
 <option value="astergdem">🏔️ ASTER GDEM v3 (30m)</option>
-<option value="taiwan-dsm">🇹🇼 內政部 DSM 20m (台灣專用)</option>
 </select>
 <span id="apiInfo" style="font-size: 12px; color: var(--muted); margin-top: 4px; display: block;"></span>
 </div>
@@ -1946,14 +1966,20 @@ function receiveMapCoordinates(location, lat, lng, searchedName) {
         document.getElementById(nameId).value = locationName;
         console.log('使用搜尋地名:', locationName);
         showLocationUpdateDialog(location, lat, lng, locationName, eleId);
-        getElevationAutomatic(lat, lng, location, eleId);
+        // 延遲執行以確保對話框已經顯示
+        setTimeout(() => {
+            getElevationAutomatic(lat, lng, location, eleId);
+        }, 100);
     } else {
-        getLocationName(lat, lng, location, nameId, eleId);
-        getElevationAutomatic(lat, lng, location, eleId);
+        getLocationNameAndShowDialog(lat, lng, location, nameId, eleId);
     }
 }
-async function getLocationName(lat, lng, location, nameId, eleId) {
+async function getLocationNameAndShowDialog(lat, lng, location, nameId, eleId) {
     const nameInput = document.getElementById(nameId);
+    
+    // 先顯示對話框，使用臨時地名
+    showLocationUpdateDialog(location, lat, lng, '取得中...', eleId);
+    
     try {
         console.log('開始反向地理編碼: ', lat, lng);
         const response = await fetch(
@@ -2009,7 +2035,8 @@ async function getLocationName(lat, lng, location, nameId, eleId) {
             if (locationName) {
                 nameInput.value = locationName;
                 console.log('地名已更新:', locationName);
-                showLocationUpdateDialog(location, lat, lng, locationName, eleId);
+                // 更新對話框中的地名
+                updateDialogLocationName(locationName);
             } else {
                 throw new Error('無法取得地名');
             }
@@ -2020,7 +2047,24 @@ async function getLocationName(lat, lng, location, nameId, eleId) {
         console.error('取得地名失敗:', error);
         const simpleName = `點${location}`;
         nameInput.value = simpleName;
-        showLocationUpdateDialog(location, lat, lng, `點${location} (未取得地名)`, eleId);
+        updateDialogLocationName(`點${location} (未取得地名)`);
+    }
+    
+    // 確保對話框已更新後再取得高度
+    setTimeout(() => {
+        getElevationAutomatic(lat, lng, location, eleId);
+    }, 100);
+}
+function updateDialogLocationName(locationName) {
+    if (currentUpdateDialog) {
+        const dialog = currentUpdateDialog;
+        const innerHTML = dialog.innerHTML;
+        // 使用正則表達式找到地名部分並替換
+        const updatedHTML = innerHTML.replace(
+            /地名: <span style="color: #fbbf24;">.*?<\/span>/,
+            `地名: <span style="color: #fbbf24;">${locationName}</span>`
+        );
+        dialog.innerHTML = updatedHTML;
     }
 }
 function updateDMSFromDecimal(coordId) {
@@ -2061,6 +2105,14 @@ async function getElevationFromSRTM(location) {
         alert(`❌ 座標超出有效範圍\n緯度: -90 ~ 90\n經度: -180 ~ 180`);
         return;
     }
+    
+    // 檢查座標是否在台灣範圍內
+    if (lat < 21.5 || lat > 25.5 || lon < 119.5 || lon > 122.5) {
+        alert(`⚠️ 警告：座標超出台灣範圍\n內政部 DSM 僅涵蓋台灣地區\n\n將嘗試使用 Google Maps API 作為備用資料源`);
+        await getElevationFromGoogleMaps(location);
+        return;
+    }
+    
     const eleInput = document.getElementById(eleId);
     const originalValue = eleInput.value;
     eleInput.disabled = true;
@@ -2069,11 +2121,132 @@ async function getElevationFromSRTM(location) {
     const originalColor = gpsRes.style.color;
     const originalBg = gpsRes.style.background;
     showLoadingWithDots('gpsRes', '讀取中', eleInput);
+    
+    try {
+        console.log(`使用內政部 DSM 20m 取得高度，座標: ${lat}, ${lon}`);
+        
+        // 載入 GeoTIFF 函式庫
+        if (!window.GeoTIFF) {
+            gpsRes.innerHTML = '<span style="color: #ffd43b;">正在載入 GeoTIFF 函式庫<span class="loading-dots"></span></span>';
+            await loadGeoTIFFLibrary();
+        }
+        
+        gpsRes.innerHTML = '<span style="color: #ffd43b;">正在連接內政部 DSM 資料<span class="loading-dots"></span></span>';
+        
+        // 使用相對路徑載入 COG 檔案
+        const cogFilename = 'taiwan_dsm_wgs84_cog.tif';
+        
+        let tiff = null;
+        try {
+            tiff = await GeoTIFF.fromUrl(cogFilename);
+            console.log('成功載入 COG 檔案:', cogFilename);
+        } catch (err) {
+            console.error('從相對路徑載入失敗，嘗試 GitHub Pages:', err);
+            const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
+            try {
+                tiff = await GeoTIFF.fromUrl(githubUrl);
+                console.log('成功從 GitHub Pages 載入:', githubUrl);
+            } catch (err2) {
+                throw new Error(`無法載入 COG 檔案: ${err2.message}`);
+            }
+        }
+        
+        if (!tiff) {
+            throw new Error('無法載入 COG 檔案');
+        }
+        
+        gpsRes.innerHTML = '<span style="color: #ffd43b;">正在取得高度資料<span class="loading-dots"></span></span>';
+        
+        const image = await tiff.getImage();
+        const bbox = image.getBoundingBox();
+        const width = image.getWidth();
+        const height = image.getHeight();
+        
+        // 將經緯度轉換為像素座標
+        const pixelX = Math.floor((lon - bbox[0]) / (bbox[2] - bbox[0]) * width);
+        const pixelY = Math.floor((bbox[3] - lat) / (bbox[3] - bbox[1]) * height);
+        
+        if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
+            // 讀取該像素的高度值
+            const rasters = await image.readRasters({
+                window: [pixelX, pixelY, pixelX + 1, pixelY + 1]
+            });
+            
+            const elevation = rasters[0][0];
+            
+            if (elevation === null || elevation === undefined || isNaN(elevation)) {
+                throw new Error('該位置的高度數據不可用');
+            }
+            
+            eleInput.value = Math.round(parseFloat(elevation));
+            console.log(`地點${location}高度已更新: ${elevation}m`);
+            calculate();
+            const currentResult = gpsRes.innerHTML;
+            const successMsg = `<span style="color: #ffd43b; font-weight: bold;">✓ 地點${location}高度已從內政部 DSM 20m 更新：<strong>${Math.round(parseFloat(elevation))} m</strong></span><br><br>${currentResult}`;
+            gpsRes.innerHTML = successMsg;
+            const loadingId = eleInput.id === 'eleA' ? 'eleA-loading' : 'eleB-loading';
+            const loadingSpan = document.getElementById(loadingId);
+            if (loadingSpan) {
+                loadingSpan.style.display = 'none';
+                eleInput.style.opacity = '1';
+            }
+            setTimeout(() => {
+                gpsRes.innerHTML = currentResult;
+            }, 3000);
+        } else {
+            throw new Error('座標超出 DSM 資料範圍');
+        }
+    } catch (err) {
+        console.error('取得高度失敗:', err);
+        eleInput.value = originalValue;
+        let errorHTML = '❌ 內政部 DSM 取得高度失敗<br><span style="color: #ffd43b; font-weight: bold;">該功能需連網</span>';
+        if (err.message.includes('COG')) {
+            errorHTML += '<br><small>無法載入 DSM 檔案，請確認網路連線</small>';
+        } else if (err.message.includes('不可用') || err.message.includes('範圍')) {
+            errorHTML += '<br><small>該位置的高度數據暫不可用</small>';
+        } else {
+            errorHTML += '<br><small>' + err.message + '</small>';
+        }
+        errorHTML += '<br><br><span style="font-size: 12px; color: #5ff0d5;">提示：若座標不在台灣範圍，系統會自動使用 Google Maps 備用</span>';
+        gpsRes.innerHTML = errorHTML;
+        gpsRes.style.color = '#e8eef5';
+        gpsRes.style.background = 'rgba(220, 53, 69, 0.15)';
+        gpsRes.style.border = '1px solid #dc3545';
+        gpsRes.style.borderRadius = '8px';
+        gpsRes.style.padding = '8px';
+    } finally {
+        eleInput.disabled = false;
+        const loadingId = eleInput.id === 'eleA' ? 'eleA-loading' : 'eleB-loading';
+        const loadingSpan = document.getElementById(loadingId);
+        if (loadingSpan) {
+            loadingSpan.style.display = 'none';
+            eleInput.style.opacity = '1';
+        }
+        gpsRes.innerHTML = originalContent;
+        gpsRes.style.color = originalColor;
+        gpsRes.style.background = originalBg;
+    }
+}
+async function getElevationFromGoogleMaps(location) {
+    console.log('getElevationFromGoogleMaps() 被調用（備用），地點:', location);
+    const latId = location === 'A' ? 'latA' : 'latB';
+    const lonId = location === 'A' ? 'lonA' : 'lonB';
+    const eleId = location === 'A' ? 'eleA' : 'eleB';
+    const latVal = document.getElementById(latId).value;
+    const lonVal = document.getElementById(lonId).value;
+    const lat = parseFloat(latVal);
+    const lon = parseFloat(lonVal);
+    
+    const eleInput = document.getElementById(eleId);
+    const originalValue = eleInput.value;
+    eleInput.disabled = true;
+    const gpsRes = document.getElementById('gpsRes');
+    showLoadingWithDots('gpsRes', '使用 Google Maps 備用', eleInput);
+    
     const GOOGLE_API_KEY = 'AIzaSyBwd_GtAZq2eW6KgRRkro__aG7h5ZECJwo';
     try {
-        console.log(`調用 Google Maps Elevation API，座標: ${lat}, ${lon}`);
+        console.log(`調用 Google Maps Elevation API (備用)，座標: ${lat}, ${lon}`);
         
-        // 確保 Google Maps API 已載入
         if (!window.google || !window.google.maps) {
             gpsRes.innerHTML = '<span style="color: #ffd43b;">正在載入 Google Maps API<span class="loading-dots"></span></span>';
             await new Promise((resolve, reject) => {
@@ -2087,9 +2260,8 @@ async function getElevationFromSRTM(location) {
             });
         }
         
-        gpsRes.innerHTML = '<span style="color: #ffd43b;">正在取得高度資料<span class="loading-dots"></span></span>';
+        gpsRes.innerHTML = '<span style="color: #ffd43b;">正在取得高度資料 (Google Maps)<span class="loading-dots"></span></span>';
         
-        // 使用 Google Maps ElevationService
         const elevator = new google.maps.ElevationService();
         const result = await new Promise((resolve, reject) => {
             elevator.getElevationForLocations({
@@ -2111,7 +2283,7 @@ async function getElevationFromSRTM(location) {
         }
         
         eleInput.value = Math.round(parseFloat(elevation));
-        console.log(`地點${location}高度已更新: ${elevation}m`);
+        console.log(`地點${location}高度已更新 (Google Maps): ${elevation}m`);
         calculate();
         const currentResult = gpsRes.innerHTML;
         const successMsg = `<span style="color: #ffd43b; font-weight: bold;">✓ 地點${location}高度已從 Google Maps 更新：<strong>${Math.round(parseFloat(elevation))} m</strong></span><br><br>${currentResult}`;
@@ -2126,11 +2298,11 @@ async function getElevationFromSRTM(location) {
             gpsRes.innerHTML = currentResult;
         }, 3000);
     } catch (err) {
-        console.error('取得高度失敗:', err);
+        console.error('Google Maps 取得高度失敗:', err);
         eleInput.value = originalValue;
-        let errorHTML = '❌ 取得高度失敗<br><span style="color: #ffd43b; font-weight: bold;">該功能需連網</span>';
+        let errorHTML = '❌ Google Maps 取得高度失敗<br><span style="color: #ffd43b; font-weight: bold;">該功能需連網</span>';
         if (err.message.includes('API')) {
-            errorHTML = '❌ 取得高度失敗<br><span style="color: #ffd43b; font-weight: bold;">該功能需連網</span><br><small>API 連線問題，請檢查網路</small>';
+            errorHTML += '<br><small>API 連線問題，請檢查網路</small>';
         } else if (err.message.includes('不可用')) {
             errorHTML += '<br><small>該位置的高度數據暫不可用</small>';
         } else {
@@ -2150,9 +2322,6 @@ async function getElevationFromSRTM(location) {
             loadingSpan.style.display = 'none';
             eleInput.style.opacity = '1';
         }
-        gpsRes.innerHTML = originalContent;
-        gpsRes.style.color = originalColor;
-        gpsRes.style.background = originalBg;
     }
 }
 let currentUpdateDialog = null;
@@ -2234,10 +2403,100 @@ async function getElevationAutomatic(lat, lon, location, eleId) {
         loadingSpan.style.display = 'inline';
         eleInput.style.opacity = '0.5';
     }
+    
+    // 檢查座標是否在台灣範圍內
+    const isInTaiwan = (lat >= 21.5 && lat <= 25.5 && lon >= 119.5 && lon <= 122.5);
+    
+    if (!isInTaiwan) {
+        console.log('座標不在台灣範圍，使用 Google Maps API');
+        await getElevationAutomaticGoogleMaps(lat, lon, location, eleId);
+        return;
+    }
+    
+    try {
+        console.log(`使用內政部 DSM 20m 取得高度，座標: ${lat}, ${lon}`);
+        updateDialogElevationStatus(eleId, '正在連接內政部 DSM...', true);
+        
+        // 載入 GeoTIFF 函式庫
+        if (!window.GeoTIFF) {
+            updateDialogElevationStatus(eleId, '載入 GeoTIFF 函式庫...', true);
+            await loadGeoTIFFLibrary();
+        }
+        
+        updateDialogElevationStatus(eleId, '連接 DSM 資料檔案...', true);
+        
+        // 使用相對路徑載入 COG 檔案
+        const cogFilename = 'taiwan_dsm_wgs84_cog.tif';
+        
+        let tiff = null;
+        try {
+            tiff = await GeoTIFF.fromUrl(cogFilename);
+            console.log('成功載入 COG 檔案:', cogFilename);
+        } catch (err) {
+            console.error('從相對路徑載入失敗，嘗試 GitHub Pages:', err);
+            const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
+            try {
+                tiff = await GeoTIFF.fromUrl(githubUrl);
+                console.log('成功從 GitHub Pages 載入:', githubUrl);
+            } catch (err2) {
+                throw new Error(`無法載入 COG 檔案: ${err2.message}`);
+            }
+        }
+        
+        if (!tiff) {
+            throw new Error('無法載入 COG 檔案');
+        }
+        
+        updateDialogElevationStatus(eleId, '正在解析高度資料...', true);
+        
+        const image = await tiff.getImage();
+        const bbox = image.getBoundingBox();
+        const width = image.getWidth();
+        const height = image.getHeight();
+        
+        // 將經緯度轉換為像素座標
+        const pixelX = Math.floor((lon - bbox[0]) / (bbox[2] - bbox[0]) * width);
+        const pixelY = Math.floor((bbox[3] - lat) / (bbox[3] - bbox[1]) * height);
+        
+        if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
+            // 讀取該像素的高度值
+            const rasters = await image.readRasters({
+                window: [pixelX, pixelY, pixelX + 1, pixelY + 1]
+            });
+            
+            const elevation = rasters[0][0];
+            
+            if (elevation === null || elevation === undefined || isNaN(elevation)) {
+                throw new Error('該位置的高度數據不可用');
+            }
+            
+            const elevationRounded = Math.round(parseFloat(elevation));
+            eleInput.value = elevationRounded;
+            updateDialogElevationStatus(eleId, `高度: ${elevationRounded} 公尺 (內政部 DSM 20m)`, true);
+            console.log(`地點${location}高度已自動更新: ${elevation}m`);
+        } else {
+            throw new Error('座標超出 DSM 資料範圍');
+        }
+    } catch (err) {
+        console.error('內政部 DSM 取得高度失敗:', err);
+        console.log('嘗試使用 Google Maps API 備用');
+        updateDialogElevationStatus(eleId, '切換至 Google Maps 備用...', true);
+        await getElevationAutomaticGoogleMaps(lat, lon, location, eleId);
+    } finally {
+        if (loadingSpan) {
+            loadingSpan.style.display = 'none';
+            eleInput.style.opacity = '1';
+        }
+    }
+}
+async function getElevationAutomaticGoogleMaps(lat, lon, location, eleId) {
+    console.log(`getElevationAutomaticGoogleMaps() 被調用，座標: ${lat}, ${lon}, 地點: ${location}`);
+    const eleInput = document.getElementById(eleId);
+    const originalValue = eleInput.value;
     const GOOGLE_API_KEY = 'AIzaSyBwd_GtAZq2eW6KgRRkro__aG7h5ZECJwo';
     try {
         console.log(`調用 Google Maps Elevation API，座標: ${lat}, ${lon}`);
-        updateDialogElevationStatus(eleId, '正在連接高度資料庫...', true);
+        updateDialogElevationStatus(eleId, '正在連接 Google Maps...', true);
         
         // 確保 Google Maps API 已載入
         if (!window.google || !window.google.maps) {
@@ -2276,18 +2535,13 @@ async function getElevationAutomatic(lat, lon, location, eleId) {
         }
         const elevationRounded = Math.round(parseFloat(elevation));
         eleInput.value = elevationRounded;
-        updateDialogElevationStatus(eleId, `高度: ${elevationRounded} 公尺`, true);
+        updateDialogElevationStatus(eleId, `高度: ${elevationRounded} 公尺 (Google Maps)`, true);
         console.log(`地點${location}高度已自動更新: ${elevation}m`);
     } catch (err) {
         console.error('自動取得高度失敗:', err);
         updateDialogElevationStatus(eleId, '高度取得失敗', false);
         if (!originalValue || originalValue === '取得中...') {
             eleInput.value = '';
-        }
-    } finally {
-        if (loadingSpan) {
-            loadingSpan.style.display = 'none';
-            eleInput.style.opacity = '1';
         }
     }
 }
@@ -3580,7 +3834,9 @@ function renderChart(elevations) {
                 x: {
                     ticks: { color: '#e8eef5', font: { size: 12 }, maxRotation: 0, minRotation: 0 },
                     grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    title: { display: true, text: '距離 (km)', color: '#e8eef5' }
+                    title: { display: true, text: '距離 (km)', color: '#e8eef5' },
+                    min: isNaN(parseFloat(document.getElementById('minDistance').value)) ? undefined : parseFloat(document.getElementById('minDistance').value),
+                    max: isNaN(parseFloat(document.getElementById('maxDistance').value)) ? undefined : parseFloat(document.getElementById('maxDistance').value)
                 },
                 y: {
                     ticks: { color: '#e8eef5', font: { size: 12 } },
@@ -3783,6 +4039,48 @@ function toggleGreenPoints() {
     chartInstance.update();
     console.log('節點顯示狀態已切換:', greenPointsVisible ? '顯示' : '隱藏');
 }
+function updateChartYAxis() {
+    console.log('updateChartYAxis() 被調用');
+    const minValue = parseFloat(document.getElementById('minElevation').value);
+    const maxValue = parseFloat(document.getElementById('maxElevation').value);
+    
+    // 更新主圖表
+    if (chartInstance) {
+        chartInstance.options.scales.y.min = isNaN(minValue) ? undefined : minValue;
+        chartInstance.options.scales.y.max = isNaN(maxValue) ? undefined : maxValue;
+        chartInstance.update();
+        console.log('主圖表Y軸已更新 - min:', minValue, 'max:', maxValue);
+    }
+    
+    // 更新全螢幕圖表（如果存在）
+    if (fullscreenChartInstance) {
+        fullscreenChartInstance.options.scales.y.min = isNaN(minValue) ? undefined : minValue;
+        fullscreenChartInstance.options.scales.y.max = isNaN(maxValue) ? undefined : maxValue;
+        fullscreenChartInstance.update();
+        console.log('全螢幕圖表Y軸已更新 - min:', minValue, 'max:', maxValue);
+    }
+}
+function updateChartXAxis() {
+    console.log('updateChartXAxis() 被調用');
+    const minValue = parseFloat(document.getElementById('minDistance').value);
+    const maxValue = parseFloat(document.getElementById('maxDistance').value);
+    
+    // 更新主圖表
+    if (chartInstance) {
+        chartInstance.options.scales.x.min = isNaN(minValue) ? undefined : minValue;
+        chartInstance.options.scales.x.max = isNaN(maxValue) ? undefined : maxValue;
+        chartInstance.update();
+        console.log('主圖表X軸已更新 - min:', minValue, 'max:', maxValue);
+    }
+    
+    // 更新全螢幕圖表（如果存在）
+    if (fullscreenChartInstance) {
+        fullscreenChartInstance.options.scales.x.min = isNaN(minValue) ? undefined : minValue;
+        fullscreenChartInstance.options.scales.x.max = isNaN(maxValue) ? undefined : maxValue;
+        fullscreenChartInstance.update();
+        console.log('全螢幕圖表X軸已更新 - min:', minValue, 'max:', maxValue);
+    }
+}
 let fullscreenChartInstance = null;
 let fullscreenLabelAOffset = { x: 0, y: -30 };
 let fullscreenLabelBOffset = { x: 0, y: -30 };
@@ -3791,10 +4089,7 @@ function openChartFullscreen() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
         || (window.innerWidth <= 768 && window.innerHeight <= 768)
         || ('ontouchstart' in window);
-    if (!isMobile) {
-        console.log('非手機裝置，不開啟全螢幕');
-        return;
-    }
+    
     fullscreenInfoVisible = true;
     obstructionColorEnabled = false;
     if (!chartInstance || !chartInstance.data) {
@@ -4205,7 +4500,9 @@ function openChartFullscreen() {
                             color: '#85c9ff',
                             font: { size: 13 },
                             padding: { bottom: 5 }
-                        }
+                        },
+                        min: isNaN(parseFloat(document.getElementById('minElevation').value)) ? undefined : parseFloat(document.getElementById('minElevation').value),
+                        max: isNaN(parseFloat(document.getElementById('maxElevation').value)) ? undefined : parseFloat(document.getElementById('maxElevation').value)
                     },
                     x: {
                         ticks: {
@@ -4223,7 +4520,9 @@ function openChartFullscreen() {
                             color: '#85c9ff',
                             font: { size: 13 },
                             padding: { top: 5 }
-                        }
+                        },
+                        min: isNaN(parseFloat(document.getElementById('minDistance').value)) ? undefined : parseFloat(document.getElementById('minDistance').value),
+                        max: isNaN(parseFloat(document.getElementById('maxDistance').value)) ? undefined : parseFloat(document.getElementById('maxDistance').value)
                     }
                 },
                 onClick: (event, elements, chart) => {
@@ -6532,7 +6831,7 @@ function calculateMaxLOS(){
     '(A:' + (d1/1000).toFixed(2) + ' km, B:' + (d2/1000).toFixed(2) + ' km)';
 }
 let elevationChart = null;
-let elevationDataProvider = 'openmeteo';
+let elevationDataProvider = 'taiwan-dsm';
 function initElevationTab() {
   const apiSelector = document.getElementById('elevationApiSelector');
   if (apiSelector) {
