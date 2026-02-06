@@ -701,6 +701,15 @@ div.gps-ig.orange-border-card,
 </select>
 <span id="apiInfo" style="font-size: 12px; color: var(--muted); margin-top: 4px; display: block;"></span>
 </div>
+<div style="margin-bottom: 12px; padding: 10px 8px; background: rgba(255, 170, 0, 0.08); border: 1px solid var(--orange-border); border-radius: 6px; display: none;" id="nodataHandlingDiv">
+<label style="color: #ffd43b; font-size: 14px; font-weight: 700; display: block; margin-bottom: 6px;">📊 缺失數據處理方式</label>
+<select id="nodataHandling" style="width: 100%; padding: 6px 8px; font-size: 14px; color: var(--value); background: transparent; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">
+<option value="interpolate" selected>🔄 智慧插值（推薦）- 使用鄰近有效值</option>
+<option value="zero">0️⃣ 設為 0 米</option>
+<option value="skip">⏭️ 標記為無效並跳過</option>
+</select>
+<span style="font-size: 11px; color: var(--muted); margin-top: 4px; display: block;">💡 當路徑經過無圖資區域（如樂山雷達站）時使用</span>
+</div>
 <button class="btn" style="background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:18px; color:#022; cursor:pointer; width:100%; margin-bottom:8px;" onclick="runAnalysis()">🌐 生成路徑剖面</button>
 <div style="display: flex; gap: 8px; margin-bottom: 8px;">
 <button id="toggleGreenPointsBtn" class="btn" style="background:linear-gradient(90deg,#6c757d,#5a6268); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; width:100%;" onclick="toggleGreenPoints()">👁️ 顯示節點</button>
@@ -3380,7 +3389,12 @@ async function runAnalysisWithTaiwanDSM() {
         
         summary.innerHTML = `<span style="color: #ffd43b; font-weight: bold; font-size: 14px;">路徑總長度: ${totalDist.toFixed(3)} km (讀取高度數據<span class="loading-dots"></span>)</span>`;
         
+        // 獲取使用者選擇的缺失數據處理方式
+        const nodataHandling = document.getElementById('nodataHandling')?.value || 'interpolate';
+        console.log('缺失數據處理方式:', nodataHandling);
+        
         const elevations = [];
+        let invalidDataCount = 0; // 記錄無效數據點數量
         
         // 批次讀取以提高效能
         const batchSize = 50;
@@ -3404,14 +3418,92 @@ async function runAnalysisWithTaiwanDSM() {
                         });
                         
                         const elevation = rasters[0][0]; // 第一個波段的第一個像素
-                        elevations.push(elevation !== null && elevation !== undefined && !isNaN(elevation) ? elevation : 0);
+                        
+                        // 完整的高度值驗證邏輯
+                        // 1. 檢查是否為 null, undefined, NaN
+                        // 2. 檢查是否為 Infinity 或 -Infinity
+                        // 3. 檢查是否為常見的 NoData 值（-32768, -9999, -99999 等）
+                        // 4. 檢查是否為不合理的極端值（< -500 或 > 4000，台灣最高峰玉山約 3952m）
+                        let validElevation = 0;
+                        let isInvalidData = false;
+                        
+                        if (elevation !== null && elevation !== undefined && !isNaN(elevation) && isFinite(elevation)) {
+                            // 檢查是否為常見的 NoData 值
+                            const commonNoDataValues = [-32768, -9999, -99999, -12345, 32767, 65535, -3.4028235e+38];
+                            const isNoData = commonNoDataValues.some(noData => Math.abs(elevation - noData) < 0.01);
+                            
+                            if (!isNoData && elevation >= -500 && elevation <= 4000) {
+                                // 合理的高度範圍
+                                validElevation = elevation;
+                            } else {
+                                // 檢測到無效數據
+                                isInvalidData = true;
+                                invalidDataCount++;
+                                
+                                // 根據使用者選擇的處理方式
+                                if (nodataHandling === 'interpolate') {
+                                    // 智慧插值：使用前一個有效值
+                                    if (elevations.length > 0) {
+                                        validElevation = elevations[elevations.length - 1];
+                                        console.warn(`座標 ${globalIndex} 高度異常 (${elevation.toFixed(2)}m)，使用前值插值: ${validElevation.toFixed(2)}m`);
+                                    } else {
+                                        validElevation = 0;
+                                        console.warn(`座標 ${globalIndex} 高度異常 (${elevation.toFixed(2)}m)，使用預設值 0`);
+                                    }
+                                } else if (nodataHandling === 'zero') {
+                                    // 設為 0
+                                    validElevation = 0;
+                                    console.warn(`座標 ${globalIndex} 高度異常 (${elevation.toFixed(2)}m)，設為 0`);
+                                } else if (nodataHandling === 'skip') {
+                                    // 標記為 null（稍後可以選擇性跳過）
+                                    validElevation = null;
+                                    console.warn(`座標 ${globalIndex} 高度異常 (${elevation.toFixed(2)}m)，標記為無效`);
+                                }
+                            }
+                        } else {
+                            // 無效值
+                            isInvalidData = true;
+                            invalidDataCount++;
+                            
+                            if (nodataHandling === 'interpolate') {
+                                // 使用前一個有效值
+                                if (elevations.length > 0) {
+                                    validElevation = elevations[elevations.length - 1];
+                                }
+                                console.warn(`座標 ${globalIndex} 高度無效 (${elevation})，使用${elevations.length > 0 ? '前值' : '預設值'}: ${validElevation}m`);
+                            } else if (nodataHandling === 'zero') {
+                                validElevation = 0;
+                                console.warn(`座標 ${globalIndex} 高度無效 (${elevation})，設為 0`);
+                            } else if (nodataHandling === 'skip') {
+                                validElevation = null;
+                                console.warn(`座標 ${globalIndex} 高度無效 (${elevation})，標記為無效`);
+                            }
+                        }
+                        
+                        elevations.push(validElevation);
                     } catch (readErr) {
                         console.warn(`讀取座標 ${globalIndex} 失敗:`, readErr);
-                        elevations.push(0);
+                        invalidDataCount++;
+                        // 根據使用者選擇處理
+                        let fallbackValue = 0;
+                        if (nodataHandling === 'interpolate' && elevations.length > 0) {
+                            fallbackValue = elevations[elevations.length - 1];
+                        } else if (nodataHandling === 'skip') {
+                            fallbackValue = null;
+                        }
+                        elevations.push(fallbackValue);
                     }
                 } else {
                     console.warn(`座標 ${globalIndex} 超出 COG 範圍:`, loc, '像素座標:', {pixelX, pixelY});
-                    elevations.push(0);
+                    invalidDataCount++;
+                    // 根據使用者選擇處理超出範圍的情況
+                    let fallbackValue = 0;
+                    if (nodataHandling === 'interpolate' && elevations.length > 0) {
+                        fallbackValue = elevations[elevations.length - 1];
+                    } else if (nodataHandling === 'skip') {
+                        fallbackValue = null;
+                    }
+                    elevations.push(fallbackValue);
                 }
             }
             
@@ -3421,7 +3513,21 @@ async function runAnalysisWithTaiwanDSM() {
         }
         
         console.log('Taiwan DSM 高度數據總數:', elevations.length);
-        summary.innerHTML = `<span style="color: #27ae60; font-weight: bold; font-size: 14px;">✓ 路徑總長度: ${totalDist.toFixed(3)} km (內政部 DSM 20m)</span>`;
+        console.log('無效數據點數量:', invalidDataCount);
+        
+        // 根據無效數據點數量顯示不同的訊息
+        let statusMessage = `<span style="color: #27ae60; font-weight: bold; font-size: 14px;">✓ 路徑總長度: ${totalDist.toFixed(3)} km (內政部 DSM 20m)</span>`;
+        
+        if (invalidDataCount > 0) {
+            const invalidPercent = ((invalidDataCount / elevations.length) * 100).toFixed(1);
+            statusMessage += `<br><span style="color: #ffd43b; font-size: 12px;">⚠️ 檢測到 ${invalidDataCount} 個無效數據點 (${invalidPercent}%) - 已使用「${
+                nodataHandling === 'interpolate' ? '智慧插值' : 
+                nodataHandling === 'zero' ? '設為0米' : 
+                '標記無效'
+            }」處理</span>`;
+        }
+        
+        summary.innerHTML = statusMessage;
         renderChart(elevations);
     } catch (err) {
         console.error('Taiwan DSM 錯誤:', err);
@@ -6834,10 +6940,26 @@ let elevationChart = null;
 let elevationDataProvider = 'taiwan-dsm';
 function initElevationTab() {
   const apiSelector = document.getElementById('elevationApiSelector');
+  const nodataHandlingDiv = document.getElementById('nodataHandlingDiv');
+  
   if (apiSelector) {
+    // 初始狀態：如果選擇台灣 DSM，顯示缺失數據處理選項
+    if (apiSelector.value === 'taiwan-dsm' && nodataHandlingDiv) {
+      nodataHandlingDiv.style.display = 'block';
+    }
+    
     apiSelector.addEventListener('change', (e) => {
       elevationDataProvider = e.target.value;
       console.log('已切换至:', elevationDataProvider);
+      
+      // 根據資料來源顯示/隱藏缺失數據處理選項
+      if (nodataHandlingDiv) {
+        if (e.target.value === 'taiwan-dsm') {
+          nodataHandlingDiv.style.display = 'block';
+        } else {
+          nodataHandlingDiv.style.display = 'none';
+        }
+      }
     });
   }
 }
