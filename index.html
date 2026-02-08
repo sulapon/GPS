@@ -3370,43 +3370,72 @@ async function runAnalysisWithTaiwanDSM() {
             summary.innerHTML = `<span style="color: #ffd43b; font-weight: bold; font-size: 14px;">路徑總長度: ${totalDist.toFixed(3)} km (使用本地檔案: ${localTifFileData.fileName}<span class="loading-dots"></span>)</span>`;
             tiff = localTifFileData.tiff;
             image = localTifFileData.image;
+            
+            // 更新狀態顯示為本地檔案
+            const currentSourceText = document.getElementById('currentSourceText');
+            if (currentSourceText) {
+                currentSourceText.textContent = `📁 本地 COG 檔案 (${localTifFileData.fileName})`;
+                currentSourceText.style.color = '#36c74d';
+                console.log('✅ 狀態已更新：使用本地 COG 檔案');
+            }
         } else {
             // 使用原有的 GitHub 載入邏輯
-            let loadedFromLocal = false;
+            // 檢查是否在 GitHub Pages 環境
+            const isGithubPages = window.location.hostname.includes('github.io');
             let loadedFromGithub = false;
-            try {
-                tiff = await GeoTIFF.fromUrl(cogFilename);
-                console.log('✅ 成功從本地相對路徑載入 COG 檔案:', cogFilename);
-                loadedFromLocal = true;
-            } catch (err) {
-                console.error('從相對路徑載入失敗，嘗試 GitHub Pages:', err);
+            let loadedFromCache = false;
+            let actualSource = '';
+            
+            // 如果在 GitHub Pages 環境，直接使用 GitHub URL
+            if (isGithubPages) {
                 const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
                 try {
                     tiff = await GeoTIFF.fromUrl(githubUrl);
                     console.log('✅ 成功從 GitHub Pages 載入:', githubUrl);
                     loadedFromGithub = true;
-                } catch (err2) {
-                    console.error('從 GitHub Pages 載入失敗:', err2);
-                    throw new Error(`無法載入 COG 檔案。請確認:\n1. 檔案 "${cogFilename}" 已上傳到正確位置\n2. GitHub Pages 已啟用\n3. 檔案名稱正確（taiwan_dsm_wgs84_cog.tif）\n\n錯誤: ${err2.message}`);
+                    actualSource = 'github';
+                } catch (err) {
+                    console.error('從 GitHub Pages 載入失敗:', err);
+                    // 嘗試從快取或相對路徑載入
+                    try {
+                        tiff = await GeoTIFF.fromUrl(cogFilename);
+                        console.log('✅ 從快取或本地路徑載入成功:', cogFilename);
+                        loadedFromCache = true;
+                        actualSource = 'cache';
+                    } catch (err2) {
+                        throw new Error(`無法載入 COG 檔案。請確認:\n1. 檔案已上傳到 GitHub\n2. GitHub Pages 已啟用\n3. 檔案名稱正確（taiwan_dsm_wgs84_cog.tif）\n4. 或手動選擇本地 TIF 檔案\n\n錯誤: ${err.message}`);
+                    }
+                }
+            } else {
+                // 本地開發環境或離線環境，嘗試相對路徑
+                try {
+                    tiff = await GeoTIFF.fromUrl(cogFilename);
+                    console.log('✅ 成功從相對路徑或快取載入 COG 檔案:', cogFilename);
+                    loadedFromCache = true;
+                    actualSource = 'cache';
+                } catch (err) {
+                    console.error('從相對路徑載入失敗:', err);
+                    throw new Error(`無法載入 COG 檔案。\n\n請選擇以下方式之一：\n1. 點擊「選擇本地 TIF 檔案」手動上傳檔案\n2. 確保檔案 "${cogFilename}" 在同目錄下\n3. 連接網路並部署到 GitHub Pages\n\n錯誤: ${err.message}`);
                 }
             }
+            
             if (!tiff) {
                 throw new Error('無法載入 COG 檔案');
             }
             summary.innerHTML = `<span style="color: #ffd43b; font-weight: bold; font-size: 14px;">路徑總長度: ${totalDist.toFixed(3)} km (讀取影像資訊<span class="loading-dots"></span>)</span>`;
             image = await tiff.getImage();
             
-            // 更新狀態顯示
+            // 更新狀態顯示 - 根據實際來源顯示
             const currentSourceText = document.getElementById('currentSourceText');
             if (currentSourceText) {
-                if (loadedFromLocal) {
-                    currentSourceText.textContent = '📁 本地 COG 檔案 (taiwan_dsm_wgs84_cog.tif)';
-                    currentSourceText.style.color = '#36c74d';
-                    console.log('✅ 狀態已更新：使用本地 COG 檔案');
-                } else if (loadedFromGithub) {
+                if (loadedFromGithub) {
                     currentSourceText.textContent = '🌐 GitHub 線上圖資';
                     currentSourceText.style.color = '#5ff0d5';
                     console.log('✅ 狀態已更新：使用 GitHub 線上圖資');
+                } else if (loadedFromCache) {
+                    currentSourceText.textContent = '📁 本地 COG 檔案 (taiwan_dsm_wgs84_cog.tif)';
+                    currentSourceText.style.color = '#fbbf24';
+                    console.log('✅ 狀態已更新：使用快取或本地 COG 檔案');
                 }
             }
         }
@@ -7492,6 +7521,9 @@ function toggleLocalFileUpload() {
       localFileDiv.style.display = 'none';
     }
   }
+  
+  // 更新 API 資訊文字
+  updateApiInfo();
 }
 
 async function handleLocalTifFile(event) {
@@ -7526,7 +7558,7 @@ async function handleLocalTifFile(event) {
     const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
     const image = await tiff.getImage();
     
-    // 儲存檔案資料
+    // 儲存檔案資料（同時保存到全域和 window）
     localTifFileData = {
       file: file,
       tiff: tiff,
@@ -7534,17 +7566,30 @@ async function handleLocalTifFile(event) {
       fileName: file.name,
       fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB'
     };
+    window.localTifFileData = localTifFileData;  // 確保全域可訪問
     
     // 顯示檔案資訊
     fileInfo.textContent = `✅ 已載入: ${file.name} (${localTifFileData.fileSize})`;
     fileInfo.style.color = '#36c74d';
     clearBtn.style.display = 'inline-block';
     
-    // 更新當前使用狀態
-    if (currentSourceText) {
-      currentSourceText.textContent = `📱 本地檔案: ${file.name}`;
-      currentSourceText.style.color = '#5ff0d5';
-    }
+    // 強制更新當前使用狀態 - 多重保障
+    const updateStatus = () => {
+      const currentSourceText = document.getElementById('currentSourceText');
+      if (currentSourceText) {
+        currentSourceText.textContent = `📁 本地 COG 檔案 (${file.name})`;
+        currentSourceText.style.color = '#36c74d';
+        console.log('🔥 強制更新狀態：', currentSourceText.textContent);
+      }
+    };
+    
+    // 立即更新
+    updateStatus();
+    
+    // 延遲再次確認（防止被其他程式碼覆蓋）
+    setTimeout(updateStatus, 100);
+    setTimeout(updateStatus, 300);
+    setTimeout(updateStatus, 500);
     
     console.log('✅ 本地 TIF 檔案已載入:', localTifFileData);
     
@@ -7565,17 +7610,24 @@ async function handleLocalTifFile(event) {
 
 function clearLocalTifFile() {
   localTifFileData = null;
+  window.localTifFileData = null;  // 同時清除全域
   document.getElementById('localTifFile').value = '';
   const fileInfo = document.getElementById('localFileInfo');
   fileInfo.textContent = '';
   document.getElementById('clearLocalTifBtn').style.display = 'none';
   
-  // 更新當前使用狀態
-  const currentSourceText = document.getElementById('currentSourceText');
-  if (currentSourceText) {
-    currentSourceText.textContent = '🌐 GitHub 線上圖資';
-    currentSourceText.style.color = '#5ff0d5';
-  }
+  // 強制更新當前使用狀態
+  const updateStatus = () => {
+    const currentSourceText = document.getElementById('currentSourceText');
+    if (currentSourceText) {
+      currentSourceText.textContent = '🌐 GitHub 線上圖資';
+      currentSourceText.style.color = '#5ff0d5';
+      console.log('🔥 強制更新狀態（清除）：', currentSourceText.textContent);
+    }
+  };
+  
+  updateStatus();
+  setTimeout(updateStatus, 100);
   
   console.log('已清除本地 TIF 檔案');
 }
@@ -7587,12 +7639,18 @@ function useGithubTifFile() {
   const fileInfo = document.getElementById('localFileInfo');
   fileInfo.textContent = '';
   
-  // 更新當前使用狀態
-  const currentSourceText = document.getElementById('currentSourceText');
-  if (currentSourceText) {
-    currentSourceText.textContent = '🌐 GitHub 線上圖資';
-    currentSourceText.style.color = '#5ff0d5';
-  }
+  // 強制更新當前使用狀態
+  const updateStatus = () => {
+    const currentSourceText = document.getElementById('currentSourceText');
+    if (currentSourceText) {
+      currentSourceText.textContent = '🌐 GitHub 線上圖資';
+      currentSourceText.style.color = '#5ff0d5';
+      console.log('🔥 強制更新狀態（GitHub）：', currentSourceText.textContent);
+    }
+  };
+  
+  updateStatus();
+  setTimeout(updateStatus, 100);
   
   console.log('已切換至 GitHub 線上圖資');
 }
@@ -7601,11 +7659,16 @@ function useGithubTifFile() {
 document.addEventListener('DOMContentLoaded', () => {
   toggleLocalFileUpload();
   
-  // 初始化狀態顯示為 GitHub 線上圖資
+  // 初始化狀態顯示為 GitHub 線上圖資（但不覆蓋已載入的本地檔案狀態）
   const currentSourceText = document.getElementById('currentSourceText');
-  if (currentSourceText) {
+  if (currentSourceText && !window.localTifFileData) {
     currentSourceText.textContent = '🌐 GitHub 線上圖資';
     currentSourceText.style.color = '#5ff0d5';
+    console.log('🔥 初始化狀態：GitHub 線上圖資');
+  } else if (currentSourceText && window.localTifFileData) {
+    currentSourceText.textContent = `📁 本地 COG 檔案 (${window.localTifFileData.fileName})`;
+    currentSourceText.style.color = '#36c74d';
+    console.log('🔥 初始化狀態：保持本地檔案');
   }
 });
 
