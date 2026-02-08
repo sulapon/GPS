@@ -5650,7 +5650,12 @@ function openGoogleMapForYellowPoint() {
         titleBar.style.boxShadow = '0 4px 12px rgba(0,0,0,0.6)';
         titleBar.style.zIndex = '10005';
         titleBar.innerHTML = `
-            <span style="font-size: 13px;">📍 點 ${index + 1}</span>
+            <span style="font-size: 13px;">📍 點</span>
+            <div style="display: flex; gap: 4px; align-items: center;">
+                <button onclick="decrementMapPoint()" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); color: #022; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; height: 26px; min-width: 32px;">◀</button>
+                <input type="number" id="mapPointInput" value="${index + 1}" min="1" max="${pathData.length}" style="width: 70px; padding: 3px 6px; font-size: 14px; color: #5ff0d5; background: rgba(0,0,0,0.7); border: 2px solid rgba(95,240,213,0.3); border-radius: 4px; text-align: center; height: 26px; font-weight: bold;" oninput="updateMapPointFromInput()">
+                <button onclick="incrementMapPoint()" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); color: #022; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; height: 26px; min-width: 32px;">▶</button>
+            </div>
             <div style="display: flex; gap: 6px;">
                 <button onclick="openInNewTabFromEmbedded()" style="background: rgba(255,255,255,0.95); color: #1971c2; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; white-space: nowrap;">🔗 開啟</button>
                 <button onclick="closeEmbeddedMap()" style="background: rgba(255,68,68,0.95); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">✕</button>
@@ -5677,7 +5682,12 @@ function openGoogleMapForYellowPoint() {
     window.currentMapCoords = { lat, lng };
     const titleSpan = mapContainer.querySelector('span');
     if (titleSpan) {
-        titleSpan.innerHTML = `📍 點 ${index + 1}`;
+        titleSpan.innerHTML = `📍 點`;
+    }
+    const mapPointInput = mapContainer.querySelector('#mapPointInput');
+    if (mapPointInput) {
+        mapPointInput.value = index + 1;
+        mapPointInput.max = pathData.length;
     }
     mapContainer.style.display = 'block';
     console.log('嵌入式地圖已顯示（全螢幕）');
@@ -5699,6 +5709,115 @@ function openInNewTabFromEmbedded() {
         const googleMapUrl = `https://www.google.com/maps?q=${lat},${lng}&t=k&z=17`;
         window.open(googleMapUrl, '_blank');
     }
+}
+function decrementMapPoint() {
+    if (typeof window.currentSelectedPointIndex === 'undefined' || window.currentSelectedPointIndex === null) {
+        return;
+    }
+    if (!pathData || pathData.length === 0) {
+        return;
+    }
+    let newIndex = window.currentSelectedPointIndex - 1;
+    if (newIndex < 0) {
+        newIndex = pathData.length - 1;
+    }
+    window.currentSelectedPointIndex = newIndex;
+    const point = pathData[newIndex];
+    const lat = point.lat;
+    const lng = point.lng;
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    const mapContainer = overlay.querySelector('#embedded-map-container');
+    if (mapContainer) {
+        const iframe = mapContainer.querySelector('#embedded-map-iframe');
+        const googleMapUrl = `https://maps.google.com/maps?q=${lat},${lng}&t=k&z=17&output=embed`;
+        iframe.src = googleMapUrl;
+        window.currentMapCoords = { lat, lng };
+        const mapPointInput = mapContainer.querySelector('#mapPointInput');
+        if (mapPointInput) {
+            mapPointInput.value = newIndex + 1;
+        }
+    }
+    const fullscreenPointInput = document.getElementById('fullscreenPointInput');
+    if (fullscreenPointInput) {
+        fullscreenPointInput.value = newIndex + 1;
+    }
+    const selectedPointInput = document.getElementById('selectedPointIndex');
+    if (selectedPointInput) {
+        selectedPointInput.value = newIndex + 1;
+    }
+    syncFullscreenChartAfterButtonClick(newIndex);
+    console.log('地圖點已遞減至:', newIndex + 1);
+}
+function incrementMapPoint() {
+    if (typeof window.currentSelectedPointIndex === 'undefined' || window.currentSelectedPointIndex === null) {
+        return;
+    }
+    if (!pathData || pathData.length === 0) {
+        return;
+    }
+    let newIndex = window.currentSelectedPointIndex + 1;
+    if (newIndex >= pathData.length) {
+        newIndex = 0;
+    }
+    window.currentSelectedPointIndex = newIndex;
+    const point = pathData[newIndex];
+    const lat = point.lat;
+    const lng = point.lng;
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    const mapContainer = overlay.querySelector('#embedded-map-container');
+    if (mapContainer) {
+        const iframe = mapContainer.querySelector('#embedded-map-iframe');
+        const googleMapUrl = `https://maps.google.com/maps?q=${lat},${lng}&t=k&z=17&output=embed`;
+        iframe.src = googleMapUrl;
+        window.currentMapCoords = { lat, lng };
+        const mapPointInput = mapContainer.querySelector('#mapPointInput');
+        if (mapPointInput) {
+            mapPointInput.value = newIndex + 1;
+        }
+    }
+    const fullscreenPointInput = document.getElementById('fullscreenPointInput');
+    if (fullscreenPointInput) {
+        fullscreenPointInput.value = newIndex + 1;
+    }
+    const selectedPointInput = document.getElementById('selectedPointIndex');
+    if (selectedPointInput) {
+        selectedPointInput.value = newIndex + 1;
+    }
+    syncFullscreenChartAfterButtonClick(newIndex);
+    console.log('地圖點已遞增至:', newIndex + 1);
+}
+function updateMapPointFromInput() {
+    const mapPointInput = document.getElementById('mapPointInput');
+    if (!mapPointInput) {
+        return;
+    }
+    const value = parseInt(mapPointInput.value);
+    if (isNaN(value) || value < 1 || !pathData || value > pathData.length) {
+        return;
+    }
+    const newIndex = value - 1;
+    window.currentSelectedPointIndex = newIndex;
+    const point = pathData[newIndex];
+    const lat = point.lat;
+    const lng = point.lng;
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    const mapContainer = overlay.querySelector('#embedded-map-container');
+    if (mapContainer) {
+        const iframe = mapContainer.querySelector('#embedded-map-iframe');
+        const googleMapUrl = `https://maps.google.com/maps?q=${lat},${lng}&t=k&z=17&output=embed`;
+        iframe.src = googleMapUrl;
+        window.currentMapCoords = { lat, lng };
+    }
+    const fullscreenPointInput = document.getElementById('fullscreenPointInput');
+    if (fullscreenPointInput) {
+        fullscreenPointInput.value = newIndex + 1;
+    }
+    const selectedPointInput = document.getElementById('selectedPointIndex');
+    if (selectedPointInput) {
+        selectedPointInput.value = newIndex + 1;
+    }
+    syncFullscreenChartAfterButtonClick(newIndex);
+    console.log('地圖點已更新至:', value);
 }
 function showMap(index, height) {
     console.log('showMap() 被調用，索引:', index, '高度:', height);
