@@ -719,7 +719,7 @@ div.gps-ig.orange-border-card,
 </div>
 <div style="margin-bottom: 12px; padding: 10px 8px; background: rgba(187, 102, 255, 0.08); border: 1px solid var(--purple-accent); border-radius: 6px;">
 <label style="color: var(--label); font-size: 15px; font-weight: 700; display: block; margin-bottom: 6px;">高度資料來源選擇</label>
-<select id="elevationApiSelector" style="width: 100%; padding: 6px 8px; font-size: 15px; color: var(--value); background: transparent; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">
+<select id="elevationApiSelector" style="width: 100%; padding: 6px 8px; font-size: 15px; color: var(--value); background: transparent; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;" onchange="toggleLocalFileUpload()">
 <option value="taiwan-dsm" selected>🇹🇼 內政部 DSM 20m (台灣專用) - 預設</option>
 <option value="google-maps">🗺️ Google Maps Elevation API</option>
 <option value="open-elevation">🗻 Open-Elevation SRTM (30m)</option>
@@ -727,6 +727,26 @@ div.gps-ig.orange-border-card,
 <option value="astergdem">🏔️ ASTER GDEM v3 (30m)</option>
 </select>
 <span id="apiInfo" style="font-size: 12px; color: var(--muted); margin-top: 4px; display: block;"></span>
+<div id="localFileUploadDiv" style="margin-top: 8px; display: block;">
+<label style="color: var(--label); font-size: 14px; font-weight: 600; display: block; margin-bottom: 4px;">📁 DSM 20m 資料來源</label>
+<div style="display: flex; gap: 6px; align-items: center; margin-bottom: 6px;">
+<input type="file" id="localTifFile" accept="*/*" style="display: none;" onchange="handleLocalTifFile(event)">
+<button onclick="document.getElementById('localTifFile').click()" style="flex: 1; padding: 6px 12px; font-size: 14px; color: #022; background: linear-gradient(135deg, #5ff0d5, #79a8ff); border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">
+選擇本地 TIF 檔案
+</button>
+<button id="clearLocalTifBtn" onclick="clearLocalTifFile()" style="padding: 6px 12px; font-size: 14px; color: #fff; background: #dc3545; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; display: none;">
+清除
+</button>
+</div>
+<button id="useGithubTifBtn" onclick="useGithubTifFile()" style="width: 100%; padding: 6px 12px; font-size: 14px; color: #022; background: linear-gradient(135deg, #ffd43b, #ffaa00); border: none; border-radius: 6px; cursor: pointer; font-weight: 700; margin-bottom: 6px;">
+🌐 使用 GitHub 線上圖資
+</button>
+<div id="currentDataSource" style="padding: 8px 10px; background: rgba(255, 170, 0, 0.15); border: 2px solid #ffaa00; border-radius: 6px; margin-bottom: 6px;">
+<div style="font-size: 13px; font-weight: 700; color: #ffd43b; margin-bottom: 3px;">📊 目前使用：</div>
+<div id="currentSourceText" style="font-size: 14px; font-weight: 600; color: #5ff0d5;">🌐 GitHub 線上圖資</div>
+</div>
+<span id="localFileInfo" style="font-size: 12px; color: var(--muted); margin-top: 4px; display: block;"></span>
+</div>
 </div>
 <div style="margin-bottom: 12px; padding: 10px 8px; background: rgba(255, 170, 0, 0.08); border: 1px solid var(--orange-border); border-radius: 6px; display: none;" id="nodataHandlingDiv">
 <label style="color: #ffd43b; font-size: 14px; font-weight: 700; display: block; margin-bottom: 6px;">📊 缺失數據處理方式</label>
@@ -3036,6 +3056,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script>
 let chartInstance = null;
 let pathData = [];
+let localTifFileData = null;  // 本地TIF檔案資料
 function importFromGPS() {
     console.log('importFromGPS() 被調用');
     const latA = document.getElementById('latA').value;
@@ -3341,25 +3362,36 @@ async function runAnalysisWithTaiwanDSM() {
         const cogFilename = 'taiwan_dsm_wgs84_cog.tif';
         console.log('嘗試載入 COG 檔案:', cogFilename);
         let tiff = null;
-        try {
-            tiff = await GeoTIFF.fromUrl(cogFilename);
-            console.log('成功載入 COG 檔案:', cogFilename);
-        } catch (err) {
-            console.error('從相對路徑載入失敗，嘗試 GitHub Pages:', err);
-            const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
+        let image = null;
+        
+        // 檢查是否有本地 TIF 檔案
+        if (localTifFileData && localTifFileData.tiff && localTifFileData.image) {
+            console.log('✅ 使用本地 TIF 檔案:', localTifFileData.fileName);
+            summary.innerHTML = `<span style="color: #ffd43b; font-weight: bold; font-size: 14px;">路徑總長度: ${totalDist.toFixed(3)} km (使用本地檔案: ${localTifFileData.fileName}<span class="loading-dots"></span>)</span>`;
+            tiff = localTifFileData.tiff;
+            image = localTifFileData.image;
+        } else {
+            // 使用原有的 GitHub 載入邏輯
             try {
-                tiff = await GeoTIFF.fromUrl(githubUrl);
-                console.log('成功從 GitHub Pages 載入:', githubUrl);
-            } catch (err2) {
-                console.error('從 GitHub Pages 載入失敗:', err2);
-                throw new Error(`無法載入 COG 檔案。請確認:\n1. 檔案 "${cogFilename}" 已上傳到正確位置\n2. GitHub Pages 已啟用\n3. 檔案名稱正確（taiwan_dsm_wgs84_cog.tif）\n\n錯誤: ${err2.message}`);
+                tiff = await GeoTIFF.fromUrl(cogFilename);
+                console.log('成功載入 COG 檔案:', cogFilename);
+            } catch (err) {
+                console.error('從相對路徑載入失敗，嘗試 GitHub Pages:', err);
+                const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
+                try {
+                    tiff = await GeoTIFF.fromUrl(githubUrl);
+                    console.log('成功從 GitHub Pages 載入:', githubUrl);
+                } catch (err2) {
+                    console.error('從 GitHub Pages 載入失敗:', err2);
+                    throw new Error(`無法載入 COG 檔案。請確認:\n1. 檔案 "${cogFilename}" 已上傳到正確位置\n2. GitHub Pages 已啟用\n3. 檔案名稱正確（taiwan_dsm_wgs84_cog.tif）\n\n錯誤: ${err2.message}`);
+                }
             }
+            if (!tiff) {
+                throw new Error('無法載入 COG 檔案');
+            }
+            summary.innerHTML = `<span style="color: #ffd43b; font-weight: bold; font-size: 14px;">路徑總長度: ${totalDist.toFixed(3)} km (讀取影像資訊<span class="loading-dots"></span>)</span>`;
+            image = await tiff.getImage();
         }
-        if (!tiff) {
-            throw new Error('無法載入 COG 檔案');
-        }
-        summary.innerHTML = `<span style="color: #ffd43b; font-weight: bold; font-size: 14px;">路徑總長度: ${totalDist.toFixed(3)} km (讀取影像資訊<span class="loading-dots"></span>)</span>`;
-        const image = await tiff.getImage();
         const bbox = image.getBoundingBox();
         const width = image.getWidth();
         const height = image.getHeight();
@@ -7429,4 +7461,126 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, true);
 })();
+
+// ===== 本地 TIF 檔案處理 =====
+function toggleLocalFileUpload() {
+  const apiSelector = document.getElementById('elevationApiSelector');
+  const localFileDiv = document.getElementById('localFileUploadDiv');
+  
+  if (apiSelector && localFileDiv) {
+    if (apiSelector.value === 'taiwan-dsm') {
+      localFileDiv.style.display = 'block';
+    } else {
+      localFileDiv.style.display = 'none';
+    }
+  }
+}
+
+async function handleLocalTifFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const fileInfo = document.getElementById('localFileInfo');
+  const clearBtn = document.getElementById('clearLocalTifBtn');
+  const currentSourceText = document.getElementById('currentSourceText');
+  
+  fileInfo.textContent = '📂 載入中...';
+  fileInfo.style.color = '#fbbf24';
+  
+  try {
+    // 檢查檔案類型
+    if (!file.name.match(/\.(tif|tiff)$/i)) {
+      throw new Error('請選擇 TIF 或 TIFF 格式的檔案');
+    }
+    
+    // 讀取檔案
+    const arrayBuffer = await file.arrayBuffer();
+    
+    // 載入 GeoTIFF 函式庫（如果尚未載入）
+    if (!window.GeoTIFF) {
+      fileInfo.textContent = '📂 載入 GeoTIFF 函式庫...';
+      await loadGeoTIFFLibrary();
+    }
+    
+    fileInfo.textContent = '📂 解析 TIF 檔案...';
+    
+    // 解析 TIF 檔案
+    const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+    const image = await tiff.getImage();
+    
+    // 儲存檔案資料
+    localTifFileData = {
+      file: file,
+      tiff: tiff,
+      image: image,
+      fileName: file.name,
+      fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+    };
+    
+    // 顯示檔案資訊
+    fileInfo.textContent = `✅ 已載入: ${file.name} (${localTifFileData.fileSize})`;
+    fileInfo.style.color = '#36c74d';
+    clearBtn.style.display = 'inline-block';
+    
+    // 更新當前使用狀態
+    if (currentSourceText) {
+      currentSourceText.textContent = `📱 本地檔案: ${file.name}`;
+      currentSourceText.style.color = '#5ff0d5';
+    }
+    
+    console.log('✅ 本地 TIF 檔案已載入:', localTifFileData);
+    
+  } catch (error) {
+    console.error('❌ 載入 TIF 檔案失敗:', error);
+    fileInfo.textContent = '❌ 載入失敗: ' + error.message;
+    fileInfo.style.color = '#dc3545';
+    localTifFileData = null;
+    clearBtn.style.display = 'none';
+    
+    // 恢復顯示GitHub狀態
+    if (currentSourceText) {
+      currentSourceText.textContent = '🌐 GitHub 線上圖資';
+      currentSourceText.style.color = '#5ff0d5';
+    }
+  }
+}
+
+function clearLocalTifFile() {
+  localTifFileData = null;
+  document.getElementById('localTifFile').value = '';
+  const fileInfo = document.getElementById('localFileInfo');
+  fileInfo.textContent = '';
+  document.getElementById('clearLocalTifBtn').style.display = 'none';
+  
+  // 更新當前使用狀態
+  const currentSourceText = document.getElementById('currentSourceText');
+  if (currentSourceText) {
+    currentSourceText.textContent = '🌐 GitHub 線上圖資';
+    currentSourceText.style.color = '#5ff0d5';
+  }
+  
+  console.log('已清除本地 TIF 檔案');
+}
+
+function useGithubTifFile() {
+  // 清除本地檔案
+  clearLocalTifFile();
+  
+  const fileInfo = document.getElementById('localFileInfo');
+  fileInfo.textContent = '';
+  
+  // 更新當前使用狀態
+  const currentSourceText = document.getElementById('currentSourceText');
+  if (currentSourceText) {
+    currentSourceText.textContent = '🌐 GitHub 線上圖資';
+    currentSourceText.style.color = '#5ff0d5';
+  }
+  
+  console.log('已切換至 GitHub 線上圖資');
+}
+
+// 初始化時設定顯示狀態
+document.addEventListener('DOMContentLoaded', () => {
+  toggleLocalFileUpload();
+});
 
