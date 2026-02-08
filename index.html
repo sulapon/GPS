@@ -1553,8 +1553,7 @@ function getCurrentLocation(location) {
             updateDMSFromDecimal(latId);
             updateDMSFromDecimal(lonId);
             console.log('地點 ' + location + ' 座標已更新: 緯度=' + latitude + ', 經度=' + longitude);
-            getLocationName(latitude, longitude, location, nameId, eleId);
-            getElevationAutomatic(latitude, longitude, location, eleId);
+            getLocationNameAndShowDialog(latitude, longitude, location, nameId, eleId);
         },
         function(error) {
             latInput.value = originalLatValue;
@@ -4117,6 +4116,151 @@ let fullscreenChartInstance = null;
 let fullscreenLabelAOffset = { x: 0, y: -30 };
 let fullscreenLabelBOffset = { x: 0, y: -30 };
 let fullscreenDraggingLabel = null;
+let fullscreenIgnoreNextClick = false;
+let tooltipDraggingFullscreen = false;
+let tooltipOffsetX = 0;
+let tooltipOffsetY = -100;
+
+// 強制綁定tooltip拖曳功能的函數
+function makeTooltipDraggable(tooltipEl) {
+    console.log('綁定tooltip拖曳功能');
+    
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let startOffsetX = 0;
+    let startOffsetY = 0;
+    
+    // 滑鼠按下
+    tooltipEl.addEventListener('mousedown', function(e) {
+        console.log('Tooltip mousedown 觸發');
+        isDragging = true;
+        tooltipDraggingFullscreen = true;
+        
+        startX = e.clientX;
+        startY = e.clientY;
+        startOffsetX = tooltipOffsetX;
+        startOffsetY = tooltipOffsetY;
+        
+        tooltipEl.style.transition = 'none';
+        tooltipEl.style.border = '2px solid #ffd43b';
+        tooltipEl.style.cursor = 'grabbing';
+        
+        e.preventDefault();
+        e.stopPropagation();
+    });
+    
+    // 滑鼠移動（全局監聽）
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+        
+        tooltipOffsetX = startOffsetX + deltaX;
+        tooltipOffsetY = startOffsetY + deltaY;
+        
+        // 直接更新位置
+        if (window.currentSelectedPointIndex !== undefined && fullscreenChartInstance) {
+            const canvas = document.getElementById('elevationChartFullscreen');
+            if (canvas) {
+                const xScale = fullscreenChartInstance.scales.x;
+                const yScale = fullscreenChartInstance.scales.y;
+                const dataset = fullscreenChartInstance.data.datasets.find(d =>
+                    d.label && d.label.includes('地形海拔')
+                );
+                
+                if (dataset && dataset.data[window.currentSelectedPointIndex] !== undefined) {
+                    const pixelX = xScale.getPixelForValue(window.currentSelectedPointIndex);
+                    const pixelY = yScale.getPixelForValue(dataset.data[window.currentSelectedPointIndex]);
+                    const rect = canvas.getBoundingClientRect();
+                    
+                    tooltipEl.style.left = (rect.left + pixelX + tooltipOffsetX) + 'px';
+                    tooltipEl.style.top = (rect.top + pixelY + tooltipOffsetY) + 'px';
+                }
+            }
+        }
+        
+        e.preventDefault();
+    });
+    
+    // 滑鼠放開（全局監聽）
+    document.addEventListener('mouseup', function() {
+        if (!isDragging) return;
+        
+        console.log('Tooltip mouseup 觸發');
+        isDragging = false;
+        tooltipDraggingFullscreen = false;
+        
+        tooltipEl.style.transition = 'all .1s ease';
+        tooltipEl.style.border = '2px solid #4dabf7';
+        tooltipEl.style.cursor = 'move';
+    });
+    
+    // 觸控支援
+    tooltipEl.addEventListener('touchstart', function(e) {
+        console.log('Tooltip touchstart 觸發');
+        isDragging = true;
+        tooltipDraggingFullscreen = true;
+        
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        startOffsetX = tooltipOffsetX;
+        startOffsetY = tooltipOffsetY;
+        
+        tooltipEl.style.transition = 'none';
+        tooltipEl.style.border = '2px solid #ffd43b';
+        
+        e.preventDefault();
+        e.stopPropagation();
+    });
+    
+    document.addEventListener('touchmove', function(e) {
+        if (!isDragging || e.touches.length !== 1) return;
+        
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+        
+        tooltipOffsetX = startOffsetX + deltaX;
+        tooltipOffsetY = startOffsetY + deltaY;
+        
+        // 直接更新位置
+        if (window.currentSelectedPointIndex !== undefined && fullscreenChartInstance) {
+            const canvas = document.getElementById('elevationChartFullscreen');
+            if (canvas) {
+                const xScale = fullscreenChartInstance.scales.x;
+                const yScale = fullscreenChartInstance.scales.y;
+                const dataset = fullscreenChartInstance.data.datasets.find(d =>
+                    d.label && d.label.includes('地形海拔')
+                );
+                
+                if (dataset && dataset.data[window.currentSelectedPointIndex] !== undefined) {
+                    const pixelX = xScale.getPixelForValue(window.currentSelectedPointIndex);
+                    const pixelY = yScale.getPixelForValue(dataset.data[window.currentSelectedPointIndex]);
+                    const rect = canvas.getBoundingClientRect();
+                    
+                    tooltipEl.style.left = (rect.left + pixelX + tooltipOffsetX) + 'px';
+                    tooltipEl.style.top = (rect.top + pixelY + tooltipOffsetY) + 'px';
+                }
+            }
+        }
+        
+        e.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener('touchend', function() {
+        if (!isDragging) return;
+        
+        console.log('Tooltip touchend 觸發');
+        isDragging = false;
+        tooltipDraggingFullscreen = false;
+        
+        tooltipEl.style.transition = 'all .1s ease';
+        tooltipEl.style.border = '2px solid #4dabf7';
+    });
+}
 function openChartFullscreen() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
         || (window.innerWidth <= 768 && window.innerHeight <= 768)
@@ -4417,7 +4561,7 @@ function openChartFullscreen() {
                                 tooltipEl.style.borderRadius = '8px';
                                 tooltipEl.style.color = 'white';
                                 tooltipEl.style.opacity = '0';
-                                tooltipEl.style.pointerEvents = 'none';
+                                tooltipEl.style.pointerEvents = 'auto';
                                 tooltipEl.style.position = 'fixed';
                                 tooltipEl.style.transform = 'translate(-50%, -120%)';
                                 tooltipEl.style.transition = 'all .1s ease';
@@ -4428,8 +4572,10 @@ function openChartFullscreen() {
                                 tooltipEl.style.zIndex = '10002';
                                 tooltipEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
                                 tooltipEl.style.whiteSpace = 'nowrap';
+                                tooltipEl.style.cursor = 'move';
                                 if (fullscreenContainer) {
                                     fullscreenContainer.appendChild(tooltipEl);
+                                    makeTooltipDraggable(tooltipEl);
                                 }
                             }
                             const tooltipModel = context.tooltip;
@@ -4470,6 +4616,7 @@ function openChartFullscreen() {
                                 }
                                 const clearanceColor = clearanceValue >= 0 ? '#4caf50' : '#ff4444';
                                 const innerHTML = `
+                                    <div class="tooltip-drag-handle" style="position: absolute; top: 2px; right: 2px; width: 24px; height: 24px; cursor: move; display: flex; align-items: center; justify-content: center; opacity: 0.7; font-size: 16px; user-select: none;" title="拖曳移動">⠿</div>
                                     <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">位置資訊: ${index + 1}</div>
                                     <div>距離${startName}: ${distanceFromStart.toFixed(3)} km</div>
                                     <div>距離${endName}: ${distanceFromEnd.toFixed(3)} km</div>
@@ -4517,10 +4664,17 @@ function openChartFullscreen() {
                                 transformX = '-100%';
                                 tooltipX = Math.min(viewportWidth - 20, tooltipX);
                             }
-                            tooltipEl.style.transform = `translate(${transformX}, ${transformY})`;
-                            tooltipEl.style.left = tooltipX + 'px';
-                            tooltipEl.style.top = tooltipY + 'px';
-                            tooltipEl.style.opacity = '1';
+                            if (tooltipManualPosition) {
+                                tooltipEl.style.left = tooltipManualPosition.x + 'px';
+                                tooltipEl.style.top = tooltipManualPosition.y + 'px';
+                                tooltipEl.style.transform = 'translate(-50%, -50%)';
+                                tooltipEl.style.opacity = '1';
+                            } else {
+                                tooltipEl.style.transform = `translate(${transformX}, ${transformY})`;
+                                tooltipEl.style.left = tooltipX + 'px';
+                                tooltipEl.style.top = tooltipY + 'px';
+                                tooltipEl.style.opacity = '1';
+                            }
                         }
                     }
                 },
@@ -4564,12 +4718,57 @@ function openChartFullscreen() {
                     }
                 },
                 onClick: (event, elements, chart) => {
-                    console.log('全螢幕圖表點擊，elements:', elements);
+                    console.log('=== 全螢幕圖表點擊事件開始 ===');
+                    
+                    // ========== 優先度1: 檢查是否點擊到藍色訊息框 ==========
+                    const fullscreenContainer = document.getElementById('chartFullscreenOverlay');
+                    const tooltipEl = fullscreenContainer ? fullscreenContainer.querySelector('#chartjs-tooltip-fullscreen') : null;
+                    if (tooltipEl && event.native) {
+                        const target = event.native.target || event.native.srcElement;
+                        if (tooltipEl.contains(target) || tooltipEl === target) {
+                            console.log('✓ 點擊到藍色訊息框，不更新小黃點，啟動拖曳');
+                            return;
+                        }
+                    }
+                    
+                    // ========== 優先度2: 檢查是否點擊到地名標籤 ==========
+                    if (event.native) {
+                        const canvas = chart.canvas;
+                        const rect = canvas.getBoundingClientRect();
+                        const clickX = event.native.clientX - rect.left;
+                        const clickY = event.native.clientY - rect.top;
+                        
+                        console.log('點擊座標:', clickX, clickY);
+                        console.log('A標籤範圍:', window.fullscreenLabelABounds);
+                        console.log('B標籤範圍:', window.fullscreenLabelBBounds);
+                        
+                        // 檢查點是否在標籤內
+                        const checkPointInLabel = (x, y, bounds) => {
+                            if (!bounds) return false;
+                            const inBounds = x >= bounds.x && x <= bounds.x + bounds.width &&
+                                           y >= bounds.y && y <= bounds.y + bounds.height;
+                            return inBounds;
+                        };
+                        
+                        if (checkPointInLabel(clickX, clickY, window.fullscreenLabelABounds)) {
+                            console.log('✓ 點擊到A點地名標籤，不更新小黃點，啟動拖曳');
+                            return;
+                        }
+                        
+                        if (checkPointInLabel(clickX, clickY, window.fullscreenLabelBBounds)) {
+                            console.log('✓ 點擊到B點地名標籤，不更新小黃點，啟動拖曳');
+                            return;
+                        }
+                    }
+                    
+                    console.log('→ 未點擊標籤或訊息框，繼續更新小黃點');
+                    
+                    // ========== 優先度3: 正常更新小黃點位置 ==========
+                    const canvasPosition = Chart.helpers.getRelativePosition(event, chart);
                     let idx = -1;
                     if (elements.length > 0) {
                         idx = elements[0].index;
                     } else {
-                        const canvasPosition = Chart.helpers.getRelativePosition(event, chart);
                         const dataX = chart.scales.x.getValueForPixel(canvasPosition.x);
                         if (dataX !== null && dataX !== undefined) {
                             const labels = chart.data.labels;
@@ -4741,7 +4940,7 @@ function openChartFullscreen() {
                                     tooltipEl.style.borderRadius = '8px';
                                     tooltipEl.style.color = 'white';
                                     tooltipEl.style.opacity = '0';
-                                    tooltipEl.style.pointerEvents = 'none';
+                                    tooltipEl.style.pointerEvents = 'auto';
                                     tooltipEl.style.position = 'fixed';
                                     tooltipEl.style.transform = 'translate(-50%, -120%)';
                                     tooltipEl.style.transition = 'all .1s ease';
@@ -4752,7 +4951,9 @@ function openChartFullscreen() {
                                     tooltipEl.style.zIndex = '10002';
                                     tooltipEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
                                     tooltipEl.style.whiteSpace = 'nowrap';
+                                    tooltipEl.style.cursor = 'move';
                                     fullscreenContainer.appendChild(tooltipEl);
+                                    makeTooltipDraggable(tooltipEl);
                                 }
                                 const dataValue = dataset.data[idx];
                                 const totalPoints = dataset.data.length;
@@ -4784,6 +4985,7 @@ function openChartFullscreen() {
                                 }
                                 const clearanceColor = clearanceValue >= 0 ? '#4caf50' : '#ff4444';
                                 const innerHTML = `
+                                    <div class="tooltip-drag-handle" style="position: absolute; top: 2px; right: 2px; width: 24px; height: 24px; cursor: move; display: flex; align-items: center; justify-content: center; opacity: 0.7; font-size: 16px; user-select: none;" title="拖曳移動">⠿</div>
                                     <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">位置資訊: ${idx + 1}</div>
                                     <div>距離${startName}: ${distanceFromStart.toFixed(3)} km</div>
                                     <div>距離${endName}: ${distanceFromEnd.toFixed(3)} km</div>
@@ -4893,20 +5095,35 @@ function openChartFullscreen() {
             const pos = getMousePos(canvas, e);
             if (isPointInLabel(pos.x, pos.y, window.fullscreenLabelABounds)) {
                 fullscreenDraggingLabel = 'A';
+                fullscreenIgnoreNextClick = true;
                 window.fullscreenDragStartX = pos.x;
                 window.fullscreenDragStartY = pos.y;
                 window.fullscreenDragStartOffsetX = fullscreenLabelAOffset.x;
                 window.fullscreenDragStartOffsetY = fullscreenLabelAOffset.y;
                 e.preventDefault();
+                e.stopPropagation();
             } else if (isPointInLabel(pos.x, pos.y, window.fullscreenLabelBBounds)) {
                 fullscreenDraggingLabel = 'B';
+                fullscreenIgnoreNextClick = true;
                 window.fullscreenDragStartX = pos.x;
                 window.fullscreenDragStartY = pos.y;
                 window.fullscreenDragStartOffsetX = fullscreenLabelBOffset.x;
                 window.fullscreenDragStartOffsetY = fullscreenLabelBOffset.y;
                 e.preventDefault();
+                e.stopPropagation();
+            } else {
+                fullscreenIgnoreNextClick = false;
             }
         });
+        canvas.addEventListener('click', function(e) {
+            const pos = getMousePos(canvas, e);
+            if (isPointInLabel(pos.x, pos.y, window.fullscreenLabelABounds) ||
+                isPointInLabel(pos.x, pos.y, window.fullscreenLabelBBounds)) {
+                console.log('地名標籤點擊被攔截');
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
         canvas.addEventListener('mousemove', function(e) {
             if (fullscreenDraggingLabel) {
                 const pos = getMousePos(canvas, e);
@@ -5242,7 +5459,7 @@ function syncFullscreenChartAfterButtonClick(targetIndex) {
                 tooltipEl.style.borderRadius = '8px';
                 tooltipEl.style.color = 'white';
                 tooltipEl.style.opacity = '0';
-                tooltipEl.style.pointerEvents = 'none';
+                tooltipEl.style.pointerEvents = 'auto';
                 tooltipEl.style.position = 'fixed';
                 tooltipEl.style.transform = 'translate(-50%, -120%)';
                 tooltipEl.style.transition = 'all .1s ease';
@@ -5253,7 +5470,11 @@ function syncFullscreenChartAfterButtonClick(targetIndex) {
                 tooltipEl.style.zIndex = '10002';
                 tooltipEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
                 tooltipEl.style.whiteSpace = 'nowrap';
+                tooltipEl.style.cursor = 'move';
                 fullscreenContainer.appendChild(tooltipEl);
+                
+                // 立即綁定拖曳功能
+                makeTooltipDraggable(tooltipEl);
             }
             const dataValue = dataset.data[targetIndex];
             const totalPoints = dataset.data.length;
@@ -5285,6 +5506,7 @@ function syncFullscreenChartAfterButtonClick(targetIndex) {
             }
             const clearanceColor = clearanceValue >= 0 ? '#4caf50' : '#ff4444';
             const innerHTML = `
+                <div class="tooltip-drag-handle" style="position: absolute; top: 2px; right: 2px; width: 24px; height: 24px; cursor: move; display: flex; align-items: center; justify-content: center; opacity: 0.7; font-size: 16px; user-select: none;" title="拖曳移動">⠿</div>
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">位置資訊: ${targetIndex + 1}</div>
                 <div>距離${startName}: ${distanceFromStart.toFixed(3)} km</div>
                 <div>距離${endName}: ${distanceFromEnd.toFixed(3)} km</div>
@@ -5353,7 +5575,7 @@ function toggleFullscreenInfo() {
         tooltipEl.style.borderRadius = '8px';
         tooltipEl.style.color = 'white';
         tooltipEl.style.opacity = '0';
-        tooltipEl.style.pointerEvents = 'none';
+        tooltipEl.style.pointerEvents = 'auto';
         tooltipEl.style.position = 'fixed';
         tooltipEl.style.transform = 'translate(-50%, -120%)';
         tooltipEl.style.transition = 'all .1s ease';
@@ -5364,7 +5586,9 @@ function toggleFullscreenInfo() {
         tooltipEl.style.zIndex = '10002';
         tooltipEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
         tooltipEl.style.whiteSpace = 'nowrap';
+        tooltipEl.style.cursor = 'move';
         fullscreenContainer.appendChild(tooltipEl);
+        makeTooltipDraggable(tooltipEl);
     }
     if (fullscreenInfoVisible) {
         toggleBtn.classList.remove('disabled');
@@ -5475,6 +5699,7 @@ function toggleFullscreenInfo() {
                         }
                         const clearanceColor = clearanceValue >= 0 ? '#4caf50' : '#ff4444';
                         tooltipEl.innerHTML = `
+                            <div class="tooltip-drag-handle" style="position: absolute; top: 2px; right: 2px; width: 24px; height: 24px; cursor: move; display: flex; align-items: center; justify-content: center; opacity: 0.7; font-size: 16px; user-select: none;" title="拖曳移動">⠿</div>
                             <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">位置資訊: ${selectedIdx + 1}</div>
                             <div>距離${startName}: ${distanceFromStart.toFixed(3)} km</div>
                             <div>距離${endName}: ${distanceFromEnd.toFixed(3)} km</div>
@@ -5701,6 +5926,7 @@ function openInNewTabFromEmbedded() {
     }
 }
 function showMap(index, height) {
+    tooltipManualPosition = null;
     console.log('showMap() 被調用，索引:', index, '高度:', height);
     const p = pathData[index];
     const mapContainer = document.getElementById('map-container');
@@ -7185,3 +7411,22 @@ function showElevationStatus(message, type) {
 document.addEventListener('DOMContentLoaded', () => {
   initElevationTab();
 });
+
+// ===== 藍色訊息框點擊事件攔截 =====
+(function() {
+  'use strict';
+  
+  // 攔截tooltip的點擊事件，防止其冒泡到canvas觸發小黃點更新
+  document.addEventListener('click', function(e) {
+    const tooltipEl = document.getElementById('chartjs-tooltip-fullscreen');
+    if (!tooltipEl) return;
+    
+    // 檢查點擊是否在tooltip內
+    if (tooltipEl.contains(e.target) || tooltipEl === e.target) {
+      console.log('點擊藍色訊息框，阻止事件冒泡');
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  }, true);
+})();
+
