@@ -18,6 +18,88 @@ if ('serviceWorker' in navigator) {
     );
   }
 })();
+
+// ========================================
+// 🚀 TIF 檔案快取系統 - 優化剖面圖生成速度
+// ========================================
+let cachedTiffData = {
+  github: null,      // GitHub 線上檔案快取
+  local: null,       // 本地上傳檔案快取
+  url: null          // 快取的 URL
+};
+
+// 快取的圖像對象
+let cachedImageData = {
+  github: null,
+  local: null
+};
+
+/**
+ * 獲取快取的 TIFF 資料 (核心優化函數)
+ * @param {string} url - TIF 檔案 URL
+ * @param {string} source - 'github' 或 'local'  
+ * @returns {Promise<{tiff, image}>}
+ */
+async function getCachedTiff(url, source = 'github') {
+  console.log(`🔍 檢查 TIF 快取 [${source}]:`, url);
+  
+  // 如果有快取且 URL 相同,直接返回
+  if (source === 'github' && cachedTiffData.github && cachedTiffData.url === url) {
+    console.log('✅ 使用快取的 GitHub TIF 資料 (跳過 87MB 下載)');
+    return {
+      tiff: cachedTiffData.github,
+      image: cachedImageData.github
+    };
+  }
+  
+  if (source === 'local' && cachedTiffData.local) {
+    console.log('✅ 使用快取的本地 TIF 資料');
+    return {
+      tiff: cachedTiffData.local,
+      image: cachedImageData.local
+    };
+  }
+  
+  // 否則重新載入並快取
+  console.log(`📥 首次載入 TIF 檔案,建立快取 [${source}]...`);
+  const tiff = await GeoTIFF.fromUrl(url);
+  const image = await tiff.getImage();
+  
+  // 儲存到快取
+  if (source === 'github') {
+    cachedTiffData.github = tiff;
+    cachedImageData.github = image;
+    cachedTiffData.url = url;
+    console.log('💾 GitHub TIF 已快取到記憶體 (下次使用時直接讀取)');
+  } else if (source === 'local') {
+    cachedTiffData.local = tiff;
+    cachedImageData.local = image;
+    console.log('💾 本地 TIF 已快取到記憶體');
+  }
+  
+  return { tiff, image };
+}
+
+/**
+ * 清除 TIF 快取
+ */
+function clearTiffCache(source = 'all') {
+  if (source === 'all' || source === 'github') {
+    cachedTiffData.github = null;
+    cachedImageData.github = null;
+    cachedTiffData.url = null;
+    console.log('🗑️ 已清除 GitHub TIF 快取');
+  }
+  if (source === 'all' || source === 'local') {
+    cachedTiffData.local = null;
+    cachedImageData.local = null;
+    console.log('🗑️ 已清除本地 TIF 快取');
+  }
+}
+// ========================================
+// 快取系統結束
+// ========================================
+
 let link_tx_last_unit = 'w';
 function smartIncreaseSamples(baseValue) {
     const samplesInput = document.getElementById('samples');
@@ -3369,33 +3451,51 @@ async function runAnalysisWithTaiwanDSM() {
         let tiff = null;
         let image = null;
         
-        // 檢查是否有本地 TIF 檔案
+        // 🚀 優化: 使用快取系統
         if (localTifFileData && localTifFileData.tiff && localTifFileData.image) {
             console.log('✅ 使用本地 TIF 檔案:', localTifFileData.fileName);
             summary.innerHTML = `<span style="color: #ffd43b; font-weight: bold; font-size: 14px;">路徑總長度: ${totalDist.toFixed(3)} km (使用本地檔案: ${localTifFileData.fileName}<span class="loading-dots"></span>)</span>`;
-            tiff = localTifFileData.tiff;
-            image = localTifFileData.image;
+            
+            // 使用快取的本地檔案
+            const cached = await getCachedTiff(null, 'local');
+            if (!cached.tiff) {
+                // 首次使用,建立快取
+                cachedTiffData.local = localTifFileData.tiff;
+                cachedImageData.local = localTifFileData.image;
+                tiff = localTifFileData.tiff;
+                image = localTifFileData.image;
+            } else {
+                tiff = cached.tiff;
+                image = cached.image;
+            }
         } else {
-            // 使用原有的 GitHub 載入邏輯
+            // 🚀 優化: 使用快取的 GitHub 檔案 (保持原本優先順序: 先同資料夾,後 GitHub Pages)
             try {
-                tiff = await GeoTIFF.fromUrl(cogFilename);
-                console.log('成功載入 COG 檔案:', cogFilename);
+                // 優先嘗試同資料夾的檔案
+                const cached = await getCachedTiff(cogFilename, 'github');
+                tiff = cached.tiff;
+                image = cached.image;
+                console.log('成功從快取或同資料夾載入:', cogFilename);
             } catch (err) {
                 console.error('從相對路徑載入失敗，嘗試 GitHub Pages:', err);
+                // 失敗才嘗試 GitHub Pages
                 const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
                 try {
-                    tiff = await GeoTIFF.fromUrl(githubUrl);
+                    const cached = await getCachedTiff(githubUrl, 'github');
+                    tiff = cached.tiff;
+                    image = cached.image;
                     console.log('成功從 GitHub Pages 載入:', githubUrl);
                 } catch (err2) {
                     console.error('從 GitHub Pages 載入失敗:', err2);
                     throw new Error(`無法載入 COG 檔案。請確認:\n1. 檔案 "${cogFilename}" 已上傳到正確位置\n2. GitHub Pages 已啟用\n3. 檔案名稱正確（taiwan_dsm_wgs84_cog.tif）\n\n錯誤: ${err2.message}`);
                 }
             }
-            if (!tiff) {
+            
+            if (!tiff || !image) {
                 throw new Error('無法載入 COG 檔案');
             }
+            
             summary.innerHTML = `<span style="color: #ffd43b; font-weight: bold; font-size: 14px;">路徑總長度: ${totalDist.toFixed(3)} km (讀取影像資訊<span class="loading-dots"></span>)</span>`;
-            image = await tiff.getImage();
         }
         const bbox = image.getBoundingBox();
         const width = image.getWidth();
@@ -3406,7 +3506,7 @@ async function runAnalysisWithTaiwanDSM() {
         console.log('缺失數據處理方式:', nodataHandling);
         const elevations = [];
         let invalidDataCount = 0;
-        const batchSize = 50;
+        const batchSize = 100;  // 🚀 優化: 增加批次大小以提高效率
         for (let batchStart = 0; batchStart < locations.length; batchStart += batchSize) {
             const batchEnd = Math.min(batchStart + batchSize, locations.length);
             const batch = locations.slice(batchStart, batchEnd);
@@ -7659,6 +7759,11 @@ async function handleLocalTifFile(event) {
       fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB'
     };
     
+    // 🚀 優化: 同時快取到記憶體
+    cachedTiffData.local = tiff;
+    cachedImageData.local = image;
+    console.log('💾 本地 TIF 檔案已快取到記憶體');
+    
     // 顯示檔案資訊
     fileInfo.textContent = `✅ 已載入: ${file.name} (${localTifFileData.fileSize})`;
     fileInfo.style.color = '#36c74d';
@@ -7689,6 +7794,10 @@ async function handleLocalTifFile(event) {
 
 function clearLocalTifFile() {
   localTifFileData = null;
+  
+  // 🚀 優化: 清除本地檔案快取
+  clearTiffCache('local');
+  
   document.getElementById('localTifFile').value = '';
   const fileInfo = document.getElementById('localFileInfo');
   fileInfo.textContent = '';
