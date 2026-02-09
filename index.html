@@ -836,6 +836,13 @@ div.gps-ig.orange-border-card,
       <button class="btn" onclick="lsSave()" style="flex:1; padding:5.6px 11.2px; font-size:16px; white-space:nowrap;" title="保存參數">💾</button>
     </div>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:nowrap;">
+      <label style="color:var(--label); font-size:15px; font-weight:600; white-space:nowrap;">🔍 搜尋：</label>
+      <div style="flex:1; position:relative;">
+        <input id="archive_search" type="text" placeholder="輸入存檔名稱..." oninput="lsLoadTable()" style="width:100%; padding:6px 30px 6px 10px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
+        <button onclick="clearArchiveSearch()" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; font-size:18px; padding:0 4px; line-height:1;" title="清除搜尋">×</button>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:nowrap;">
       <label style="color:var(--label); font-size:15px; font-weight:600; white-space:nowrap;">排列方式：</label>
       <select id="sort_order" onchange="lsLoadTable()" style="flex:1; padding:6px 10px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
         <option value="time-new">檔案 新 ⮕ 舊</option>
@@ -7044,8 +7051,19 @@ function lsLoadTable(){
   tb.innerHTML="";
   const all=JSON.parse(localStorage.getItem(LS_KEY)||"{}");
   let entries = Object.entries(all);
+  
+  // 取得搜尋關鍵字
+  const searchInput = document.getElementById("archive_search");
+  const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : "";
+  
+  // 如果有搜尋關鍵字，進行過濾
+  if(searchTerm) {
+    entries = entries.filter(([name]) => name.toLowerCase().includes(searchTerm));
+  }
+  
   if(entries.length === 0){
-    tb.innerHTML="<tr><td colspan='2' style='text-align:center; padding:16px; color:var(--muted);'>尚無已保存的參數</td></tr>";
+    const noResultMsg = searchTerm ? "找不到符合的存檔" : "尚無已保存的參數";
+    tb.innerHTML=`<tr><td colspan='2' style='text-align:center; padding:16px; color:var(--muted);'>${noResultMsg}</td></tr>`;
     return;
   }
   const sortOrder = document.getElementById("sort_order")?.value || "time-new";
@@ -7103,6 +7121,13 @@ function updateNamePreview() {
     suffix.textContent = dateStr;
   } else {
     suffix.textContent = '';
+  }
+}
+function clearArchiveSearch() {
+  const searchInput = document.getElementById("archive_search");
+  if (searchInput) {
+    searchInput.value = "";
+    lsLoadTable();
   }
 }
 function fillNameWithDate(name) {
