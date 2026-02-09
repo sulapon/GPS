@@ -1,34 +1,9 @@
 <!doctype html><html lang="zh-Hant"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"> <script>
-
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async function() {
-    try {
-      const reg = await navigator.serviceWorker.register('/GPS/service-worker.js');
-      console.log('✅ Service Worker 註冊成功', reg);
-
-      // ===== Request Persistent Storage =====
-      if (navigator.storage && navigator.storage.persist) {
-        const granted = await navigator.storage.persist();
-        console.log('📦 Persistent Storage:', granted ? '已授權 (避免TIF被清理)' : '未授權');
-      }
-
-    } catch(err) {
-      console.log('❌ Service Worker 註冊失敗', err);
-    }
-  });
-}
-
-// ===== Canvas Mode Performance Check =====
-// (for Leaflet or canvas-supported map engines)
-window.addEventListener('DOMContentLoaded', function() {
-  try {
-    if (window.L && L.Map) {
-      console.log('🎯 Leaflet 偵測到，建議使用 preferCanvas:true 提升效能');
-      // developer reminder only; actual map init may be elsewhere
-    }
-  } catch(e) {}
-});
-.catch(function(err) { console.log('❌ Service Worker 註冊失敗', err); });
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/GPS/service-worker.js')
+      .then(function(reg) { console.log('✅ Service Worker 註冊成功', reg); })
+      .catch(function(err) { console.log('❌ Service Worker 註冊失敗', err); });
   });
 }
 (function () {
