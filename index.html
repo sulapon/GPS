@@ -770,7 +770,7 @@ div.gps-ig.orange-border-card,
 <div style="margin-top:6px;">
   <button class="btn ghost" onclick="toggleRefraction()" id="refBtn" style="color: #bb66ff;">目前：不含大氣折射</button>
 </div>
-<div class="results-card-border" id="los_output">最大通視距離:</div></section><section class="card section-item" id="section-fspl"><div class="section-header-with-controls"><div class="section-title">5. 自由空間損耗 (Free Space Path Loss, FSPL)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-fspl')">預設</button><button class="btn btn-clear" onclick="clearSection('section-fspl')">清除</button></div></div><div class="input-group-border"><label for="fspl_freq">頻率 (Frequency) [MHz]:</label><div class="input-with-clear"><input id="fspl_freq" oninput="calculateFSPL()" placeholder="例如: 2400 (2.4 GHz)" type="number" value="2400"/><button class="clear-button" onclick="clearAndRecalculate('fspl_freq', 'calculateFSPL')">×</button></div><label for="fspl_dist">距離 (Distance) [km]:</label><div class="input-with-clear"><input id="fspl_dist" oninput="calculateFSPL()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('fspl_dist', 'calculateFSPL')">×</button></div></div><div class="results-card-border" id="fspl_output">自由空間衰減量 (FSPL):</div></section><section class="card section-item" id="section-linkbudget"><div class="section-header-with-controls"><div class="section-title">6. 通訊模擬 (Link Budget)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-linkbudget')">預設</button><button class="btn btn-clear" onclick="clearSection('section-linkbudget')">清除</button></div></div><div class="input-group-border"><div class="los-point-title" style="margin-top: 0;">通信參數</div><div class="los-input-container"><div class="input-item"><label for="link_freq_mhz">頻率 (Frequency) [MHz]:</label><div class="input-with-clear"><input id="link_freq_mhz" oninput="calculateLinkBudget()" placeholder="例如: 2400 (2.4 GHz)" type="number" value="2400"/><button class="clear-button" onclick="clearAndRecalculate('link_freq_mhz', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_dist_km">距離 (Distance) [km]:</label><div class="input-with-clear"><input id="link_dist_km" oninput="calculateLinkBudget()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('link_dist_km', 'calculateLinkBudget')">×</button></div></div></div><div class="los-point-title">發射端 (Tx)</div><label for="link_tx_power_unit">發射功率輸入單位:</label><select id="link_tx_power_unit" onchange="swapLinkTxUnit()"><option value="w">W</option><option value="dbm">dBm</option></select><div class="los-input-container"><div class="input-item"><label for="link_tx_power_input">發射功率 (Tx Power) [W/dBm]:</label><div class="input-with-clear"><input id="link_tx_power_input" oninput="calculateLinkBudget()" placeholder="例如: 1 (1W)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_power_input', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_tx_gain_dbi">天線增益 (Tx Gain) [dBi]:</label><div class="input-with-clear"><input id="link_tx_gain_dbi" oninput="calculateLinkBudget()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_gain_dbi', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_tx_loss_db">線損 (Tx Loss) [dB]:</label><div class="input-with-clear"><input id="link_tx_loss_db" oninput="calculateLinkBudget()" placeholder="例如: 3 (3 dB)" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_loss_db', 'calculateLinkBudget')">×</button></div></div></div><div class="los-point-title">接收端 (Rx)</div><div class="los-input-container"><div class="input-item"><label for="link_rx_gain_dbi">天線增益 (Rx Gain) [dBi]:</label><div class="input-with-clear"><input id="link_rx_gain_dbi" oninput="calculateLinkBudget()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('link_rx_gain_dbi', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_rx_loss_db">線損 (Rx Loss) [dB]:</label><div class="input-with-clear"><input id="link_rx_loss_db" oninput="calculateLinkBudget()" placeholder="例如: 2 (2 dB)" type="number" value="2"/><button class="clear-button" onclick="clearAndRecalculate('link_rx_loss_db', 'calculateLinkBudget')">×</button></div></div></div></div><div class="results-card-border" id="linkbudget_output">接收訊號強度:</div></section></div><div id="elevation-content" class="tab-content">
+<div class="results-card-border" id="los_output">最大通視距離:</div></section><section class="card section-item" id="section-fspl"><div class="section-header-with-controls"><div class="section-title">5. 自由空間損耗 (Free Space Path Loss, FSPL)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-fspl')">預設</button><button class="btn btn-clear" onclick="clearSection('section-fspl')">清除</button></div></div><div class="input-group-border"><label for="fspl_freq">頻率 (Frequency) [MHz]:</label><div class="input-with-clear"><input id="fspl_freq" oninput="calculateFSPL()" placeholder="例如: 2400 (2.4 GHz)" type="number" value="2400"/><button class="clear-button" onclick="clearAndRecalculate('fspl_freq', 'calculateFSPL')">×</button></div><label for="fspl_dist">距離 (Distance) [km]:</label><div class="input-with-clear"><input id="fspl_dist" oninput="calculateFSPL()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('fspl_dist', 'calculateFSPL')">×</button></div></div><div class="results-card-border" id="fspl_output">自由空間衰減量 (FSPL):</div></section><section class="card section-item" id="section-linkbudget"><div class="section-header-with-controls"><div class="section-title">6. 通訊模擬 (Link Budget)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-linkbudget')">預設</button><button class="btn btn-clear" onclick="clearSection('section-linkbudget')">清除</button></div></div><div class="input-group-border"><div class="los-point-title" style="margin-top: 0;">通信參數</div><div class="los-input-container"><div class="input-item"><label for="link_freq_mhz">頻率 (Frequency) [MHz]:</label><div class="input-with-clear"><input id="link_freq_mhz" oninput="calculateLinkBudget()" placeholder="例如: 2400 (2.4 GHz)" type="number" value="2400"/><button class="clear-button" onclick="clearAndRecalculate('link_freq_mhz', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_dist_km">距離 (Distance) [km]:</label><div class="input-with-clear"><input id="link_dist_km" oninput="calculateLinkBudget()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('link_dist_km', 'calculateLinkBudget')">×</button></div></div></div><div class="los-point-title">發射端 (Tx)</div><label for="link_tx_power_unit">發射功率輸入單位:</label><select id="link_tx_power_unit" onchange="swapLinkTxUnit()"><option value="w">W</option><option value="dbm">dBm</option></select><div class="los-input-container"><div class="input-item"><label for="link_tx_power_input">發射功率 (Tx Power) [W/dBm]:</label><div class="input-with-clear"><input id="link_tx_power_input" oninput="calculateLinkBudget()" placeholder="例如: 1 (1W)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_power_input', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_tx_gain_dbi">天線增益 (Tx Gain) [dBi]:</label><div class="input-with-clear"><input id="link_tx_gain_dbi" oninput="calculateLinkBudget()" placeholder="例如: 3" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_gain_dbi', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_tx_loss_db">線損 (Tx Loss) [dB]:</label><div class="input-with-clear"><input id="link_tx_loss_db" oninput="calculateLinkBudget()" placeholder="例如: 3 (3 dB)" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_loss_db', 'calculateLinkBudget')">×</button></div></div></div><div class="los-point-title">接收端 (Rx)</div><div class="los-input-container"><div class="input-item"><label for="link_rx_gain_dbi">天線增益 (Rx Gain) [dBi]:</label><div class="input-with-clear"><input id="link_rx_gain_dbi" oninput="calculateLinkBudget()" placeholder="例如: 3" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_rx_gain_dbi', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_rx_loss_db">線損 (Rx Loss) [dB]:</label><div class="input-with-clear"><input id="link_rx_loss_db" oninput="calculateLinkBudget()" placeholder="例如: 3 (3 dB)" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_rx_loss_db', 'calculateLinkBudget')">×</button></div></div></div></div><div class="results-card-border" id="linkbudget_output">接收訊號強度:</div></section></div><div id="elevation-content" class="tab-content">
 <div class="card">
 <h2 class="section-title" style="margin-top: 0;">地形遮蔽分析 - 路徑高度圖</h2>
 <div class="orange-border-card" style="padding: 10px 12px; margin-bottom: 15px;">
@@ -4926,6 +4926,47 @@ function getDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
 }
+
+/**
+ * 計算包含天線高度的3D路徑總長度 (考慮地球曲度)
+ * @param {number} lat1 - A點緯度
+ * @param {number} lon1 - A點經度
+ * @param {number} lat2 - B點緯度
+ * @param {number} lon2 - B點經度
+ * @param {number} antennaHeight1 - A點天線高度 (公尺)
+ * @param {number} antennaHeight2 - B點天線高度 (公尺)
+ * @returns {number} 3D直線距離 (公里)
+ */
+function getDistance3D(lat1, lon1, lat2, lon2, antennaHeight1 = 0, antennaHeight2 = 0) {
+    const R = 6371; // 地球半徑 (公里)
+    
+    // 將經緯度轉換為弧度
+    const lat1Rad = lat1 * Math.PI / 180;
+    const lon1Rad = lon1 * Math.PI / 180;
+    const lat2Rad = lat2 * Math.PI / 180;
+    const lon2Rad = lon2 * Math.PI / 180;
+    
+    // 計算兩點從地心的距離 (地球半徑 + 天線高度)
+    const r1 = R + antennaHeight1 / 1000; // 轉換公尺為公里
+    const r2 = R + antennaHeight2 / 1000;
+    
+    // 將球面座標轉換為3D直角座標系 (地心為原點)
+    const x1 = r1 * Math.cos(lat1Rad) * Math.cos(lon1Rad);
+    const y1 = r1 * Math.cos(lat1Rad) * Math.sin(lon1Rad);
+    const z1 = r1 * Math.sin(lat1Rad);
+    
+    const x2 = r2 * Math.cos(lat2Rad) * Math.cos(lon2Rad);
+    const y2 = r2 * Math.cos(lat2Rad) * Math.sin(lon2Rad);
+    const z2 = r2 * Math.sin(lat2Rad);
+    
+    // 計算3D空間中的直線距離 (弦長)
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const dz = z2 - z1;
+    const distance3D = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    
+    return distance3D;
+}
 document.addEventListener('DOMContentLoaded', function() {
     const apiSelector = document.getElementById('elevationApiSelector');
     if (apiSelector) {
@@ -5071,7 +5112,24 @@ async function runAnalysisWithGoogleMaps() {
             }
         }
         console.log('Google Maps 高度數據總數:', elevations.length);
-        summary.innerHTML = `<span style="color: #27ae60; font-weight: bold; font-size: 14px;">✓ 路徑總長度: ${totalDist.toFixed(3)} km (Google Maps API)</span>`;
+        
+        // 讀取天線高度
+        const antennaHeightStart = parseFloat(document.getElementById('antennaHeightStart').value) || 0;
+        const antennaHeightEnd = parseFloat(document.getElementById('antennaHeightEnd').value) || 0;
+        
+        // 計算包含天線高度的3D總距離
+        const totalDist3D = getDistance3D(sLat, sLng, eLat, eLng, antennaHeightStart, antennaHeightEnd);
+        const heightDiff = antennaHeightEnd - antennaHeightStart;
+        
+        let statusMessage = `<span style="color: #27ae60; font-weight: bold; font-size: 14px;">✓ 路徑總長度: ${totalDist.toFixed(3)} km (Google Maps API)</span>`;
+        
+        // 如果有設定天線高度,顯示3D距離
+        if (antennaHeightStart > 0 || antennaHeightEnd > 0) {
+            statusMessage += `<br><span style="color: #5ff0d5; font-size: 13px;">📡 含天線高度 3D 距離: ${totalDist3D.toFixed(3)} km</span>`;
+            statusMessage += `<br><span style="color: #85c9ff; font-size: 12px;">   (A點天線: ${antennaHeightStart}m, B點天線: ${antennaHeightEnd}m, 高度差: ${heightDiff >= 0 ? '+' : ''}${heightDiff}m)</span>`;
+        }
+        
+        summary.innerHTML = statusMessage;
         renderChart(elevations);
     } catch (err) {
         console.error('Google Maps API 錯誤:', err);
@@ -5263,7 +5321,23 @@ async function runAnalysisWithTaiwanDSM() {
         }
         console.log('Taiwan DSM 高度數據總數:', elevations.length);
         console.log('無效數據點數量:', invalidDataCount);
+        
+        // 讀取天線高度
+        const antennaHeightStart = parseFloat(document.getElementById('antennaHeightStart').value) || 0;
+        const antennaHeightEnd = parseFloat(document.getElementById('antennaHeightEnd').value) || 0;
+        
+        // 計算包含天線高度的3D總距離
+        const totalDist3D = getDistance3D(sLat, sLng, eLat, eLng, antennaHeightStart, antennaHeightEnd);
+        const heightDiff = antennaHeightEnd - antennaHeightStart;
+        
         let statusMessage = `<span style="color: #27ae60; font-weight: bold; font-size: 14px;">✓ 路徑總長度: ${totalDist.toFixed(3)} km (內政部 DSM 20m)</span>`;
+        
+        // 如果有設定天線高度,顯示3D距離
+        if (antennaHeightStart > 0 || antennaHeightEnd > 0) {
+            statusMessage += `<br><span style="color: #5ff0d5; font-size: 13px;">📡 含天線高度 3D 距離: ${totalDist3D.toFixed(3)} km</span>`;
+            statusMessage += `<br><span style="color: #85c9ff; font-size: 12px;">   (A點天線: ${antennaHeightStart}m, B點天線: ${antennaHeightEnd}m, 高度差: ${heightDiff >= 0 ? '+' : ''}${heightDiff}m)</span>`;
+        }
+        
         if (invalidDataCount > 0) {
             const invalidPercent = ((invalidDataCount / elevations.length) * 100).toFixed(1);
             statusMessage += `<br><span style="color: #ffd43b; font-size: 12px;">⚠️ 檢測到 ${invalidDataCount} 個無效數據點 (${invalidPercent}%) - 已使用「${
@@ -5369,6 +5443,23 @@ function renderChart(elevations) {
     const eLng = parseFloat(document.getElementById('eLng').value);
     const totalDist = getDistance(sLat, sLng, eLat, eLng);
     const totalDistM = totalDist * 1000;
+    
+    // 🎯 同步更新RF工具的Link Budget距離 (使用包含天線高度的3D距離)
+    const linkDistInput = document.getElementById('link_dist_km');
+    if (linkDistInput) {
+        // 計算包含天線高度的3D距離
+        const totalDist3D = getDistance3D(sLat, sLng, eLat, eLng, antennaHeightStart, antennaHeightEnd);
+        
+        // 使用3D距離更新Link Budget
+        linkDistInput.value = totalDist3D.toFixed(3);
+        
+        // 觸發Link Budget重新計算
+        if (typeof calculateLinkBudget === 'function') {
+            calculateLinkBudget();
+        }
+        
+        console.log('已同步更新Link Budget距離:', totalDist3D.toFixed(3), 'km (含天線高度)');
+    }
     const losLineWithCurvature = adjustedElevations.map((_, i) => {
         const f = i / (adjustedElevations.length - 1);
         const distFromStart = totalDistM * f;
