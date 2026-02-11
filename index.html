@@ -173,6 +173,8 @@ function swapLinkTxUnit() {
 }
 </script> <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,minimal-ui" /><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>計算工具</title><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <meta name="theme-color" content="#071026"><style> :root{ --bg-0:#050a16; --bg-1:#0b1526; --muted:#a8b3c3; --label:#85c9ff; --title:#ffe58f; --value:#5ff0d5; --accent1:#5ff0d5; --accent2:#79a8ff; --orange-border: #ffaa00; --glass: rgba(255,255,255,0.06); --shadow: 0 4px 12px rgba(0,0,0,0.40); font-size:24px; --gps-error-border: #dc3545; --rf-green-start: #36c74d; --rf-green-end: #1e8030; --rf-green-border: #1e8030; --red-clear: #dd4444; --purple-accent: #bb66ff; } *{box-sizing:border-box}
@@ -764,7 +766,7 @@ div.gps-ig.orange-border-card,
     splash.style.transition = "0.4s";
     setTimeout(() => splash.remove(), 400);
   }, 500);
-</script> <header></header><main><div class="tabs"><button class="tab-button active" data-tab="rftool" onclick="showTab('rftool')">📡 RF工具</button><button class="tab-button" data-tab="rf" onclick="showTab('rf')">〰️ 線損</button><button class="tab-button" data-tab="gps" onclick="showTab('gps')">🌍 GPS</button><button class="tab-button" data-tab="elevation" onclick="showTab('elevation')">📈 高度圖</button><button class="tab-button" data-tab="compass" onclick="showTab('compass')">🧭 指北針</button><button class="tab-button" data-tab="archive" onclick="showTab('archive')">💾 存檔</button></div><div id="rf-content" class="tab-content"><div class="rf-header"><div class="section-title">TIMES 線損計算</div><div class="unit-selector-row"><label for="unit" class="unit-label">長度單位：</label><select id="unit"><option value="m">公尺 (m)</option><option value="ft">英尺 (ft)</option></select></div></div><section class="card orange-border-card" style="margin-top: 6px;"><div class="form-grid"><div><label for="freq">頻率 (MHz)</label><div class="input-with-clear-rf"><input id="freq" type="number" value="900" min="0" step="1"><button class="clear-btn-rf" onclick="clearRfInput('freq')">✖</button></div></div><div><label for="lenInput">長度</label><div class="input-with-clear-rf"><input id="lenInput" type="number" value="10" min="0" step="0.01"><button class="clear-btn-rf" onclick="clearRfInput('lenInput')">✖</button></div></div></div><div id="liveInputs" class="small-note">輸入並按「計算」查看結果。</div></section><div class="btn-row" style="margin-top: 6px; margin-bottom: 6px;"><button id="calc" class="btn" onclick="compute()">計算</button><button id="reset" class="btn ghost" onclick="resetRf()">預設</button><button id="clear" class="btn clear" onclick="clearRf()">清除</button></div><section class="card results-card-border"><span class="section-title">計算結果（由小到大）</span><div id="tableArea"></div></section></div><div id="gps-content" class="tab-content gps-container"><div class="card"><h2 class="section-title" style="margin-top: 0;">兩點GPS 距離、方位角與俯仰角計算</h2><p class="gps-tip">考慮地球曲率與高度差 (WGS84)</p><div class="display-mode-container"><span class="display-mode-text">顯示格式</span><select id="displayMode" style="padding:6px;border-radius:6px;font-size:14px;"><option value="decimal">度 — 十進制 (DD)</option><option value="dms">度分秒 (DMS)</option></select></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 A <div style="display: flex; align-items: center; gap: 5px; flex: 1;"><input type="text" id="nameA" placeholder="地名 A" maxlength="5" style="flex: 1;"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('A')">✖</button><button class="btn" style="background: linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getCurrentLocation('A')" title="讀取當前GPS位置">📍</button><button class="btn" style="background: linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="openMapPicker('A')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latA" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latA_deg" placeholder="度" oninput="dmsToD('latA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latA_min" placeholder="分" oninput="dmsToD('latA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latA_sec" placeholder="秒" step="0.01" oninput="dmsToD('latA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonA" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonA_deg" placeholder="度" oninput="dmsToD('lonA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonA_min" placeholder="分" oninput="dmsToD('lonA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonA_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div></div><div class="gps-er"><label for="eleA">高度 (Elevation)</label><div style="position: relative; flex-grow: 1.2;"><input type="number" id="eleA" placeholder="請輸入數值" step="0.01"><span id="eleA-loading" style="position: absolute; top: 50%; left: 0; transform: translateY(-50%); color: #ffd43b; font-weight: bold; display: none; pointer-events: none; padding: 4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('A')">✖</button><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 6px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getElevationFromSRTM('A')">取得高度</button></div></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 B <div style="display: flex; align-items: center; gap: 5px; flex: 1;"><input type="text" id="nameB" placeholder="地名 B" maxlength="5" style="flex: 1;"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('B')">✖</button><button class="btn" style="background: linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getCurrentLocation('B')" title="讀取當前GPS位置">📍</button><button class="btn" style="background: linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="openMapPicker('B')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latB" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latB_deg" placeholder="度" oninput="dmsToD('latB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latB_min" placeholder="分" oninput="dmsToD('latB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latB_sec" placeholder="秒" step="0.01" oninput="dmsToD('latB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonB" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonB_deg" placeholder="度" oninput="dmsToD('lonB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonB_min" placeholder="分" oninput="dmsToD('lonB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonB_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div></div><div class="gps-er"><label for="eleB">高度 (Elevation)</label><div style="position: relative; flex-grow: 1.2;"><input type="number" id="eleB" placeholder="請輸入數值" step="0.01"><span id="eleB-loading" style="position: absolute; top: 50%; left: 0; transform: translateY(-50%); color: #ffd43b; font-weight: bold; display: none; pointer-events: none; padding: 4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('B')">✖</button><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 6px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getElevationFromSRTM('B')">取得高度</button></div></div></div><div id="gps-controls-container"><div class="btn-row" style="margin-top: 5px; margin-bottom: 5px; gap: 12px; display: flex !important; width: 100% !important; justify-content: space-between !important;"><button id="gpsCalcBtn" class="btn" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="calculate()">計算</button><button id="gpsSwapBtn" class="btn" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important; background: linear-gradient(90deg, #bb66ff, #9945ff) !important; color: #fff !important;" onclick="swapGpsCoordinates()">互換A↔B</button><button id="gpsResetBtn" class="btn ghost" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="resetGps()">預設</button><button id="gpsClearBtn" class="btn clear" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="clearAllGps()">清除</button></div><div id="gpsRes"> 點擊「計算」以顯示結果 </div></div></div><header></header><div class="tab-content active" id="rftool-content"><div class="rf-header"><div class="section-title">🚀 綜合 RF工具</div></div><div class="function-selector-container"><label for="function_selector">選擇顯示功能模組:</label><select id="function_selector" onchange="toggleSections()"><option value="ALL">ALL - 顯示所有計算器</option><option value="power">1. 功率轉換 (dBm / W)</option><option value="matching">2. 匹配度參數換算</option><option value="sensitivity">3. 系統靈敏度 (Sensitivity) 計算</option><option value="los">4. 通視最大距離計算</option><option value="fspl">5. 自由空間損耗 (FSPL)</option><option value="linkbudget">6. 通訊模擬 (Link Budget)</option></select></div><section class="card section-item" id="section-power"><div class="section-header-with-controls"><div class="section-title">1. 功率轉換 (dBm / W)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-power')">預設</button><button class="btn btn-clear" onclick="clearSection('section-power')">清除</button></div></div><div class="input-group-border"><label for="power_unit">選擇輸入單位:</label><select id="power_unit" onchange="swapAndCalculate()"><option value="w">W</option><option value="dbm">dBm</option></select><label for="power_input">輸入數值:</label><div class="input-with-clear"><input id="power_input" oninput="calculateDbmWNew()" placeholder="輸入數值" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('power_input', 'calculateDbmWNew')">×</button></div></div><div class="results-card-border" id="power_output_result">換算結果:</div></section><section class="card section-item" id="section-matching"><div class="section-header-with-controls"><div class="section-title">2. 匹配度參數換算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-matching')">預設</button><button class="btn btn-clear" onclick="clearSection('section-matching')">清除</button></div></div><div class="input-group-border"><label for="matching_unit">選擇輸入參數:</label><select id="matching_unit" onchange="swapAndConvertMatching()"><option value="rl">回波損耗 (Return Loss, RL) [dB]</option><option value="vswr">駐波比 (VSWR)</option><option value="gamma">反射係數 (V, Γ)</option><option value="refl_pct">反射功率 [%]</option><option value="pass_pct">通過功率 [%]</option></select><label for="matching_input_value" style="margin-top: 8px;">輸入數值:</label><div class="input-with-clear"><input id="matching_input_value" oninput="calculateMatching()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('matching_input_value', 'calculateMatching')">×</button></div></div><div class="results-card-border" id="matching_output"> 回波損耗 (RL) [dB]: <span class="result-value" id="rl_val"></span><br/> 駐波比 (VSWR): <span class="result-value" id="vswr_val"></span><br/> 反射係數 (V，Γ): <span class="result-value" id="gamma_val"></span><br/> 反射功率 [%]: <span class="result-value" id="refl_percent"></span><br/> 通過功率 [%]: <span class="result-value" id="pass_percent"></span></div></section><section class="card section-item" id="section-sensitivity"><div class="section-header-with-controls"><div class="section-title">3. 系統靈敏度 (Sensitivity) 計算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-sensitivity')">預設</button><button class="btn btn-clear" onclick="clearSection('section-sensitivity')">清除</button></div></div><div class="input-group-border"><label for="sensitivity_bw">訊號頻寬 (BW) [MHz]:</label><div class="input-with-clear"><input id="sensitivity_bw" oninput="calculateSensitivity()" placeholder="例如: 1 (1MHz)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_bw', 'calculateSensitivity')">×</button></div><label for="sensitivity_nf">雜訊指數 (Noise Figure, NF) [dB]:</label><div class="input-with-clear"><input id="sensitivity_nf" oninput="calculateSensitivity()" placeholder="例如: 5" type="number" value="5"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_nf', 'calculateSensitivity')">×</button></div><label for="sensitivity_sn">所需訊雜比 (S/N) [dB]:</label><div class="input-with-clear"><input id="sensitivity_sn" oninput="calculateSensitivity()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_sn', 'calculateSensitivity')">×</button></div></div><div class="results-card-border" id="sensitivity_output">接收器靈敏度 (Sensitivity):</div></section><section class="card section-item" id="section-los"><div class="section-header-with-controls"><div class="section-title">4. 通視最大距離計算 (地球曲度遮蔽)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-los')">預設</button><button class="btn btn-clear" onclick="clearSection('section-los')">清除</button></div></div><div class="input-group-border"><div class="los-point-title">A 點</div><div class="los-input-container"><div class="input-item"><label for="los_g1">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g1" oninput="calculateMaxLOS()" placeholder="例如: 100" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g1', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h1">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h1" oninput="calculateMaxLOS()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('los_h1', 'calculateMaxLOS')">×</button></div></div></div><div class="los-point-title">B 點</div><div class="los-input-container"><div class="input-item"><label for="los_g2">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g2" oninput="calculateMaxLOS()" placeholder="例如: 150" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g2', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h2">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h2" oninput="calculateMaxLOS()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('los_h2', 'calculateMaxLOS')">×</button></div></div></div></div>
+</script> <header></header><main><div class="tabs"><button class="tab-button active" data-tab="rftool" onclick="showTab('rftool')">📡 RF工具</button><button class="tab-button" data-tab="rf" onclick="showTab('rf')">〰️ 線損</button><button class="tab-button" data-tab="gps" onclick="showTab('gps')">🌍 GPS</button><button class="tab-button" data-tab="elevation" onclick="showTab('elevation')">📈 高度圖</button><button class="tab-button" data-tab="report" onclick="showTab('report')">📄 報告</button><button class="tab-button" data-tab="compass" onclick="showTab('compass')">🧭 指北針</button><button class="tab-button" data-tab="archive" onclick="showTab('archive')">💾 存檔</button></div><div id="rf-content" class="tab-content"><div class="rf-header"><div class="section-title">TIMES 線損計算</div><div class="unit-selector-row"><label for="unit" class="unit-label">長度單位：</label><select id="unit"><option value="m">公尺 (m)</option><option value="ft">英尺 (ft)</option></select></div></div><section class="card orange-border-card" style="margin-top: 6px;"><div class="form-grid"><div><label for="freq">頻率 (MHz)</label><div class="input-with-clear-rf"><input id="freq" type="number" value="900" min="0" step="1"><button class="clear-btn-rf" onclick="clearRfInput('freq')">✖</button></div></div><div><label for="lenInput">長度</label><div class="input-with-clear-rf"><input id="lenInput" type="number" value="10" min="0" step="0.01"><button class="clear-btn-rf" onclick="clearRfInput('lenInput')">✖</button></div></div></div><div id="liveInputs" class="small-note">輸入並按「計算」查看結果。</div></section><div class="btn-row" style="margin-top: 6px; margin-bottom: 6px;"><button id="calc" class="btn" onclick="compute()">計算</button><button id="reset" class="btn ghost" onclick="resetRf()">預設</button><button id="clear" class="btn clear" onclick="clearRf()">清除</button></div><section class="card results-card-border"><span class="section-title">計算結果（由小到大）</span><div id="tableArea"></div></section></div><div id="gps-content" class="tab-content gps-container"><div class="card"><h2 class="section-title" style="margin-top: 0;">兩點GPS 距離、方位角與俯仰角計算</h2><p class="gps-tip">考慮地球曲率與高度差 (WGS84)</p><div class="display-mode-container"><span class="display-mode-text">顯示格式</span><select id="displayMode" style="padding:6px;border-radius:6px;font-size:14px;"><option value="decimal">度 — 十進制 (DD)</option><option value="dms">度分秒 (DMS)</option></select></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 A <div style="display: flex; align-items: center; gap: 5px; flex: 1;"><input type="text" id="nameA" placeholder="地名 A" maxlength="5" style="flex: 1;"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('A')">✖</button><button class="btn" style="background: linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getCurrentLocation('A')" title="讀取當前GPS位置">📍</button><button class="btn" style="background: linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="openMapPicker('A')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latA" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latA_deg" placeholder="度" oninput="dmsToD('latA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latA_min" placeholder="分" oninput="dmsToD('latA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latA_sec" placeholder="秒" step="0.01" oninput="dmsToD('latA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonA" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonA_deg" placeholder="度" oninput="dmsToD('lonA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonA_min" placeholder="分" oninput="dmsToD('lonA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonA_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div></div><div class="gps-er"><label for="eleA">高度 (Elevation)</label><div style="position: relative; flex-grow: 1.2;"><input type="number" id="eleA" placeholder="請輸入數值" step="0.01"><span id="eleA-loading" style="position: absolute; top: 50%; left: 0; transform: translateY(-50%); color: #ffd43b; font-weight: bold; display: none; pointer-events: none; padding: 4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('A')">✖</button><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 6px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getElevationFromSRTM('A')">取得高度</button></div></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 B <div style="display: flex; align-items: center; gap: 5px; flex: 1;"><input type="text" id="nameB" placeholder="地名 B" maxlength="5" style="flex: 1;"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('B')">✖</button><button class="btn" style="background: linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getCurrentLocation('B')" title="讀取當前GPS位置">📍</button><button class="btn" style="background: linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="openMapPicker('B')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latB" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latB_deg" placeholder="度" oninput="dmsToD('latB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latB_min" placeholder="分" oninput="dmsToD('latB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latB_sec" placeholder="秒" step="0.01" oninput="dmsToD('latB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonB" placeholder="十進制數值" step="0.000001"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonB_deg" placeholder="度" oninput="dmsToD('lonB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonB_min" placeholder="分" oninput="dmsToD('lonB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonB_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div></div><div class="gps-er"><label for="eleB">高度 (Elevation)</label><div style="position: relative; flex-grow: 1.2;"><input type="number" id="eleB" placeholder="請輸入數值" step="0.01"><span id="eleB-loading" style="position: absolute; top: 50%; left: 0; transform: translateY(-50%); color: #ffd43b; font-weight: bold; display: none; pointer-events: none; padding: 4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('B')">✖</button><button class="btn" style="background: linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 6px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; min-width: fit-content;" onclick="getElevationFromSRTM('B')">取得高度</button></div></div></div><div id="gps-controls-container"><div class="btn-row" style="margin-top: 5px; margin-bottom: 5px; gap: 12px; display: flex !important; width: 100% !important; justify-content: space-between !important;"><button id="gpsCalcBtn" class="btn" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="calculate()">計算</button><button id="gpsSwapBtn" class="btn" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important; background: linear-gradient(90deg, #bb66ff, #9945ff) !important; color: #fff !important;" onclick="swapGpsCoordinates()">互換A↔B</button><button id="gpsResetBtn" class="btn ghost" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="resetGps()">預設</button><button id="gpsClearBtn" class="btn clear" style="flex: 1 1 0% !important; min-width: 0 !important; width: 25% !important; box-sizing: border-box !important;" onclick="clearAllGps()">清除</button></div><div id="gpsRes"> 點擊「計算」以顯示結果 </div></div></div><header></header><div class="tab-content active" id="rftool-content"><div class="rf-header"><div class="section-title">🚀 綜合 RF工具</div></div><div class="function-selector-container"><label for="function_selector">選擇顯示功能模組:</label><select id="function_selector" onchange="toggleSections()"><option value="ALL">ALL - 顯示所有計算器</option><option value="power">1. 功率轉換 (dBm / W)</option><option value="matching">2. 匹配度參數換算</option><option value="sensitivity">3. 系統靈敏度 (Sensitivity) 計算</option><option value="los">4. 通視最大距離計算</option><option value="fspl">5. 自由空間損耗 (FSPL)</option><option value="linkbudget">6. 通訊模擬 (Link Budget)</option></select></div><section class="card section-item" id="section-power"><div class="section-header-with-controls"><div class="section-title">1. 功率轉換 (dBm / W)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-power')">預設</button><button class="btn btn-clear" onclick="clearSection('section-power')">清除</button></div></div><div class="input-group-border"><label for="power_unit">選擇輸入單位:</label><select id="power_unit" onchange="swapAndCalculate()"><option value="w">W</option><option value="dbm">dBm</option></select><label for="power_input">輸入數值:</label><div class="input-with-clear"><input id="power_input" oninput="calculateDbmWNew()" placeholder="輸入數值" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('power_input', 'calculateDbmWNew')">×</button></div></div><div class="results-card-border" id="power_output_result">換算結果:</div></section><section class="card section-item" id="section-matching"><div class="section-header-with-controls"><div class="section-title">2. 匹配度參數換算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-matching')">預設</button><button class="btn btn-clear" onclick="clearSection('section-matching')">清除</button></div></div><div class="input-group-border"><label for="matching_unit">選擇輸入參數:</label><select id="matching_unit" onchange="swapAndConvertMatching()"><option value="rl">回波損耗 (Return Loss, RL) [dB]</option><option value="vswr">駐波比 (VSWR)</option><option value="gamma">反射係數 (V, Γ)</option><option value="refl_pct">反射功率 [%]</option><option value="pass_pct">通過功率 [%]</option></select><label for="matching_input_value" style="margin-top: 8px;">輸入數值:</label><div class="input-with-clear"><input id="matching_input_value" oninput="calculateMatching()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('matching_input_value', 'calculateMatching')">×</button></div></div><div class="results-card-border" id="matching_output"> 回波損耗 (RL) [dB]: <span class="result-value" id="rl_val"></span><br/> 駐波比 (VSWR): <span class="result-value" id="vswr_val"></span><br/> 反射係數 (V，Γ): <span class="result-value" id="gamma_val"></span><br/> 反射功率 [%]: <span class="result-value" id="refl_percent"></span><br/> 通過功率 [%]: <span class="result-value" id="pass_percent"></span></div></section><section class="card section-item" id="section-sensitivity"><div class="section-header-with-controls"><div class="section-title">3. 系統靈敏度 (Sensitivity) 計算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-sensitivity')">預設</button><button class="btn btn-clear" onclick="clearSection('section-sensitivity')">清除</button></div></div><div class="input-group-border"><label for="sensitivity_bw">訊號頻寬 (BW) [MHz]:</label><div class="input-with-clear"><input id="sensitivity_bw" oninput="calculateSensitivity()" placeholder="例如: 1 (1MHz)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_bw', 'calculateSensitivity')">×</button></div><label for="sensitivity_nf">雜訊指數 (Noise Figure, NF) [dB]:</label><div class="input-with-clear"><input id="sensitivity_nf" oninput="calculateSensitivity()" placeholder="例如: 5" type="number" value="5"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_nf', 'calculateSensitivity')">×</button></div><label for="sensitivity_sn">所需訊雜比 (S/N) [dB]:</label><div class="input-with-clear"><input id="sensitivity_sn" oninput="calculateSensitivity()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_sn', 'calculateSensitivity')">×</button></div></div><div class="results-card-border" id="sensitivity_output">接收器靈敏度 (Sensitivity):</div></section><section class="card section-item" id="section-los"><div class="section-header-with-controls"><div class="section-title">4. 通視最大距離計算 (地球曲度遮蔽)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-los')">預設</button><button class="btn btn-clear" onclick="clearSection('section-los')">清除</button></div></div><div class="input-group-border"><div class="los-point-title">A 點</div><div class="los-input-container"><div class="input-item"><label for="los_g1">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g1" oninput="calculateMaxLOS()" placeholder="例如: 100" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g1', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h1">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h1" oninput="calculateMaxLOS()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('los_h1', 'calculateMaxLOS')">×</button></div></div></div><div class="los-point-title">B 點</div><div class="los-input-container"><div class="input-item"><label for="los_g2">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g2" oninput="calculateMaxLOS()" placeholder="例如: 150" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g2', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h2">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h2" oninput="calculateMaxLOS()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('los_h2', 'calculateMaxLOS')">×</button></div></div></div></div>
 <div style="margin-top:6px;">
   <button class="btn ghost" onclick="toggleRefraction()" id="refBtn" style="color: #bb66ff;">目前：不含大氣折射</button>
 </div>
@@ -1828,6 +1830,721 @@ div.gps-ig.orange-border-card,
   </script>
 
 </div>
+
+<!-- 報告匯出分頁 -->
+<div id="report-content" class="tab-content">
+  <div class="card">
+    <h2 class="section-title" style="margin-top: 0;">📄 報告匯出</h2>
+    
+    <!-- 報告設定 -->
+    <div style="background: rgba(95, 240, 213, 0.05); border: 2px solid var(--accent1); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+      <h3 style="color: var(--accent1); font-size: 16px; margin: 0 0 12px 0; font-weight: 700;">⚙️ 報告設定</h3>
+      
+      <div style="margin-bottom: 10px;">
+        <label style="color: var(--label); font-size: 14px; display: block; margin-bottom: 5px; font-weight: 600;">報告標題</label>
+        <input type="text" id="report_title" value="無線電通訊路徑分析報告" 
+               style="width: 100%; padding: 8px; font-size: 15px; color: var(--value); background: rgba(255,255,255,0.05); border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);">
+      </div>
+      
+      <div style="margin-bottom: 10px;">
+        <label style="color: var(--label); font-size: 14px; display: block; margin-bottom: 5px; font-weight: 600;">專案名稱 (選填)</label>
+        <input type="text" id="report_project" placeholder="例如：台北-新竹 UHF 鏈路評估" 
+               style="width: 100%; padding: 8px; font-size: 15px; color: var(--value); background: rgba(255,255,255,0.05); border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);">
+      </div>
+      
+      <div>
+        <label style="color: var(--label); font-size: 14px; display: block; margin-bottom: 5px; font-weight: 600;">製作者 (選填)</label>
+        <input type="text" id="report_author" placeholder="您的姓名或單位" 
+               style="width: 100%; padding: 8px; font-size: 15px; color: var(--value); background: rgba(255,255,255,0.05); border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);">
+      </div>
+    </div>
+    
+    <!-- 匯出按鈕 -->
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+      <button onclick="generateReportPDF()" 
+              style="flex: 1; min-width: 200px; background: linear-gradient(90deg, #ffd43b, #ffa94d); border: 0; padding: 12px 20px; border-radius: 8px; font-weight: 700; font-size: 18px; color: #000; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 164, 77, 0.3); transition: all 0.3s;">
+        🚀 生成 PDF 報告
+      </button>
+    </div>
+    
+    <!-- 報告資料來源說明 -->
+    <div style="background: rgba(95, 240, 213, 0.05); border: 2px solid var(--accent1); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+      <h3 style="color: var(--accent1); font-size: 16px; margin: 0 0 8px 0; font-weight: 700;">📋 報告資料來源說明</h3>
+      
+      <div style="margin-bottom: 8px; padding: 8px 12px; background: rgba(255, 212, 59, 0.1); border-radius: 4px; font-size: 14px; color: #ffd43b; line-height: 1.5;">
+        💡 提示：建議在生成報告前確認各分頁資料已正確填寫
+      </div>
+      
+      <div style="font-size: 14px; color: #a8b3c3; line-height: 1.8;">
+        <div style="margin-bottom: 4px;">
+          <span style="color: #ffd43b;">●</span> <span style="color: #e8eef5; font-weight: 600;">RF工具</span>：Link Budget 計算結果
+        </div>
+        
+        <div style="margin-bottom: 4px;">
+          <span style="color: #ffd43b;">●</span> <span style="color: #e8eef5; font-weight: 600;">GPS</span>：A/B 兩點座標、海拔、天線高度、方位角/俯仰角
+        </div>
+        
+        <div style="margin-bottom: 0;">
+          <span style="color: #ffd43b;">●</span> <span style="color: #e8eef5; font-weight: 600;">高度圖</span>：路徑剖面圖、遮蔽分析、菲涅爾區
+        </div>
+      </div>
+    </div>
+    
+    <!-- 狀態訊息 -->
+    <div id="export_status" style="margin-top: 15px; padding: 10px; border-radius: 6px; display: none; font-size: 14px; font-weight: 600;"></div>
+  </div>
+</div>
+
+<script>
+// ========================================
+// 📄 PDF 報告匯出功能
+// ========================================
+
+/**
+ * 預覽報告內容
+ */
+
+/**
+ * 生成 PDF 報告
+ */
+/**
+ * 生成 PDF 報告 - 單頁A4版本
+ * 上方：剖面圖
+ * 下方：左(A點+A→B角度)、中(RF計算)、右(B點+B→A角度)
+ */
+async function generateReportPDF() {
+  const exportRF = true;
+  const exportGPS = true;
+  const exportElevation = true;
+  
+  // 檢查是否需要剖面圖但未開啟全畫面模式
+  if (exportElevation) {
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    const isFullscreen = overlay && overlay.classList.contains('active');
+    
+    if (!isFullscreen) {
+      // 移除確認對話框，直接開啟全螢幕
+      if (typeof openChartFullscreen === 'function') {
+        try {
+          openChartFullscreen();
+          
+          // 設定標記：表示正在生成報告
+          window.isGeneratingReport = true;
+          
+          showExportStatus('🔄 正在開啟全畫面模式...請設定好圖表後點擊「確認截圖」按鈕', 'loading');
+          await new Promise(resolve => setTimeout(resolve, 800));
+          
+          const overlayCheck = document.getElementById('chartFullscreenOverlay');
+          if (!overlayCheck || !overlayCheck.classList.contains('active')) {
+            alert('⚠️ 全畫面模式開啟異常，將使用一般圖表。');
+            window.isGeneratingReport = false;
+          } else {
+            // 顯示「確認截圖」按鈕
+            showReportConfirmButton();
+            // 等待用戶點擊確認按鈕
+            return;  // 中斷執行，等待用戶確認
+          }
+        } catch (error) {
+          console.error('開啟全畫面失敗:', error);
+          alert('❌ 自動開啟失敗\n\n請手動操作：\n1. 點擊剖面圖右上角的全螢幕按鈕 📺\n2. 再次點擊「生成 PDF 報告」');
+          window.isGeneratingReport = false;
+          return;
+        }
+      } else {
+        alert('❌ 找不到全畫面功能');
+        return;
+      }
+    }
+  }
+  
+  // 繼續生成報告的邏輯
+  await continueGenerateReport();
+}
+
+// 新增函數：顯示確認截圖按鈕
+function showReportConfirmButton() {
+  const overlay = document.getElementById('chartFullscreenOverlay');
+  if (!overlay) return;
+  
+  // 檢查是否已經有按鈕
+  let confirmBtn = overlay.querySelector('#reportConfirmButton');
+  if (confirmBtn) {
+    confirmBtn.style.display = 'block';
+    return;
+  }
+  
+  // 創建確認按鈕
+  confirmBtn = document.createElement('button');
+  confirmBtn.id = 'reportConfirmButton';
+  confirmBtn.innerHTML = '✅ 確認截圖生成報告';
+  confirmBtn.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 10005;
+    background: linear-gradient(90deg, #36c74d, #28a745);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+  `;
+  
+  confirmBtn.onmouseover = function() {
+    this.style.background = 'linear-gradient(90deg, #28a745, #1e7e34)';
+    this.style.transform = 'scale(1.05)';
+  };
+  
+  confirmBtn.onmouseout = function() {
+    this.style.background = 'linear-gradient(90deg, #36c74d, #28a745)';
+    this.style.transform = 'scale(1)';
+  };
+  
+  confirmBtn.onclick = async function() {
+    this.style.display = 'none';
+    await continueGenerateReport();
+  };
+  
+  overlay.appendChild(confirmBtn);
+}
+
+// 新增函數：繼續生成報告（從截圖開始）
+async function continueGenerateReport() {
+  const exportRF = true;
+  const exportGPS = true;
+  const exportElevation = true;
+  
+  showExportStatus('📝 正在生成單頁報告...', 'loading');
+  
+  try {
+    const { jsPDF } = window.jspdf;
+    const title = document.getElementById('report_title').value || '無線電通訊路徑分析報告';
+    const project = document.getElementById('report_project').value;
+    const author = document.getElementById('report_author').value;
+    const date = new Date().toLocaleString('zh-TW', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit'
+    });
+    
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = 210;
+    const pdfHeight = 297;
+    const margin = 10;
+    
+    // 黑色背景
+    pdf.setFillColor(11, 21, 38);
+    pdf.rect(0, 0, pdfWidth, pdfHeight, 'F');
+    
+    let yPos = margin;
+    
+    // === 1. 報告標題 ===
+    const titleDiv = document.createElement('div');
+    titleDiv.style.cssText = `
+      background: #0b1526;
+      padding: 15px;
+      text-align: center;
+      font-family: 'Microsoft JhengHei', sans-serif;
+      width: ${(pdfWidth - 2 * margin) * 3.7795}px;
+    `;
+    titleDiv.innerHTML = `
+      <div style="font-size: 20px; color: #5ff0d5; font-weight: bold; margin-bottom: 8px;">
+        ${title}
+      </div>
+      ${project ? `<div style="font-size: 14px; color: #ffe58f; margin-bottom: 6px;">${project}</div>` : ''}
+      <div style="font-size: 11px; color: #a8b3c3;">
+        ${date}${author ? ' | ' + author : ''}
+      </div>
+    `;
+    document.body.appendChild(titleDiv);
+    
+    const titleCanvas = await html2canvas(titleDiv, {
+      backgroundColor: '#0b1526',
+      scale: 1.5  // 降低解析度以減小檔案大小
+    });
+    document.body.removeChild(titleDiv);
+    
+    const titleImgData = titleCanvas.toDataURL('image/png');
+    const titleHeight = 25;
+    pdf.addImage(titleImgData, 'PNG', margin, yPos, pdfWidth - 2 * margin, titleHeight);
+    yPos += titleHeight + 5;
+    
+    // === 2. 剖面圖區域 ===
+    if (exportElevation) {
+      try {
+        const overlay = document.getElementById('chartFullscreenOverlay');
+        let chartImgData = null;
+        
+        if (overlay && overlay.classList.contains('active') && typeof fullscreenChartInstance !== 'undefined' && fullscreenChartInstance) {
+          showExportStatus('📸 正在擷取全畫面剖面圖...', 'loading');
+          
+          const controlsToHide = [
+            overlay.querySelector('.chart-fullscreen-close'),
+            overlay.querySelector('.chart-fullscreen-screenshot'),
+            overlay.querySelector('.chart-fullscreen-rotate-toggle'),
+            overlay.querySelector('.chart-fullscreen-info-toggle'),
+            overlay.querySelector('.chart-fullscreen-obstruction-toggle'),
+            overlay.querySelector('.chart-fullscreen-map-toggle'),
+            overlay.querySelector('.chart-fullscreen-end-obstruction'),
+            overlay.querySelector('.chart-fullscreen-max-obstruction'),
+            overlay.querySelector('.chart-fullscreen-start-obstruction'),
+            overlay.querySelector('.chart-fullscreen-point-control')
+          ];
+          
+          const originalDisplayStates = controlsToHide.map(el => {
+            if (el) {
+              const display = el.style.display;
+              el.style.display = 'none';
+              return display;
+            }
+            return null;
+          });
+          
+          await new Promise(resolve => setTimeout(resolve, 150));
+          
+          const canvas = await html2canvas(overlay, {
+            backgroundColor: '#0b1526',
+            scale: 1.5,  // 降低解析度以減小檔案大小
+            logging: false,
+            useCORS: true
+          });
+          
+          controlsToHide.forEach((el, index) => {
+            if (el) el.style.display = originalDisplayStates[index] || '';
+          });
+          
+          chartImgData = canvas.toDataURL('image/jpeg', 0.85);  // 使用 JPEG 格式，壓縮品質 85%
+          
+        } else {
+          const elevationChart = document.getElementById('elevationChart');
+          if (elevationChart) {
+            chartImgData = elevationChart.toDataURL('image/jpeg', 0.85);  // 使用 JPEG 格式
+          }
+        }
+        
+        if (chartImgData) {
+          const chartHeight = 130;
+          pdf.addImage(chartImgData, 'JPEG', margin, yPos, pdfWidth - 2 * margin, chartHeight);
+          yPos += chartHeight + 5;
+        }
+        
+      } catch (e) {
+        console.error('圖表擷取失敗:', e);
+        yPos += 5;
+      }
+    }
+    
+    // === 3. 三個資料區塊 (左-中-右) ===
+    // 計算方位角和俯仰角
+    function calculateAngles(lat1, lng1, alt1, lat2, lng2, alt2) {
+      const toRad = deg => deg * Math.PI / 180;
+      const toDeg = rad => rad * 180 / Math.PI;
+      
+      const φ1 = toRad(lat1);
+      const φ2 = toRad(lat2);
+      const Δλ = toRad(lng2 - lng1);
+      
+      // 方位角 A→B
+      const y = Math.sin(Δλ) * Math.cos(φ2);
+      const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+      let azimuthAtoB = toDeg(Math.atan2(y, x));
+      azimuthAtoB = (azimuthAtoB + 360) % 360;
+      
+      // 反方位角 B→A
+      let azimuthBtoA = (azimuthAtoB + 180) % 360;
+      
+      // 距離
+      const R = 6371;
+      const a = Math.sin((φ2 - φ1) / 2) ** 2 + 
+                Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c;
+      
+      // 俯仰角
+      const heightDiff = alt2 - alt1;
+      const distanceMeters = distance * 1000;
+      const elevationAtoB = toDeg(Math.atan(heightDiff / distanceMeters));
+      const elevationBtoA = -elevationAtoB;
+      
+      return { azimuthAtoB, azimuthBtoA, elevationAtoB, elevationBtoA, distance };
+    }
+    
+    // 讀取GPS資料
+    const latA = parseFloat(document.getElementById('latA').value);
+    const lonA = parseFloat(document.getElementById('lonA').value);
+    const eleA = parseFloat(document.getElementById('eleA').value || 0);
+    const nameA = document.getElementById('nameA').value || 'A點';
+    
+    const latB = parseFloat(document.getElementById('latB').value);
+    const lonB = parseFloat(document.getElementById('lonB').value);
+    const eleB = parseFloat(document.getElementById('eleB').value || 0);
+    const nameB = document.getElementById('nameB').value || 'B點';
+    
+    // 計算角度
+    let angles = null;
+    if (!isNaN(latA) && !isNaN(lonA) && !isNaN(latB) && !isNaN(lonB)) {
+      angles = calculateAngles(latA, lonA, eleA, latB, lonB, eleB);
+    }
+    
+    // 讀取RF資料
+    const freq = document.getElementById('link_freq_mhz').value;
+    const dist = document.getElementById('link_dist_km').value;
+    const linkBudgetOutput = document.getElementById('linkbudget_output');
+    const rssiText = linkBudgetOutput ? linkBudgetOutput.textContent : '';
+    
+    // 創建三個區塊容器
+    const threeBlocksDiv = document.createElement('div');
+    threeBlocksDiv.style.cssText = `
+      display: flex;
+      gap: 8px;
+      width: ${(pdfWidth - 2 * margin) * 3.7795}px;
+      font-family: 'Microsoft JhengHei', sans-serif;
+    `;
+    
+    // === 左側區塊:A點 + A→B角度 + 發射端RF參數 ===
+    const leftBlock = document.createElement('div');
+    leftBlock.style.cssText = `
+      flex: 1;
+      background: rgba(20, 30, 50, 1);
+      border: 2px solid #ff9500;
+      border-radius: 8px;
+      padding: 12px;
+    `;
+    
+    let leftContent = `
+      <div style="font-size: 15px; color: #ff9500; text-align: center; margin-bottom: 10px; font-weight: bold;">
+        📍 ${nameA}
+      </div>
+    `;
+    
+    if (!isNaN(latA) && !isNaN(lonA)) {
+      leftContent += `
+        <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 5px;">
+          地名: <span style="color: #5ff0d5;">${nameA}</span>
+        </div>
+        <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 5px;">
+          座標: <span style="color: #5ff0d5;">${latA.toFixed(6)}°N, ${lonA.toFixed(6)}°E</span>
+        </div>
+        <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 5px;">
+          高度: <span style="color: #5ff0d5;">${eleA.toFixed(1)} m</span>
+        </div>
+      `;
+    }
+    
+    // 讀取天線高度
+    const antennaHeightA = document.getElementById('antennaHeightStart').value;
+    if (antennaHeightA) {
+      leftContent += `
+        <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 8px;">
+          天線高: <span style="color: #5ff0d5;">${antennaHeightA} m</span>
+        </div>
+      `;
+    }
+    
+    if (angles) {
+      leftContent += `
+        <div style="background: rgba(95,240,213,0.1); padding: 8px; border-radius: 4px; margin-top: 8px;">
+          <div style="font-size: 12px; color: #5ff0d5; margin-bottom: 6px; font-weight: bold;">${nameA} → ${nameB} 方向</div>
+          <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 4px;">
+            方位角: <span style="color: #5ff0d5;">${angles.azimuthAtoB.toFixed(1)}°</span>
+          </div>
+          <div style="font-size: 11px; color: #a8b3c3;">
+            俯仰角: <span style="color: #5ff0d5;">${angles.elevationAtoB >= 0 ? '+' : ''}${angles.elevationAtoB.toFixed(2)}°</span>
+          </div>
+        </div>
+      `;
+    }
+    
+    // 讀取發射端RF參數
+    const txPower = document.getElementById('link_tx_power_input').value;
+    const txPowerUnit = document.getElementById('link_tx_power_unit').value.toUpperCase();
+    const txGain = document.getElementById('link_tx_gain_dbi').value;
+    const txLoss = document.getElementById('link_tx_loss_db').value;
+    
+    if (txPower || txGain || txLoss) {
+      leftContent += `
+        <div style="background: rgba(77,171,247,0.1); padding: 8px; border-radius: 4px; margin-top: 8px;">
+          <div style="font-size: 12px; color: #4dabf7; margin-bottom: 6px; font-weight: bold;">發射端 (Tx)</div>
+      `;
+      
+      if (txPower) {
+        leftContent += `
+          <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 4px;">
+            發射功率: <span style="color: #5ff0d5;">${txPower} ${txPowerUnit}</span>
+          </div>
+        `;
+      }
+      
+      if (txGain) {
+        leftContent += `
+          <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 4px;">
+            天線增益: <span style="color: #5ff0d5;">${txGain} dBi</span>
+          </div>
+        `;
+      }
+      
+      if (txLoss) {
+        leftContent += `
+          <div style="font-size: 11px; color: #a8b3c3;">
+            線損: <span style="color: #5ff0d5;">${txLoss} dB</span>
+          </div>
+        `;
+      }
+      
+      leftContent += `</div>`;
+    }
+    
+    leftBlock.innerHTML = leftContent;
+    
+    // === 中間區塊：RF計算 ===
+    const centerBlock = document.createElement('div');
+    centerBlock.style.cssText = `
+      flex: 1;
+      background: rgba(20, 30, 50, 1);
+      border: 2px solid #5ff0d5;
+      border-radius: 8px;
+      padding: 12px;
+    `;
+    
+    let centerContent = `
+      <div style="font-size: 15px; color: #5ff0d5; text-align: center; margin-bottom: 10px; font-weight: bold;">
+        📡 RF鏈路計算
+      </div>
+    `;
+    
+    if (freq) {
+      centerContent += `
+        <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 5px;">
+          頻率: <span style="color: #5ff0d5;">${freq} MHz</span>
+        </div>
+      `;
+    }
+    
+    // 讀取剖面圖距離數據（使用 window.currentPathData）
+    let profileDistance = null;
+    if (typeof window.currentPathData !== 'undefined' && window.currentPathData && window.currentPathData.length > 0) {
+      const lastPoint = window.currentPathData[window.currentPathData.length - 1];
+      if (lastPoint && lastPoint.dist !== undefined) {
+        profileDistance = parseFloat(lastPoint.dist);
+      }
+    }
+    
+    // 優先使用剖面圖距離，否則使用RF工具的距離
+    const displayDistance = profileDistance !== null ? profileDistance.toFixed(2) : dist;
+    
+    if (displayDistance) {
+      centerContent += `
+        <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 8px;">
+          距離: <span style="color: #5ff0d5;">${displayDistance} km</span>
+        </div>
+      `;
+    }
+    
+    // 解析接收訊號強度
+    const rssiMatch = rssiText.match(/接收訊號強度:\s*([-+]?\d+\.?\d*)\s*dBm/);
+    if (rssiMatch) {
+      centerContent += `
+        <div style="background: rgba(95,240,213,0.15); border: 1px solid #5ff0d5; border-radius: 4px; padding: 10px; text-align: center; margin-bottom: 8px;">
+          <div style="font-size: 10px; color: #a8b3c3; margin-bottom: 3px;">無遮蔽下接收訊號強度</div>
+          <div style="font-size: 16px; color: #5ff0d5; font-weight: bold;">${rssiMatch[1]} dBm</div>
+        </div>
+      `;
+    }
+    
+    // 判斷路徑是否有遮蔽
+    if (elevationData && elevationData.length > 0 && chartInstance && chartInstance.data.datasets[1]) {
+      const losLineData = chartInstance.data.datasets[1].data;
+      let hasObstruction = false;
+      
+      // 檢查是否有任何遮蔽點
+      for (let i = 1; i < elevationData.length - 1; i++) {
+        const terrainHeight = elevationData[i];
+        const losHeight = losLineData[i];
+        const clearance = losHeight - terrainHeight;
+        if (clearance < 0) {
+          hasObstruction = true;
+          break;
+        }
+      }
+      
+      // 顯示遮蔽判斷
+      if (hasObstruction) {
+        centerContent += `
+          <div style="background: rgba(255,107,107,0.15); border: 1px solid #ff6b6b; border-radius: 4px; padding: 12px; margin-top: 2px; text-align: center;">
+            <div style="font-size: 20px; color: #ff6b6b; font-weight: bold;">⚠️ 有遮蔽</div>
+          </div>
+        `;
+      } else {
+        centerContent += `
+          <div style="background: rgba(95,240,213,0.1); border: 1px solid #5ff0d5; border-radius: 4px; padding: 12px; margin-top: 2px; text-align: center;">
+            <div style="font-size: 20px; color: #5ff0d5; font-weight: bold;">✓ 無遮蔽</div>
+          </div>
+        `;
+      }
+    }
+    
+    centerBlock.innerHTML = centerContent;
+    
+    // === 右側區塊：B點 + B→A角度 + 接收端RF參數 ===
+    const rightBlock = document.createElement('div');
+    rightBlock.style.cssText = `
+      flex: 1;
+      background: rgba(20, 30, 50, 1);
+      border: 2px solid #ff9500;
+      border-radius: 8px;
+      padding: 12px;
+    `;
+    
+    let rightContent = `
+      <div style="font-size: 15px; color: #ff9500; text-align: center; margin-bottom: 10px; font-weight: bold;">
+        📍 ${nameB}
+      </div>
+    `;
+    
+    if (!isNaN(latB) && !isNaN(lonB)) {
+      rightContent += `
+        <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 5px;">
+          地名: <span style="color: #5ff0d5;">${nameB}</span>
+        </div>
+        <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 5px;">
+          座標: <span style="color: #5ff0d5;">${latB.toFixed(6)}°N, ${lonB.toFixed(6)}°E</span>
+        </div>
+        <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 5px;">
+          高度: <span style="color: #5ff0d5;">${eleB.toFixed(1)} m</span>
+        </div>
+      `;
+    }
+    
+    // 讀取天線高度
+    const antennaHeightB = document.getElementById('antennaHeightEnd').value;
+    if (antennaHeightB) {
+      rightContent += `
+        <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 8px;">
+          天線高: <span style="color: #5ff0d5;">${antennaHeightB} m</span>
+        </div>
+      `;
+    }
+    
+    if (angles) {
+      rightContent += `
+        <div style="background: rgba(95,240,213,0.1); padding: 8px; border-radius: 4px; margin-top: 8px;">
+          <div style="font-size: 12px; color: #5ff0d5; margin-bottom: 6px; font-weight: bold;">${nameB} → ${nameA} 方向</div>
+          <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 4px;">
+            方位角: <span style="color: #5ff0d5;">${angles.azimuthBtoA.toFixed(1)}°</span>
+          </div>
+          <div style="font-size: 11px; color: #a8b3c3;">
+            俯仰角: <span style="color: #5ff0d5;">${angles.elevationBtoA >= 0 ? '+' : ''}${angles.elevationBtoA.toFixed(2)}°</span>
+          </div>
+        </div>
+      `;
+    }
+    
+    // 讀取接收端RF參數
+    const rxGain = document.getElementById('link_rx_gain_dbi').value;
+    const rxLoss = document.getElementById('link_rx_loss_db').value;
+    
+    if (rxGain || rxLoss) {
+      rightContent += `
+        <div style="background: rgba(77,171,247,0.1); padding: 8px; border-radius: 4px; margin-top: 8px;">
+          <div style="font-size: 12px; color: #4dabf7; margin-bottom: 6px; font-weight: bold;">接收端 (Rx)</div>
+      `;
+      
+      if (rxGain) {
+        rightContent += `
+          <div style="font-size: 11px; color: #a8b3c3; margin-bottom: 4px;">
+            天線增益: <span style="color: #5ff0d5;">${rxGain} dBi</span>
+          </div>
+        `;
+      }
+      
+      if (rxLoss) {
+        rightContent += `
+          <div style="font-size: 11px; color: #a8b3c3;">
+            線損: <span style="color: #5ff0d5;">${rxLoss} dB</span>
+          </div>
+        `;
+      }
+      
+      rightContent += `</div>`;
+    }
+    
+    rightBlock.innerHTML = rightContent;
+    
+    // 組合三個區塊
+    threeBlocksDiv.appendChild(leftBlock);
+    threeBlocksDiv.appendChild(centerBlock);
+    threeBlocksDiv.appendChild(rightBlock);
+    
+    // 渲染到PDF
+    document.body.appendChild(threeBlocksDiv);
+    
+    const blocksCanvas = await html2canvas(threeBlocksDiv, {
+      backgroundColor: null,
+      scale: 1.5  // 降低解析度以減小檔案大小
+    });
+    
+    document.body.removeChild(threeBlocksDiv);
+    
+    const blocksImgData = blocksCanvas.toDataURL('image/png');
+    const blocksHeight = 80;
+    pdf.addImage(blocksImgData, 'PNG', margin, yPos, pdfWidth - 2 * margin, blocksHeight);
+    
+    // 儲存PDF
+    const fileName = `RF分析報告_${new Date().getTime()}.pdf`;
+    pdf.save(fileName);
+    showExportStatus('✅ 單頁PDF報告已成功下載！', 'success');
+    
+    // 🎯 自動關閉剖面圖全屏
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    if (overlay && overlay.classList.contains('active')) {
+      console.log('📋 PDF生成完成，自動關閉全屏模式...');
+      setTimeout(() => {
+        closeChartFullscreen();
+        console.log('✅ 全屏模式已自動關閉');
+      }, 500);  // 延遲 0.5 秒後關閉，讓使用者看到成功訊息
+    }
+    
+  } catch (error) {
+    console.error('PDF 生成錯誤:', error);
+    showExportStatus('❌ PDF 生成失敗：' + error.message, 'error');
+  }
+}
+
+function showExportStatus(message, type) {
+  const status = document.getElementById('export_status');
+  status.textContent = message;
+  status.style.display = 'block';
+  
+  // 設定樣式
+  if (type === 'success') {
+    status.style.background = 'rgba(39, 174, 96, 0.2)';
+    status.style.color = '#27ae60';
+    status.style.border = '1px solid #27ae60';
+  } else if (type === 'error') {
+    status.style.background = 'rgba(220, 53, 69, 0.2)';
+    status.style.color = '#dc3545';
+    status.style.border = '1px solid #dc3545';
+  } else if (type === 'warning') {
+    status.style.background = 'rgba(255, 193, 7, 0.2)';
+    status.style.color = '#ffc107';
+    status.style.border = '1px solid #ffc107';
+  } else {
+    status.style.background = 'rgba(255, 212, 59, 0.2)';
+    status.style.color = '#ffd43b';
+    status.style.border = '1px solid #ffd43b';
+  }
+  
+  // 成功或錯誤訊息 3 秒後自動消失
+  if (type === 'success' || type === 'error') {
+    setTimeout(() => {
+      status.style.display = 'none';
+    }, 3000);
+  }
+}
+</script>
 
 <div id="archive-content" class="tab-content">
   <section class="card">
@@ -4661,6 +5378,12 @@ function renderChart(elevations) {
         const earthDrop = (d1 * d2) / (2 * R);
         return straightLineHeight - earthDrop;
     });
+    
+    // 計算菲涅爾半徑所需的波長
+    const freqMHz = parseFloat(document.getElementById('link_freq_mhz')?.value) || 2400;
+    const freqHz = freqMHz * 1e6; // 轉換為 Hz
+    const c = 299792458; // 光速 m/s
+    const lambda = c / freqHz; // 波長
     if (chartInstance) {
         chartInstance.destroy();
     }
@@ -4856,9 +5579,41 @@ function renderChart(elevations) {
             ctx.textAlign = 'right';
             ctx.textBaseline = 'top';
             const text = `總距離: ${parseFloat(totalDist).toFixed(2)} km`;
-            const x = xAxis.right - 5;
-            const y = yAxis.bottom + 35;
+            const x = xAxis.right + 2;  // 從 -5 改為 +2（右移約7像素）
+            const y = yAxis.bottom + 28;  // 從35改為28（上移7像素）
             ctx.fillStyle = '#ffe58f';
+            ctx.fillText(text, x, y);
+            ctx.restore();
+        }
+    };
+    // 頻率顯示插件
+    const frequencyDisplayPlugin = {
+        id: 'frequencyDisplay',
+        afterDraw(chart) {
+            // 檢查菲涅爾區是否顯示（index 2 是菲涅爾區上界）
+            const fresnelMeta = chart.getDatasetMeta(2);
+            
+            // 如果菲涅爾區隱藏(hidden=true)或未定義時預設為true，則不顯示頻率
+            const isHidden = fresnelMeta.hidden !== false;  // 預設視為隱藏
+            if (isHidden) return;
+            
+            const ctx = chart.ctx;
+            const xAxis = chart.scales.x;
+            const yAxis = chart.scales.y;
+            
+            // 取得當前頻率
+            const freqMHz = parseFloat(document.getElementById('link_freq_mhz')?.value) || 2400;
+            
+            ctx.save();
+            ctx.font = '12px Arial';  // 與總距離相同的字體
+            ctx.fillStyle = '#ffe58f';  // 與總距離相同的顏色
+            ctx.textAlign = 'right';  // 改為右對齊
+            ctx.textBaseline = 'top';
+            
+            const text = `頻率: ${freqMHz} MHz`;
+            const x = xAxis.right + 2;  // 從 -5 改為 +2（右移約7像素，與總距離對齊）
+            const y = yAxis.bottom + 43;  // 從50改為43（上移7像素）
+            
             ctx.fillText(text, x, y);
             ctx.restore();
         }
@@ -4896,6 +5651,74 @@ function renderChart(elevations) {
                     order: 3,
                     tension: 0.4,
                     cubicInterpolationMode: 'monotone'
+                },
+                {
+                    label: '菲涅爾區 (60%)',
+                    data: losLineWithCurvature.map((losVal, i) => {
+                        // 在起點和終點，菲涅爾區半徑應該為 0
+                        if (i === 0 || i === adjustedElevations.length - 1) {
+                            return losVal;
+                        }
+                        
+                        const f = i / (adjustedElevations.length - 1);
+                        const distFromStartKm = totalDist * f;  // km
+                        const d1 = distFromStartKm;  // km
+                        const d2 = totalDist - distFromStartKm;  // km
+                        
+                        // 額外檢查：如果距離端點太近（< 0.1 km），也返回視距線值
+                        if (d1 < 0.1 || d2 < 0.1) {
+                            return losVal;
+                        }
+                        
+                        // 使用工程公式計算第一菲涅爾區半徑 (米)
+                        // r₁ = 17.3 × √(d1 × d2 / (f × D))
+                        const freqGHz = freqMHz / 1000;  // 轉換為 GHz
+                        const D = totalDist;  // 總距離 km
+                        const fresnelRadius = 17.3 * Math.sqrt((d1 * d2) / (freqGHz * D));
+                        
+                        return losVal + fresnelRadius * 0.6;
+                    }),
+                    borderColor: 'rgba(255, 193, 7, 0.6)',
+                    borderDash: [3, 3],
+                    fill: false,
+                    pointRadius: 0,
+                    order: 4,
+                    tension: 0.4,
+                    cubicInterpolationMode: 'monotone',
+                    hidden: true  // 預設隱藏
+                },
+                {
+                    label: '菲涅爾區下界',
+                    data: losLineWithCurvature.map((losVal, i) => {
+                        // 在起點和終點，菲涅爾區半徑應該為 0
+                        if (i === 0 || i === adjustedElevations.length - 1) {
+                            return losVal;
+                        }
+                        
+                        const f = i / (adjustedElevations.length - 1);
+                        const distFromStartKm = totalDist * f;  // km
+                        const d1 = distFromStartKm;  // km
+                        const d2 = totalDist - distFromStartKm;  // km
+                        
+                        // 額外檢查：如果距離端點太近（< 0.1 km），也返回視距線值
+                        if (d1 < 0.1 || d2 < 0.1) {
+                            return losVal;
+                        }
+                        
+                        const freqGHz = freqMHz / 1000;
+                        const D = totalDist;
+                        const fresnelRadius = 17.3 * Math.sqrt((d1 * d2) / (freqGHz * D));
+                        
+                        return losVal - fresnelRadius * 0.6;
+                    }),
+                    borderColor: 'rgba(255, 193, 7, 0.6)',
+                    borderDash: [3, 3],
+                    fill: false,
+                    pointRadius: 0,
+                    order: 4,
+                    tension: 0.4,
+                    cubicInterpolationMode: 'monotone',
+                    hidden: true  // 預設隱藏
                 }
             ]
         },
@@ -4953,11 +5776,36 @@ function renderChart(elevations) {
                         boxWidth: 15,
                         boxHeight: 15,
                         padding: 10,
-                        usePointStyle: false
+                        usePointStyle: false,
+                        filter: function(legendItem, chartData) {
+                            // 隱藏「菲涅爾區下界」圖例項目
+                            return legendItem.text !== '菲涅爾區下界';
+                        }
                     },
                     display: true,
                     position: 'top',
-                    align: 'center'
+                    align: 'center',
+                    onClick: function(e, legendItem, legend) {
+                        const index = legendItem.datasetIndex;
+                        const chart = legend.chart;
+                        const meta = chart.getDatasetMeta(index);
+                        
+                        // 如果點擊的是菲涅爾區，同時切換上界和下界
+                        if (legendItem.text === '菲涅爾區 (60%)') {
+                            const upperMeta = chart.getDatasetMeta(index);
+                            const lowerMeta = chart.getDatasetMeta(index + 1);
+                            
+                            // 簡化邏輯：直接切換布林值
+                            const newState = !upperMeta.hidden;
+                            upperMeta.hidden = newState;
+                            lowerMeta.hidden = newState;
+                        } else {
+                            // 簡化邏輯：直接切換布林值
+                            meta.hidden = !meta.hidden;
+                        }
+                        
+                        chart.update();
+                    }
                 }
             },
             scales: {
@@ -4977,7 +5825,7 @@ function renderChart(elevations) {
                 }
             }
         },
-        plugins: [pointLabelPlugin, totalDistancePlugin]
+        plugins: [pointLabelPlugin, totalDistancePlugin, frequencyDisplayPlugin]
     });
     const canvas = document.getElementById('elevationChart');
     function isPointInLabel(x, y, labelBounds) {
@@ -5258,7 +6106,7 @@ function makeTooltipDraggable(tooltipEl) {
                 const xScale = fullscreenChartInstance.scales.x;
                 const yScale = fullscreenChartInstance.scales.y;
                 const dataset = fullscreenChartInstance.data.datasets.find(d =>
-                    d.label && d.label.includes('地形海拔')
+                    d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
                 );
                 
                 if (dataset && dataset.data[window.currentSelectedPointIndex] !== undefined) {
@@ -5286,6 +6134,12 @@ function makeTooltipDraggable(tooltipEl) {
         tooltipEl.style.transition = 'all .1s ease';
         tooltipEl.style.border = '2px solid #4dabf7';
         tooltipEl.style.cursor = 'move';
+        
+        // 🎯 保存 tooltip 偏移量
+        if (window.lastFullscreenState) {
+            window.lastFullscreenState.tooltipOffsetX = tooltipOffsetX;
+            window.lastFullscreenState.tooltipOffsetY = tooltipOffsetY;
+        }
     });
     
     // 觸控支援
@@ -5324,7 +6178,7 @@ function makeTooltipDraggable(tooltipEl) {
                 const xScale = fullscreenChartInstance.scales.x;
                 const yScale = fullscreenChartInstance.scales.y;
                 const dataset = fullscreenChartInstance.data.datasets.find(d =>
-                    d.label && d.label.includes('地形海拔')
+                    d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
                 );
                 
                 if (dataset && dataset.data[window.currentSelectedPointIndex] !== undefined) {
@@ -5350,9 +6204,29 @@ function makeTooltipDraggable(tooltipEl) {
         
         tooltipEl.style.transition = 'all .1s ease';
         tooltipEl.style.border = '2px solid #4dabf7';
+        
+        // 🎯 保存 tooltip 偏移量
+        if (window.lastFullscreenState) {
+            window.lastFullscreenState.tooltipOffsetX = tooltipOffsetX;
+            window.lastFullscreenState.tooltipOffsetY = tooltipOffsetY;
+        }
     });
 }
 function openChartFullscreen() {
+    // 🎯 記錄進入全屏前的狀態
+    const fullscreenState = {
+        infoVisible: fullscreenInfoVisible,
+        obstructionEnabled: obstructionColorEnabled,
+        selectedPointIndex: window.currentSelectedPointIndex,
+        tooltipOffsetX: tooltipOffsetX,
+        tooltipOffsetY: tooltipOffsetY,
+        labelAOffset: fullscreenLabelAOffset ? {...fullscreenLabelAOffset} : { x: 0, y: -30 },
+        labelBOffset: fullscreenLabelBOffset ? {...fullscreenLabelBOffset} : { x: 0, y: -30 }
+    };
+    // 保存到全局變數
+    window.lastFullscreenState = fullscreenState;
+    console.log('💾 已保存全屏狀態:', fullscreenState);
+    
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
         || (window.innerWidth <= 768 && window.innerHeight <= 768)
         || ('ontouchstart' in window);
@@ -5554,24 +6428,46 @@ function openChartFullscreen() {
                 if (!window.currentPathData || window.currentPathData.length === 0) return;
                 const pathData = window.currentPathData;
                 const totalDist = pathData[pathData.length - 1].dist;
+                
+                // 顯示總距離（右下）
                 ctx.save();
                 ctx.font = '13px Arial';
                 ctx.fillStyle = '#ffd43b';
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'top';
                 const text = `總距離: ${parseFloat(totalDist).toFixed(2)} km`;
-                const x = xAxis.right - 8;
-                const y = yAxis.bottom + 38;
+                const x = xAxis.right - 1;  // 從 -8 改為 -1（右移約7像素）
+                const y = yAxis.bottom + 30;  // 從38改為30（上移8像素）
                 ctx.fillStyle = '#ffe58f';
                 ctx.fillText(text, x, y);
                 ctx.restore();
+                
+                // 顯示頻率（右下，總距離下方）- 只在菲涅爾區顯示時才顯示
+                // 檢查菲涅爾區是否顯示（index 2 是菲涅爾區上界）
+                const fresnelMeta = chart.getDatasetMeta(2);
+                
+                // 如果菲涅爾區隱藏(hidden=true)或未定義時預設為true，則不顯示頻率
+                const isHidden = fresnelMeta.hidden !== false;  // 預設視為隱藏
+                if (!isHidden) {
+                    const freqMHz = parseFloat(document.getElementById('link_freq_mhz')?.value) || 2400;
+                    ctx.save();
+                    ctx.font = '13px Arial';  // 與總距離相同的字體
+                    ctx.fillStyle = '#ffe58f';  // 與總距離相同的顏色
+                    ctx.textAlign = 'right';  // 改為右對齊
+                    ctx.textBaseline = 'top';
+                    const freqText = `頻率: ${freqMHz} MHz`;
+                    const freqX = xAxis.right - 1;  // 從 -8 改為 -1（右移約7像素，與總距離對齊）
+                    const freqY = yAxis.bottom + 45;  // 從53改為45（上移8像素）
+                    ctx.fillText(freqText, freqX, freqY);
+                    ctx.restore();
+                }
             }
         };
         fullscreenChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: originalData.labels,
-                datasets: originalData.datasets.map(dataset => {
+                datasets: originalData.datasets.map((dataset, index) => {
                     const dataLength = dataset.data.length;
                     const pointBgColor = Array.isArray(dataset.pointBackgroundColor)
                         ? dataset.pointBackgroundColor.slice()
@@ -5585,8 +6481,27 @@ function openChartFullscreen() {
                     const pointHR = Array.isArray(dataset.pointHoverRadius)
                         ? dataset.pointHoverRadius.slice()
                         : new Array(dataLength).fill(dataset.pointHoverRadius || 6);
+                    
+                    // 為全螢幕模式簡化標籤文字
+                    let displayLabel = dataset.label;
+                    if (dataset.label === '地形海拔 (m)') {
+                        displayLabel = '海拔';
+                    } else if (dataset.label === '視距連線 (考慮地球曲度)') {
+                        displayLabel = '視距 (含地球曲度)';
+                    } else if (dataset.label === '菲涅爾區 (60%)') {
+                        displayLabel = '菲涅爾60%區';
+                    }
+                    
+                    // 決定 hidden 狀態：優先使用保存的狀態，否則使用原始圖表的狀態
+                    let hiddenState = dataset.hidden;
+                    if (window.lastFullscreenState && window.lastFullscreenState.datasetHiddenStates) {
+                        if (window.lastFullscreenState.datasetHiddenStates.hasOwnProperty(index)) {
+                            hiddenState = window.lastFullscreenState.datasetHiddenStates[index];
+                        }
+                    }
+                    
                     return {
-                        label: dataset.label,
+                        label: displayLabel,
                         data: dataset.data,
                         borderColor: dataset.borderColor,
                         backgroundColor: dataset.backgroundColor,
@@ -5601,7 +6516,8 @@ function openChartFullscreen() {
                         pointHoverBorderColor: dataset.pointHoverBorderColor,
                         pointHoverBorderWidth: dataset.pointHoverBorderWidth || 2,
                         borderDash: dataset.borderDash,
-                        order: dataset.order
+                        order: dataset.order,
+                        hidden: hiddenState  // 使用決定後的 hidden 狀態
                     };
                 })
             },
@@ -5630,9 +6546,34 @@ function openChartFullscreen() {
                             font: { size: 12 },
                             padding: 5,
                             boxWidth: 15,
-                            boxHeight: 15
+                            boxHeight: 15,
+                            filter: function(legendItem, chartData) {
+                                // 隱藏「菲涅爾區下界」圖例項目
+                                return legendItem.text !== '菲涅爾區下界';
+                            }
                         },
-                        align: 'start'
+                        align: 'start',
+                        onClick: function(e, legendItem, legend) {
+                            const index = legendItem.datasetIndex;
+                            const chart = legend.chart;
+                            const meta = chart.getDatasetMeta(index);
+                            
+                            // 如果點擊的是菲涅爾區，同時切換上界和下界
+                            if (legendItem.text === '菲涅爾60%區') {
+                                const upperMeta = chart.getDatasetMeta(index);
+                                const lowerMeta = chart.getDatasetMeta(index + 1);
+                                
+                                // 簡化邏輯：直接切換布林值
+                                const newState = !upperMeta.hidden;
+                                upperMeta.hidden = newState;
+                                lowerMeta.hidden = newState;
+                            } else {
+                                // 簡化邏輯：直接切換布林值
+                                meta.hidden = !meta.hidden;
+                            }
+                            
+                            chart.update();
+                        }
                     },
                     tooltip: {
                         enabled: false,
@@ -5693,7 +6634,7 @@ function openChartFullscreen() {
                                 const endName = window.elevationPointBName || 'B點';
                                 let clearanceValue = 0;
                                 let clearanceText = '';
-                                const losDataset = context.chart.data.datasets.find(d => d.label && d.label.includes('視距連線'));
+                                const losDataset = context.chart.data.datasets.find(d => d.label && (d.label.includes('視距連線') || d.label.includes('視距')));
                                 if (losDataset && losDataset.data[index] !== undefined) {
                                     const losHeight = losDataset.data[index];
                                     clearanceValue = losHeight - dataValue;
@@ -5917,7 +6858,7 @@ function openChartFullscreen() {
                             }
                         }
                         const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d =>
-                            d.label && d.label.includes('地形海拔')
+                            d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
                         );
                         if (fullscreenDataset && fullscreenDataset.data) {
                             const fullscreenPointColors = new Array(fullscreenDataset.data.length);
@@ -5944,6 +6885,11 @@ function openChartFullscreen() {
                             fullscreenDataset.pointBorderWidth = 2;
                             console.log('更新全螢幕圖表黃點，索引:', idx, '顏色:', fullscreenPointColors[idx]);
                             fullscreenChartInstance.update('none');
+                            
+                            // 🎯 更新保存的狀態
+                            if (window.lastFullscreenState) {
+                                window.lastFullscreenState.selectedPointIndex = idx;
+                            }
                         }
                         const selectedPointInput = document.getElementById('selectedPointIndex');
                         if (selectedPointInput) {
@@ -5985,7 +6931,7 @@ function openChartFullscreen() {
                             selectedPointInput.value = idx + 1;
                         }
                         const fullscreenDataset = chart.data.datasets.find(d =>
-                            d.label && d.label.includes('地形海拔')
+                            d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
                         );
                         if (fullscreenDataset && fullscreenDataset.data) {
                             const fullscreenPointColors = new Array(fullscreenDataset.data.length);
@@ -6018,7 +6964,7 @@ function openChartFullscreen() {
                             const xScale = fullscreenChartInstance.scales.x;
                             const yScale = fullscreenChartInstance.scales.y;
                             const dataset = fullscreenChartInstance.data.datasets.find(d =>
-                                d.label && d.label.includes('地形海拔')
+                                d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
                             );
                             if (dataset && dataset.data[idx] !== undefined) {
                                 const pixelX = xScale.getPixelForValue(idx);
@@ -6062,7 +7008,7 @@ function openChartFullscreen() {
                                 const endName = window.elevationPointBName || 'B點';
                                 let clearanceValue = 0;
                                 let clearanceText = '';
-                                const losDataset = fullscreenChartInstance.data.datasets.find(d => d.label && d.label.includes('視距連線'));
+                                const losDataset = fullscreenChartInstance.data.datasets.find(d => d.label && (d.label.includes('視距連線') || d.label.includes('視距')));
                                 if (losDataset && losDataset.data[idx] !== undefined) {
                                     const losHeight = losDataset.data[idx];
                                     clearanceValue = losHeight - dataValue;
@@ -6124,6 +7070,11 @@ function openChartFullscreen() {
                                 tooltipEl.style.top = tooltipY + 'px';
                                 tooltipEl.style.transform = `translate(${transformX}, ${transformY})`;
                                 tooltipEl.style.opacity = '1';
+                                
+                                // 🎯 更新保存的狀態
+                                if (window.lastFullscreenState) {
+                                    window.lastFullscreenState.selectedPointIndex = idx;
+                                }
                             }
                         }
                     }
@@ -6134,7 +7085,7 @@ function openChartFullscreen() {
         if (typeof window.currentSelectedPointIndex !== 'undefined' && window.currentSelectedPointIndex !== null && window.currentSelectedPointIndex >= 0) {
             const selectedIdx = window.currentSelectedPointIndex;
             const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d =>
-                d.label && d.label.includes('地形海拔')
+                d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
             );
             if (fullscreenDataset && fullscreenDataset.data) {
                 const fullscreenPointColors = new Array(fullscreenDataset.data.length);
@@ -6235,6 +7186,12 @@ function openChartFullscreen() {
             if (fullscreenDraggingLabel) {
                 fullscreenDraggingLabel = null;
                 fullscreenChartInstance.update();
+                
+                // 🎯 保存標籤偏移量
+                if (window.lastFullscreenState) {
+                    window.lastFullscreenState.labelAOffset = {...fullscreenLabelAOffset};
+                    window.lastFullscreenState.labelBOffset = {...fullscreenLabelBOffset};
+                }
             }
         });
         canvas.addEventListener('touchstart', function(e) {
@@ -6275,22 +7232,186 @@ function openChartFullscreen() {
             if (fullscreenDraggingLabel) {
                 fullscreenDraggingLabel = null;
                 fullscreenChartInstance.update();
+                
+                // 🎯 保存標籤偏移量
+                if (window.lastFullscreenState) {
+                    window.lastFullscreenState.labelAOffset = {...fullscreenLabelAOffset};
+                    window.lastFullscreenState.labelBOffset = {...fullscreenLabelBOffset};
+                }
             }
         });
         const pointControl = document.querySelector('.chart-fullscreen-point-control');
         if (pointControl) {
             pointControl.style.display = fullscreenInfoVisible ? 'flex' : 'none';
         }
+        
+        // 🎯 恢復上次保存的狀態
+        setTimeout(() => {
+            if (window.lastFullscreenState) {
+                const state = window.lastFullscreenState;
+                console.log('🔄 恢復上次全屏狀態:', state);
+                
+                // 恢復訊息框顯示狀態
+                if (state.infoVisible !== fullscreenInfoVisible) {
+                    toggleFullscreenInfo();
+                }
+                
+                // 恢復遮蔽線顏色狀態
+                if (state.obstructionEnabled !== obstructionColorEnabled) {
+                    toggleObstructionColor();
+                }
+                
+                // 恢復小黃點位置
+                if (state.selectedPointIndex !== undefined && state.selectedPointIndex >= 0) {
+                    window.currentSelectedPointIndex = state.selectedPointIndex;
+                    
+                    // 更新小黃點顯示
+                    const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d =>
+                        d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
+                    );
+                    if (fullscreenDataset && fullscreenDataset.data) {
+                        const fullscreenPointColors = new Array(fullscreenDataset.data.length);
+                        const fullscreenPointRadius = new Array(fullscreenDataset.data.length);
+                        const fullscreenPointHoverRadius = new Array(fullscreenDataset.data.length);
+                        const fullscreenPointBorderColor = new Array(fullscreenDataset.data.length);
+                        
+                        for (let i = 0; i < fullscreenDataset.data.length; i++) {
+                            if (i === state.selectedPointIndex) {
+                                fullscreenPointColors[i] = '#ffd43b';
+                                fullscreenPointRadius[i] = 8;
+                                fullscreenPointHoverRadius[i] = 12;
+                                fullscreenPointBorderColor[i] = '#fff';
+                            } else {
+                                fullscreenPointColors[i] = 'transparent';
+                                fullscreenPointRadius[i] = 0;
+                                fullscreenPointHoverRadius[i] = 6;
+                                fullscreenPointBorderColor[i] = 'transparent';
+                            }
+                        }
+                        
+                        fullscreenDataset.pointBackgroundColor = fullscreenPointColors;
+                        fullscreenDataset.pointRadius = fullscreenPointRadius;
+                        fullscreenDataset.pointHoverRadius = fullscreenPointHoverRadius;
+                        fullscreenDataset.pointBorderColor = fullscreenPointBorderColor;
+                        fullscreenDataset.pointBorderWidth = 2;
+                    }
+                    
+                    // 恢復藍色訊息框內容和位置
+                    if (fullscreenInfoVisible && pathData && elevationData) {
+                        const idx = state.selectedPointIndex;
+                        const overlay = document.getElementById('chartFullscreenOverlay');
+                        let tooltipEl = overlay ? overlay.querySelector('#chartjs-tooltip-fullscreen') : null;
+                        
+                        if (tooltipEl && idx < pathData.length && idx < elevationData.length) {
+                            const currentLat = pathData[idx].lat;
+                            const currentLng = pathData[idx].lng;
+                            const dataValue = elevationData[idx];
+                            const losValue = losLineData ? losLineData[idx] : null;
+                            
+                            let clearanceText = 'N/A';
+                            let clearanceColor = '#a8b3c3';
+                            if (losValue !== null && !isNaN(losValue)) {
+                                const clearance = losValue - dataValue;
+                                if (clearance >= 0) {
+                                    clearanceText = `淨空 +${clearance.toFixed(1)} m`;
+                                    clearanceColor = '#36c74d';
+                                } else {
+                                    clearanceText = `遮蔽 ${clearance.toFixed(1)} m`;
+                                    clearanceColor = '#ff4444';
+                                }
+                            }
+                            
+                            const innerHTML = `
+                                <div>距離起點: ${(idx * (totalPathDistance / (elevationData.length - 1))).toFixed(2)} km</div>
+                                <div>海拔高度: ${dataValue.toFixed(0)} m</div>
+                                <div>座標: ${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}</div>
+                                <div style="color: ${clearanceColor}; font-weight: bold;">遮蔽: ${clearanceText}</div>
+                            `;
+                            tooltipEl.innerHTML = innerHTML;
+                            
+                            // 恢復 tooltip 偏移量
+                            tooltipOffsetX = state.tooltipOffsetX || 0;
+                            tooltipOffsetY = state.tooltipOffsetY || 0;
+                            
+                            tooltipEl.style.opacity = '1';
+                            tooltipEl.style.display = 'block';
+                        }
+                    }
+                }
+                
+                // 恢復標籤偏移量
+                if (state.labelAOffset) {
+                    fullscreenLabelAOffset = {...state.labelAOffset};
+                }
+                if (state.labelBOffset) {
+                    fullscreenLabelBOffset = {...state.labelBOffset};
+                }
+                
+                // 恢復圖例的顯示/隱藏狀態
+                if (state.datasetHiddenStates && fullscreenChartInstance) {
+                    Object.keys(state.datasetHiddenStates).forEach(indexStr => {
+                        const index = parseInt(indexStr);
+                        const hidden = state.datasetHiddenStates[index];
+                        const meta = fullscreenChartInstance.getDatasetMeta(index);
+                        if (meta) {
+                            meta.hidden = hidden;
+                        }
+                    });
+                    console.log('🔄 已恢復圖例狀態:', state.datasetHiddenStates);
+                }
+                
+                // 更新圖表
+                if (fullscreenChartInstance) {
+                    fullscreenChartInstance.update('none');
+                }
+                
+                console.log('✅ 全屏狀態已恢復');
+            }
+        }, 500);
+        
         console.log('全螢幕剖面圖已開啟（橫向顯示）');
     }, 300);
 }
 function closeChartFullscreen() {
+    // 🎯 保存關閉前的狀態，供下次開啟時使用
+    
+    // 保存圖例的顯示/隱藏狀態
+    const datasetHiddenStates = {};
+    if (fullscreenChartInstance && fullscreenChartInstance.data && fullscreenChartInstance.data.datasets) {
+        fullscreenChartInstance.data.datasets.forEach((dataset, index) => {
+            const meta = fullscreenChartInstance.getDatasetMeta(index);
+            datasetHiddenStates[index] = meta.hidden;
+        });
+        console.log('💾 已保存圖例狀態:', datasetHiddenStates);
+    }
+    
+    const fullscreenState = {
+        infoVisible: fullscreenInfoVisible,
+        obstructionEnabled: obstructionColorEnabled,
+        selectedPointIndex: window.currentSelectedPointIndex,
+        tooltipOffsetX: tooltipOffsetX,
+        tooltipOffsetY: tooltipOffsetY,
+        labelAOffset: fullscreenLabelAOffset ? {...fullscreenLabelAOffset} : { x: 0, y: -30 },
+        labelBOffset: fullscreenLabelBOffset ? {...fullscreenLabelBOffset} : { x: 0, y: -30 },
+        datasetHiddenStates: datasetHiddenStates  // 加入圖例狀態
+    };
+    window.lastFullscreenState = fullscreenState;
+    console.log('💾 已保存關閉前狀態:', fullscreenState);
+    
     const overlay = document.getElementById('chartFullscreenOverlay');
     overlay.classList.remove('active');
     const tooltipEl = overlay.querySelector('#chartjs-tooltip-fullscreen');
     if (tooltipEl) {
         tooltipEl.remove();
     }
+    
+    // 隱藏報告確認按鈕
+    const confirmBtn = overlay.querySelector('#reportConfirmButton');
+    if (confirmBtn) {
+        confirmBtn.style.display = 'none';
+    }
+    window.isGeneratingReport = false;
+    
     if (screen.orientation && screen.orientation.unlock) {
         screen.orientation.unlock();
     }
@@ -6502,7 +7623,7 @@ function syncFullscreenChartAfterButtonClick(targetIndex) {
         }
     }
     const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d =>
-        d.label && d.label.includes('地形海拔')
+        d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
     );
     if (fullscreenDataset && fullscreenDataset.data) {
         const pointCount = fullscreenDataset.data.length;
@@ -6537,7 +7658,7 @@ function syncFullscreenChartAfterButtonClick(targetIndex) {
         const xScale = fullscreenChartInstance.scales.x;
         const yScale = fullscreenChartInstance.scales.y;
         const dataset = fullscreenChartInstance.data.datasets.find(d =>
-            d.label && d.label.includes('地形海拔')
+            d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
         );
         if (dataset && dataset.data[targetIndex] !== undefined) {
             const pixelX = xScale.getPixelForValue(targetIndex);
@@ -6583,7 +7704,7 @@ function syncFullscreenChartAfterButtonClick(targetIndex) {
             const endName = window.elevationPointBName || 'B點';
             let clearanceValue = 0;
             let clearanceText = '';
-            const losDataset = fullscreenChartInstance.data.datasets.find(d => d.label && d.label.includes('視距連線'));
+            const losDataset = fullscreenChartInstance.data.datasets.find(d => d.label && (d.label.includes('視距連線') || d.label.includes('視距')));
             if (losDataset && losDataset.data[targetIndex] !== undefined) {
                 const losHeight = losDataset.data[targetIndex];
                 clearanceValue = losHeight - dataValue;
@@ -6702,7 +7823,7 @@ function toggleFullscreenInfo() {
         }
         if (fullscreenChartInstance) {
             const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d =>
-                d.label && d.label.includes('地形海拔')
+                d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
             );
             if (fullscreenDataset && fullscreenDataset.data) {
                 const fullscreenPointColors = new Array(fullscreenDataset.data.length);
@@ -6733,7 +7854,7 @@ function toggleFullscreenInfo() {
             const selectedIdx = window.currentSelectedPointIndex;
             if (fullscreenChartInstance) {
                 const fullscreenDataset = fullscreenChartInstance.data.datasets.find(d =>
-                    d.label && d.label.includes('地形海拔')
+                    d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
                 );
                 if (fullscreenDataset && fullscreenDataset.data) {
                     const fullscreenPointColors = new Array(fullscreenDataset.data.length);
@@ -6776,7 +7897,7 @@ function toggleFullscreenInfo() {
                         const endName = window.elevationPointBName || 'B點';
                         let clearanceValue = 0;
                         let clearanceText = '';
-                        const losDataset = fullscreenChartInstance.data.datasets.find(d => d.label && d.label.includes('視距連線'));
+                        const losDataset = fullscreenChartInstance.data.datasets.find(d => d.label && (d.label.includes('視距連線') || d.label.includes('視距')));
                         if (losDataset && losDataset.data[selectedIdx] !== undefined) {
                             const losHeight = losDataset.data[selectedIdx];
                             clearanceValue = losHeight - dataValue;
@@ -6848,6 +7969,11 @@ function toggleFullscreenInfo() {
             console.log('沒有選中的點，請先點擊圖表選擇一個點');
         }
     }
+    
+    // 🎯 更新保存的狀態
+    if (window.lastFullscreenState) {
+        window.lastFullscreenState.infoVisible = fullscreenInfoVisible;
+    }
 }
 let obstructionColorEnabled = false;
 function toggleObstructionColor() {
@@ -6858,10 +7984,10 @@ function toggleObstructionColor() {
         return;
     }
     const terrainDataset = fullscreenChartInstance.data.datasets.find(d =>
-        d.label && d.label.includes('地形海拔')
+        d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
     );
     const losDataset = fullscreenChartInstance.data.datasets.find(d =>
-        d.label && d.label.includes('視距連線')
+        d.label && (d.label.includes('視距連線') || d.label.includes('視距'))
     );
     if (!terrainDataset || !losDataset) {
         console.log('找不到必要的數據集');
@@ -6908,6 +8034,11 @@ function toggleObstructionColor() {
         console.log('遮蔽線顏色已關閉');
     }
     fullscreenChartInstance.update();
+    
+    // 🎯 更新保存的狀態
+    if (window.lastFullscreenState) {
+        window.lastFullscreenState.obstructionEnabled = obstructionColorEnabled;
+    }
 }
 function openGoogleMapForYellowPoint() {
     console.log('openGoogleMapForYellowPoint() 被調用');
