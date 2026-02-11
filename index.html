@@ -1313,9 +1313,13 @@ div.gps-ig.orange-border-card,
       let currentLat = null;
       let currentLng = null;
 
-      // 儲存上一次的旋轉角度，用於修正0/360度切換問題
-      let lastRotation = 0;
-      let rotationOffset = 0;
+      // 向量平均法平滑數據（參考 431.html）
+      let samples = [];
+      const MAX_SAMPLES = 15; // 採樣視窗大小，調整後更快反應
+      
+      // 🔧 修正: 追蹤累積旋轉角度，避免 360°/0° 切換時轉一圈
+      let accumulatedRotation = 0; // 累積的旋轉角度（可以超過 360° 或小於 0°）
+      let lastAngle = null; // 上一次的角度
 
       // 生成刻度標記
       for (let i = 0; i < 360; i += 5) {
@@ -1351,28 +1355,50 @@ div.gps-ig.orange-border-card,
         let heading = event.alpha;
         
         if (event.webkitCompassHeading) {
+          // iOS 設備使用 webkitCompassHeading (已經是磁北方向)
           heading = event.webkitCompassHeading;
-        } else if (event.alpha) {
+        } else if (event.alpha !== null) {
+          // Android 設備使用 alpha (需要轉換)
           heading = 360 - event.alpha;
         }
 
         if (heading !== null) {
-          const roundedHeading = Math.round(heading);
+          // 向量平均法處理抖動（參考 431.html）
+          const rad = heading * Math.PI / 180;
+          samples.push({ x: Math.cos(rad), y: Math.sin(rad) });
+          if (samples.length > MAX_SAMPLES) samples.shift();
+
+          let sumX = 0, sumY = 0;
+          samples.forEach(s => { sumX += s.x; sumY += s.y; });
           
-          // 修正0/360度切換問題：計算最短旋轉路徑
-          let targetRotation = -heading;
-          let diff = targetRotation - lastRotation;
+          let avgRad = Math.atan2(sumY, sumX);
+          let avgDeg = (avgRad * 180 / Math.PI + 360) % 360;
+
+          const roundedHeading = Math.round(avgDeg);
           
-          // 將差值標準化到 -180 到 180 之間
-          while (diff > 180) diff -= 360;
-          while (diff < -180) diff += 360;
+          // 🔧 修正: 使用最短路徑旋轉，避免 360°/0° 切換時轉一圈
+          if (lastAngle !== null) {
+            // 計算角度差異
+            let delta = avgDeg - lastAngle;
+            
+            // 標準化角度差異到 [-180, 180] 範圍
+            if (delta > 180) {
+              delta -= 360;
+            } else if (delta < -180) {
+              delta += 360;
+            }
+            
+            // 累積旋轉角度（使用最短路徑）
+            accumulatedRotation += delta;
+          } else {
+            // 首次運行，初始化累積角度
+            accumulatedRotation = -avgDeg;
+          }
           
-          // 累加旋轉偏移量
-          rotationOffset += diff;
-          lastRotation = targetRotation;
+          lastAngle = avgDeg;
           
-          // 使用累積的旋轉值，避免跳轉
-          compassRoseInner.style.transform = `rotate(${rotationOffset}deg)`;
+          // 使用累積角度旋轉（這樣可以平滑跨越 0°/360° 邊界）
+          compassRoseInner.style.transform = `rotate(${accumulatedRotation}deg)`;
           compassDegreeDisplay.textContent = `${roundedHeading}°`;
           compassDirectionDisplay.textContent = getDirection(roundedHeading);
           
@@ -1402,6 +1428,7 @@ div.gps-ig.orange-border-card,
           DeviceOrientationEvent.requestPermission()
             .then(permissionState => {
               if (permissionState === 'granted') {
+                // iOS 設備使用 deviceorientation (有 webkitCompassHeading)
                 window.addEventListener('deviceorientation', handleOrientation);
                 compassInfoText.classList.add('compass-calibrating');
               } else {
@@ -1416,8 +1443,8 @@ div.gps-ig.orange-border-card,
               compassInfoText.style.display = 'none';
             });
         } else {
-          // 非 iOS 13+ 設備
-          window.addEventListener('deviceorientation', handleOrientation);
+          // 非 iOS 設備：優先使用 deviceorientationabsolute (絕對方向)
+          window.addEventListener('deviceorientationabsolute', handleOrientation, true);
           compassInfoText.classList.add('compass-calibrating');
         }
       } else {
