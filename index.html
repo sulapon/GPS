@@ -1578,32 +1578,38 @@ div.gps-ig.orange-border-card,
     font-size: 22px;
     color: white;
     text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    text-align: center;
+    line-height: 1.3;
+  }
+  
+  .compass-cardinal > div {
+    line-height: 1.3;
   }
 
   .compass-north {
-    top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 5px !important;  /* N 在正上方 = 0° */
+    left: 50% !important;
+    transform: translateX(-50%) !important;
     color: #ef5350;
-    font-size: 26px;
+    font-size: 24px;
   }
 
   .compass-east {
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 5px !important;  /* E 在正右方 = 90° */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
   }
 
   .compass-south {
-    bottom: 12px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 5px !important;  /* S 在正下方 = 180° */
+    left: 50% !important;
+    transform: translateX(-50%) !important;
   }
 
   .compass-west {
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 5px !important;  /* W 在正左方 = 270° */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
   }
 
   .compass-needle-container {
@@ -1810,19 +1816,41 @@ div.gps-ig.orange-border-card,
     <div class="compass-container">
       <div class="compass-outer">
         <div class="compass-inner" id="compassRoseInner">
+          <!-- 方位標記層 -->
           <div class="compass-rose">
-            <div class="compass-cardinal compass-north">N</div>
-            <div class="compass-cardinal compass-east">E</div>
-            <div class="compass-cardinal compass-south">S</div>
-            <div class="compass-cardinal compass-west">W</div>
+            <div class="compass-cardinal compass-north">
+              <div style="transform: rotate(0deg); line-height: 1.3;">
+                N<br><span style="font-size:18px;">北</span>
+              </div>
+            </div>
+            <div class="compass-cardinal compass-east">
+              <div style="transform: rotate(-90deg); line-height: 1.3;">
+                <span style="display:inline-block; transform:rotate(180deg); font-size:18px;">東</span><br>
+                <span style="display:inline-block; transform:rotate(180deg);">E</span>
+              </div>
+            </div>
+            <div class="compass-cardinal compass-south">
+              <div style="transform: rotate(180deg); line-height: 1.3;">
+                S<br><span style="font-size:18px;">南</span>
+              </div>
+            </div>
+            <div class="compass-cardinal compass-west">
+              <div style="transform: rotate(90deg); line-height: 1.3;">
+                <span style="display:inline-block; transform:rotate(180deg); font-size:18px;">西</span><br>
+                <span style="display:inline-block; transform:rotate(180deg);">W</span>
+              </div>
+            </div>
           </div>
 
+          <!-- 刻度標記層 -->
           <div class="compass-degree-marks" id="compassDegreeMarks"></div>
 
+          <!-- 中心點 -->
           <div class="compass-center-dot"></div>
         </div>
       </div>
 
+      <!-- 指針（固定不轉，永遠指向正上方） -->
       <div class="compass-needle-container">
         <div class="compass-needle">
           <div class="compass-needle-north"></div>
@@ -1889,15 +1917,26 @@ div.gps-ig.orange-border-card,
     let accumulatedRotation = 0; // 累積的旋轉角度（可以超過 360° 或小於 0°）
     let lastAngle = null; // 上一次的角度
 
-    // 生成刻度標記
+    // 生成刻度標記（0° ~ 355°，每 5° 一個刻度）
+    // 注意：不生成 360° 刻度，因為 360° = 0°（同一方向）
     for (let i = 0; i < 360; i += 5) {
     const mark = document.createElement('div');
     mark.className = i % 30 === 0 ? 'compass-mark compass-mark-major' : 'compass-mark compass-mark-minor';
     mark.style.transform = `translateX(-50%) rotate(${i}deg)`;
+    
+    // 🎯 測試：在 0° 位置加上特殊標記，確認對齊
+    if (i === 0) {
+      mark.style.background = '#ff0000';  // 紅色
+      mark.style.width = '3px';
+      mark.style.height = '15px';
+      mark.style.marginLeft = '-1.5px';
+    }
+    
     compassDegreeMarks.appendChild(mark);
     }
 
     // 方向對照表
+    // 注意：指北針只有 0°～359°，沒有 360°（360° = 0°）
     const directions = [
     { name: '北', range: [0, 22.5] },
     { name: '東北', range: [22.5, 67.5] },
@@ -1907,16 +1946,19 @@ div.gps-ig.orange-border-card,
     { name: '西南', range: [202.5, 247.5] },
     { name: '西', range: [247.5, 292.5] },
     { name: '西北', range: [292.5, 337.5] },
-    { name: '北', range: [337.5, 360] }
+    { name: '北', range: [337.5, 360] }  // 337.5° ~ 359.99...° 顯示為「北」
     ];
 
     function getDirection(degree) {
+    // 確保角度在 0-359.99... 範圍內
+    const normalizedDegree = ((degree % 360) + 360) % 360;
+    
     for (let dir of directions) {
-      if (degree >= dir.range[0] && degree < dir.range[1]) {
+      if (normalizedDegree >= dir.range[0] && normalizedDegree < dir.range[1]) {
       return dir.name;
       }
     }
-    return '北';
+    return '北';  // 預設返回北（涵蓋 337.5° 以上的情況）
     }
 
     function handleOrientation(event) {
@@ -1931,7 +1973,7 @@ div.gps-ig.orange-border-card,
     }
 
     if (heading !== null) {
-      // 向量平均法處理抖動（參考 431.html）
+      // 向量平均法處理抖動
       const rad = heading * Math.PI / 180;
       samples.push({ x: Math.cos(rad), y: Math.sin(rad) });
       if (samples.length > MAX_SAMPLES) samples.shift();
@@ -1940,33 +1982,39 @@ div.gps-ig.orange-border-card,
       samples.forEach(s => { sumX += s.x; sumY += s.y; });
 
       let avgRad = Math.atan2(sumY, sumX);
-      let avgDeg = (avgRad * 180 / Math.PI + 360) % 360;
+      let smoothedHeading = (avgRad * 180 / Math.PI + 360) % 360;
+      
+      // 四捨五入
+      let roundedHeading = Math.round(smoothedHeading);
+      if (roundedHeading >= 360) {
+        roundedHeading = 0;
+      }
 
-      const roundedHeading = Math.round(avgDeg);
-
-      // 🔧 修正: 使用最短路徑旋轉，避免 360°/0° 切換時轉一圈
+      // 🎯 修正 0°/360° 邊界問題
       if (lastAngle !== null) {
-      // 計算角度差異
-      let delta = avgDeg - lastAngle;
-
-      // 標準化角度差異到 [-180, 180] 範圍
-      if (delta > 180) {
-        delta -= 360;
-      } else if (delta < -180) {
-        delta += 360;
-      }
-
-      // 累積旋轉角度（使用最短路徑）
-      accumulatedRotation += delta;
+        // 計算角度變化
+        let delta = smoothedHeading - lastAngle;
+        
+        // 選擇最短路徑（避免轉一整圈）
+        if (delta > 180) {
+          delta -= 360;
+        } else if (delta < -180) {
+          delta += 360;
+        }
+        
+        // 累積旋轉角度（取負值，因為羅盤要反向旋轉）
+        accumulatedRotation -= delta;
       } else {
-      // 首次運行，初始化累積角度
-      accumulatedRotation = -avgDeg;
+        // 首次運行：直接設定為負的當前角度
+        accumulatedRotation = -smoothedHeading;
       }
-
-      lastAngle = avgDeg;
-
-      // 使用累積角度旋轉（這樣可以平滑跨越 0°/360° 邊界）
+      
+      lastAngle = smoothedHeading;
+      
+      // 使用累積旋轉角度（這樣可以平滑跨越 0°/360° 邊界）
       compassRoseInner.style.transform = `rotate(${accumulatedRotation}deg)`;
+      
+      // 顯示角度
       compassDegreeDisplay.textContent = `${roundedHeading}°`;
       compassDirectionDisplay.textContent = getDirection(roundedHeading);
 
