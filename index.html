@@ -255,6 +255,50 @@ function updateFromInput(point, property) {
 // ========================================
 
 // ========================================
+// 🏷️ 統一地名取得函數
+// ========================================
+/**
+ * 統一從 GPS 分頁取得地名
+ * 高度圖分頁不再使用獨立的 window.elevationPointAName/BName
+ * 而是直接使用 GPS 分頁的 nameA/nameB 輸入框值或 coordinateData
+ */
+function getPointName(point) {
+  // point 可以是 'A' 或 'B'
+  const nameInput = document.getElementById(`name${point}`);
+  if (nameInput && nameInput.value) {
+    return nameInput.value;
+  }
+  // 如果輸入框沒有值，從 coordinateData 取
+  if (coordinateData[point] && coordinateData[point].name) {
+    return coordinateData[point].name;
+  }
+  // 預設值
+  return `${point}點`;
+}
+
+// 為了向後相容，保留 window.elevationPointAName/BName
+// 但改成從 getPointName 取得
+Object.defineProperty(window, 'elevationPointAName', {
+  get: () => getPointName('A'),
+  set: (value) => {
+    // 當設定時，更新到 GPS 分頁的輸入框和 coordinateData
+    const nameInput = document.getElementById('nameA');
+    if (nameInput) nameInput.value = value;
+    coordinateData.A.name = value;
+  }
+});
+
+Object.defineProperty(window, 'elevationPointBName', {
+  get: () => getPointName('B'),
+  set: (value) => {
+    // 當設定時，更新到 GPS 分頁的輸入框和 coordinateData
+    const nameInput = document.getElementById('nameB');
+    if (nameInput) nameInput.value = value;
+    coordinateData.B.name = value;
+  }
+});
+
+// ========================================
 // 🚀 TIF 檔案快取系統 - 優化剖面圖生成速度
 // ========================================
 let cachedTiffData = {
@@ -10544,6 +10588,19 @@ function applyFields(data){
   const el=document.getElementById(id);
   if(el && id !== 'timestamp') el.value=data[id];
   });
+  
+  // 🔄 讀取存檔後，觸發響應式系統更新
+  // 這會自動同步 GPS → 高度圖 → 地圖
+  if (data.latA !== undefined) coordinateData.A.lat = parseFloat(data.latA) || 0;
+  if (data.lonA !== undefined) coordinateData.A.lng = parseFloat(data.lonA) || 0;
+  if (data.eleA !== undefined) coordinateData.A.ele = parseFloat(data.eleA) || null;
+  if (data.nameA !== undefined) coordinateData.A.name = data.nameA || '';
+  
+  if (data.latB !== undefined) coordinateData.B.lat = parseFloat(data.latB) || 0;
+  if (data.lonB !== undefined) coordinateData.B.lng = parseFloat(data.lonB) || 0;
+  if (data.eleB !== undefined) coordinateData.B.ele = parseFloat(data.eleB) || null;
+  if (data.nameB !== undefined) coordinateData.B.name = data.nameB || '';
+  
   window.scrollTo({top:0,behavior:"smooth"});
   alert("✓ 參數已成功填入");
   setTimeout(() => {
