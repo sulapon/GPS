@@ -1,6 +1,6 @@
 {
   "name": "GPS RF 工具",
-  "short_name": "GPS工具",
+  "short_name": "RF工具",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#050a16",
@@ -23,5 +23,6 @@
     }
   ]
 }
+
 
 
