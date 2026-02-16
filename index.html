@@ -4669,13 +4669,10 @@ async function getLocationNameAndShowDialog(lat, lng, location, nameId, eleId) {
 }
 function updateDialogLocationName(locationName) {
   if (currentUpdateDialog) {
-    const dialog = currentUpdateDialog;
-    const innerHTML = dialog.innerHTML;
-    const updatedHTML = innerHTML.replace(
-      /地名: <span style="color:#fbbf24;">.*?<\/span>/,
-      `地名: <span style="color:#fbbf24;">${locationName}</span>`
-    );
-    dialog.innerHTML = updatedHTML;
+    const span = currentUpdateDialog.querySelector('#dialog-location-name');
+    if (span) {
+      span.textContent = locationName;
+    }
   }
 }
 function updateDMSFromDecimal(coordId) {
@@ -5048,13 +5045,13 @@ function showLocationUpdateDialog(location, lat, lng, locationName, eleId) {
       座標: <span style="color:#60a5fa;">${lat.toFixed(6)}, ${lng.toFixed(6)}</span>
     </div>
     <div style="margin-bottom:12px;">
-      地名: <span style="color:#fbbf24;">${locationName}</span>
+      地名: <span id="dialog-location-name" style="color:#fbbf24;">${locationName}</span>
     </div>
     <div id="elevation-status-${eleId}" style="color:#94a3b8;">
       正在取得高度...
     </div>
     <div style="text-align:center; margin-top:20px;">
-      <button onclick="closeLocationUpdateDialog()" style="background:linear-gradient(90deg, #fbbf24, #f59e0b); color:#000; border:none; padding:10px 32px; border-radius:6px; font-weight:bold; font-size:16px; cursor:pointer;">
+      <button onclick="confirmLocationUpdate()" style="background:linear-gradient(90deg, #fbbf24, #f59e0b); color:#000; border:none; padding:10px 32px; border-radius:6px; font-weight:bold; font-size:16px; cursor:pointer;">
         確定
       </button>
     </div>
@@ -5062,6 +5059,9 @@ function showLocationUpdateDialog(location, lat, lng, locationName, eleId) {
   document.body.appendChild(dialog);
   currentUpdateDialog = dialog;
   dialog.dataset.eleId = eleId;
+  dialog.dataset.location = location;
+  dialog.dataset.lat = lat;
+  dialog.dataset.lng = lng;
 }
 function updateDialogElevationStatus(eleId, status, success = true) {
   const statusDiv = document.getElementById(`elevation-status-${eleId}`);
@@ -5075,6 +5075,92 @@ function updateDialogElevationStatus(eleId, status, success = true) {
     }
   }
 }
+async function confirmLocationUpdate() {
+  if (!currentUpdateDialog) return;
+
+  const location = currentUpdateDialog.dataset.location;
+  const nameSpan = currentUpdateDialog.querySelector('#dialog-location-name');
+  const currentName = nameSpan ? nameSpan.textContent.trim() : '';
+  const needRetry = !currentName || currentName === '取得中...' || currentName.includes('未取得地名');
+
+  if (needRetry && location) {
+    // 地名還沒取得成功，重新嘗試一次
+    const lat = parseFloat(currentUpdateDialog.dataset.lat);
+    const lng = parseFloat(currentUpdateDialog.dataset.lng);
+    const confirmBtn = currentUpdateDialog.querySelector('button');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = '取得中...';
+    }
+    if (nameSpan) nameSpan.textContent = '重新取得中...';
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=zh-TW`
+      );
+      if (!response.ok) throw new Error('請求失敗');
+      const data = await response.json();
+      let locationName = '';
+      if (data && data.address) {
+        if (data.name && data.name.trim() !== '' && !data.name.match(/^[0-9\-]+$/) && data.name.length <= 20) {
+          locationName = data.name;
+        } else if (data.address.building && !data.address.building.match(/^(yes|house|residential|commercial|retail|apartments|office)$/i)) {
+          locationName = data.address.building;
+        } else if (data.address.amenity) {
+          locationName = data.address.amenity;
+        } else if (data.address.road) {
+          locationName = data.address.road;
+        } else if (data.address.village || data.address.hamlet || data.address.suburb) {
+          locationName = data.address.village || data.address.hamlet || data.address.suburb;
+        } else if (data.address.town || data.address.city_district) {
+          locationName = data.address.town || data.address.city_district;
+        } else if (data.address.city || data.address.county || data.address.state) {
+          locationName = data.address.city || data.address.county || data.address.state;
+        } else if (data.display_name) {
+          locationName = data.display_name.split(',')[0].trim();
+        }
+        if (locationName.length > 5) locationName = locationName.substring(0, 5);
+      }
+      if (locationName) {
+        if (nameSpan) nameSpan.textContent = locationName;
+        const nameId = location === 'A' ? 'nameA' : 'nameB';
+        const nameInput = document.getElementById(nameId);
+        if (nameInput) nameInput.value = locationName;
+        coordinateData[location].name = locationName;
+      } else {
+        // API 回應了但沒有有用地名，用簡名
+        const simpleName = `點${location}`;
+        if (nameSpan) nameSpan.textContent = simpleName;
+        const nameId = location === 'A' ? 'nameA' : 'nameB';
+        const nameInput = document.getElementById(nameId);
+        if (nameInput) nameInput.value = simpleName;
+        coordinateData[location].name = simpleName;
+      }
+    } catch (e) {
+      // 重試也失敗，用簡名
+      const simpleName = `點${location}`;
+      if (nameSpan) nameSpan.textContent = simpleName;
+      const nameId = location === 'A' ? 'nameA' : 'nameB';
+      const nameInput = document.getElementById(nameId);
+      if (nameInput) nameInput.value = simpleName;
+      coordinateData[location].name = simpleName;
+    }
+  }
+
+  // 最終同步地名到輸入框，確保萬無一失
+  if (location) {
+    const nameId = location === 'A' ? 'nameA' : 'nameB';
+    const nameInput = document.getElementById(nameId);
+    const finalName = nameSpan ? nameSpan.textContent.trim() : '';
+    if (nameInput && finalName && finalName !== '取得中...' && finalName !== '重新取得中...') {
+      nameInput.value = finalName;
+      coordinateData[location].name = finalName;
+    }
+  }
+
+  closeLocationUpdateDialog();
+}
+
 function closeLocationUpdateDialog() {
   if (currentUpdateDialog && currentUpdateDialog.parentNode) {
     currentUpdateDialog.parentNode.removeChild(currentUpdateDialog);
@@ -9078,7 +9164,7 @@ function showMap(index, height) {
   const isInvalidHeight = isNoData || height < -500 || height > 9000 || height === null || height === undefined || isNaN(height);
   
   // 如果是無效高度，標記為待取得
-  let displayHeight = isNaN(height) || height === null || height === undefined ? height : Math.round(height);
+  let displayHeight = height;
   let heightStatus = '';
   if (isInvalidHeight) {
     displayHeight = '???';
