@@ -2882,7 +2882,7 @@ async function continueGenerateReport() {
   const threeBlocksDiv = document.createElement('div');
   threeBlocksDiv.style.cssText = `
     display: flex;
-    gap: 8px;
+    gap: 4px;
     width: ${(pdfWidth - 2 * margin) * 3.7795}px;
     font-family: 'Microsoft JhengHei', sans-serif;
   `;
@@ -2898,17 +2898,17 @@ async function continueGenerateReport() {
   `;
 
   let leftContent = `
-    <div style="font-size:18px; color:#ffa500; text-align:center; margin-bottom:12px; font-weight:bold;">
+    <div style="font-size:22px; color:#ffa500; text-align:center; margin-bottom:8px; font-weight:bold;">
     📍 ${nameA}
     </div>
   `;
 
   if (!isNaN(latA) && !isNaN(lonA)) {
     leftContent += `
-    <div style="font-size:13px; color:#f0f4f8; margin-bottom:6px;">
+    <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
       座標: <span style="color:#60d6ff; font-weight:700;">${latA.toFixed(6)}°N, ${lonA.toFixed(6)}°E</span>
     </div>
-    <div style="font-size:13px; color:#f0f4f8; margin-bottom:6px;">
+    <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
       高度(含建物): <span style="color:#60d6ff; font-weight:700;">${eleA.toFixed(1)} m</span>
     </div>
     `;
@@ -2918,7 +2918,7 @@ async function continueGenerateReport() {
   const antennaHeightA = document.getElementById('antennaHeightStart').value;
   if (antennaHeightA) {
     leftContent += `
-    <div style="font-size:13px; color:#f0f4f8; margin-bottom:10px;">
+    <div style="font-size:17px; color:#f0f4f8; margin-bottom:6px;">
       天線高: <span style="color:#60d6ff; font-weight:700;">${antennaHeightA} m</span>
     </div>
     `;
@@ -2926,12 +2926,12 @@ async function continueGenerateReport() {
 
   if (angles) {
     leftContent += `
-    <div style="background:rgba(95,240,213,0.2); padding:10px; border-radius:4px; margin-top:10px; border:2px solid rgba(95,240,213,0.5);">
-      <div style="font-size:14px; color:#60d6ff; margin-bottom:8px; font-weight:bold;">${nameA} → ${nameB} 方向</div>
-      <div style="font-size:13px; color:#f0f4f8; margin-bottom:5px;">
+    <div style="background:rgba(95,240,213,0.2); padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(95,240,213,0.5);">
+      <div style="font-size:18px; color:#60d6ff; margin-bottom:4px; font-weight:bold;">${nameA} → ${nameB} 方向</div>
+      <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
       方位角: <span style="color:#60d6ff; font-weight:700;">${angles.azimuthAtoB.toFixed(1)}°</span>
       </div>
-      <div style="font-size:13px; color:#f0f4f8;">
+      <div style="font-size:17px; color:#f0f4f8;">
       俯仰角: <span style="color:#60d6ff; font-weight:700;">${angles.elevationAtoB >= 0 ? '+' : ''}${angles.elevationAtoB.toFixed(2)}°</span>
       </div>
     </div>
@@ -2946,13 +2946,13 @@ async function continueGenerateReport() {
 
   if (txPower || txGain || txLoss) {
     leftContent += `
-    <div style="background:rgba(77,171,247,0.2); padding:10px; border-radius:4px; margin-top:10px; border:2px solid rgba(77,171,247,0.5);">
-      <div style="font-size:14px; color:#60a5fa; margin-bottom:8px; font-weight:bold;">發射端 (Tx)</div>
+    <div style="background:rgba(77,171,247,0.2); padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(77,171,247,0.5);">
+      <div style="font-size:18px; color:#60a5fa; margin-bottom:4px; font-weight:bold;">發射端 (Tx)</div>
     `;
 
     if (txPower) {
     leftContent += `
-      <div style="font-size:13px; color:#f0f4f8; margin-bottom:5px;">
+      <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
       發射功率: <span style="color:#60d6ff; font-weight:700;">${txPower} ${txPowerUnit}</span>
       </div>
     `;
@@ -2960,7 +2960,7 @@ async function continueGenerateReport() {
 
     if (txGain) {
     leftContent += `
-      <div style="font-size:13px; color:#f0f4f8; margin-bottom:5px;">
+      <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
       天線增益: <span style="color:#60d6ff; font-weight:700;">${txGain} dBi</span>
       </div>
     `;
@@ -2968,7 +2968,7 @@ async function continueGenerateReport() {
 
     if (txLoss) {
     leftContent += `
-      <div style="font-size:13px; color:#f0f4f8;">
+      <div style="font-size:17px; color:#f0f4f8;">
       線損: <span style="color:#60d6ff; font-weight:700;">${txLoss} dB</span>
       </div>
     `;
@@ -2990,14 +2990,14 @@ async function continueGenerateReport() {
   `;
 
   let centerContent = `
-    <div style="font-size:17px; color:#60d6ff; text-align:center; margin-bottom:12px; font-weight:bold;">
+    <div style="font-size:21px; color:#60d6ff; text-align:center; margin-bottom:8px; font-weight:bold;">
     📡 RF鏈路計算
     </div>
   `;
 
   if (freq) {
     centerContent += `
-    <div style="font-size:13px; color:#f0f4f8; margin-bottom:6px;">
+    <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
       頻率: <span style="color:#60d6ff; font-weight:700;">${freq} MHz</span>
     </div>
     `;
@@ -3017,7 +3017,7 @@ async function continueGenerateReport() {
 
   if (displayDistance) {
     centerContent += `
-    <div style="font-size:13px; color:#f0f4f8; margin-bottom:10px;">
+    <div style="font-size:17px; color:#f0f4f8; margin-bottom:6px;">
       距離: <span style="color:#60d6ff; font-weight:700;">${displayDistance} km</span>
     </div>
     `;
@@ -3027,9 +3027,9 @@ async function continueGenerateReport() {
   const rssiMatch = rssiText.match(/接收訊號強度:\s*([-+]?\d+\.?\d*)\s*dBm/);
   if (rssiMatch) {
     centerContent += `
-    <div style="background:rgba(95,240,213,0.25); border:2px solid #00e6b8; border-radius:4px; padding:12px; text-align:center; margin-bottom:10px;">
-      <div style="font-size:12px; color:#fef08a; margin-bottom:4px; font-weight:700;">視距(LoS)訊號預估</div>
-      <div style="font-size:22px; color:#00e6b8; font-weight:bold;">${rssiMatch[1]} dBm</div>
+    <div style="background:rgba(95,240,213,0.25); border:2px solid #00e6b8; border-radius:4px; padding:10px; text-align:center; margin-bottom:6px;">
+      <div style="font-size:14px; color:#fef08a; margin-bottom:3px; font-weight:700;">視距(LoS)訊號預估</div>
+      <div style="font-size:26px; color:#00e6b8; font-weight:bold;">${rssiMatch[1]} dBm</div>
     </div>
     `;
   }
@@ -3053,14 +3053,14 @@ async function continueGenerateReport() {
     // 顯示遮蔽判斷
     if (hasObstruction) {
     centerContent += `
-      <div style="background:rgba(255,50,50,0.3); border:3px solid #ff1a1a; border-radius:4px; padding:14px; margin-top:3px; text-align:center;">
-      <div style="font-size:24px; color:#ff1a1a; font-weight:bold;">⚠️ 有遮蔽</div>
+      <div style="background:rgba(255,50,50,0.3); border:3px solid #ff1a1a; border-radius:4px; padding:12px; margin-top:2px; text-align:center;">
+      <div style="font-size:28px; color:#ff1a1a; font-weight:bold;">⚠️ 有遮蔽</div>
       </div>
     `;
     } else {
     centerContent += `
-      <div style="background:rgba(0,230,184,0.2); border:3px solid #00e6b8; border-radius:4px; padding:14px; margin-top:3px; text-align:center;">
-      <div style="font-size:24px; color:#00e6b8; font-weight:bold;">✓ 無遮蔽</div>
+      <div style="background:rgba(0,230,184,0.2); border:3px solid #00e6b8; border-radius:4px; padding:12px; margin-top:2px; text-align:center;">
+      <div style="font-size:28px; color:#00e6b8; font-weight:bold;">✓ 無遮蔽</div>
       </div>
     `;
     }
@@ -3079,17 +3079,17 @@ async function continueGenerateReport() {
   `;
 
   let rightContent = `
-    <div style="font-size:18px; color:#ffa500; text-align:center; margin-bottom:12px; font-weight:bold;">
+    <div style="font-size:22px; color:#ffa500; text-align:center; margin-bottom:8px; font-weight:bold;">
     📍 ${nameB}
     </div>
   `;
 
   if (!isNaN(latB) && !isNaN(lonB)) {
     rightContent += `
-    <div style="font-size:13px; color:#f0f4f8; margin-bottom:6px;">
+    <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
       座標: <span style="color:#60d6ff; font-weight:700;">${latB.toFixed(6)}°N, ${lonB.toFixed(6)}°E</span>
     </div>
-    <div style="font-size:13px; color:#f0f4f8; margin-bottom:6px;">
+    <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
       高度(含建物): <span style="color:#60d6ff; font-weight:700;">${eleB.toFixed(1)} m</span>
     </div>
     `;
@@ -3099,7 +3099,7 @@ async function continueGenerateReport() {
   const antennaHeightB = document.getElementById('antennaHeightEnd').value;
   if (antennaHeightB) {
     rightContent += `
-    <div style="font-size:13px; color:#f0f4f8; margin-bottom:10px;">
+    <div style="font-size:17px; color:#f0f4f8; margin-bottom:6px;">
       天線高: <span style="color:#60d6ff; font-weight:700;">${antennaHeightB} m</span>
     </div>
     `;
@@ -3107,12 +3107,12 @@ async function continueGenerateReport() {
 
   if (angles) {
     rightContent += `
-    <div style="background:rgba(95,240,213,0.2); padding:10px; border-radius:4px; margin-top:10px; border:2px solid rgba(95,240,213,0.5);">
-      <div style="font-size:14px; color:#60d6ff; margin-bottom:8px; font-weight:bold;">${nameB} → ${nameA} 方向</div>
-      <div style="font-size:13px; color:#f0f4f8; margin-bottom:5px;">
+    <div style="background:rgba(95,240,213,0.2); padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(95,240,213,0.5);">
+      <div style="font-size:18px; color:#60d6ff; margin-bottom:4px; font-weight:bold;">${nameB} → ${nameA} 方向</div>
+      <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
       方位角: <span style="color:#60d6ff; font-weight:700;">${angles.azimuthBtoA.toFixed(1)}°</span>
       </div>
-      <div style="font-size:13px; color:#f0f4f8;">
+      <div style="font-size:17px; color:#f0f4f8;">
       俯仰角: <span style="color:#60d6ff; font-weight:700;">${angles.elevationBtoA >= 0 ? '+' : ''}${angles.elevationBtoA.toFixed(2)}°</span>
       </div>
     </div>
@@ -3125,13 +3125,13 @@ async function continueGenerateReport() {
 
   if (rxGain || rxLoss) {
     rightContent += `
-    <div style="background:rgba(77,171,247,0.2); padding:10px; border-radius:4px; margin-top:10px; border:2px solid rgba(77,171,247,0.5);">
-      <div style="font-size:14px; color:#60a5fa; margin-bottom:8px; font-weight:bold;">接收端 (Rx)</div>
+    <div style="background:rgba(77,171,247,0.2); padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(77,171,247,0.5);">
+      <div style="font-size:18px; color:#60a5fa; margin-bottom:4px; font-weight:bold;">接收端 (Rx)</div>
     `;
 
     if (rxGain) {
     rightContent += `
-      <div style="font-size:13px; color:#f0f4f8; margin-bottom:5px;">
+      <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
       天線增益: <span style="color:#60d6ff; font-weight:700;">${rxGain} dBi</span>
       </div>
     `;
@@ -3139,7 +3139,7 @@ async function continueGenerateReport() {
 
     if (rxLoss) {
     rightContent += `
-      <div style="font-size:13px; color:#f0f4f8;">
+      <div style="font-size:17px; color:#f0f4f8;">
       線損: <span style="color:#60d6ff; font-weight:700;">${rxLoss} dB</span>
       </div>
     `;
