@@ -694,7 +694,7 @@ body{ margin:0; padding:0; background:linear-gradient(180deg,var(--bg-0),var(--b
   width: 100%;
   height: 100%;
   position: relative;
-  background: #050a16;
+  background: transparent;
   padding: 0;
   overflow: hidden;
   display: flex;
@@ -708,7 +708,7 @@ body{ margin:0; padding:0; background:linear-gradient(180deg,var(--bg-0),var(--b
   display: flex;
   align-items: stretch;
   justify-content: center;
-  padding: 10px 10px 10px 10px;
+  padding: 0;
   box-sizing: border-box;
 }
 .chart-fullscreen-container canvas {
@@ -2582,6 +2582,20 @@ div.gps-ig.orange-border-card,
         <input type="text" id="report_author" placeholder="您的姓名或單位"
                style="width:100%; padding:8px; font-size:15px; color:var(--value); background:rgba(255,255,255,0.05); border-radius:6px; border:1px solid rgba(255,255,255,0.2);">
       </div>
+
+      <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(95, 240, 213, 0.2);">
+        <label style="color:var(--label); font-size:14px; display:block; margin-bottom:8px; font-weight:600;">
+          🎨 PDF 背景風格
+        </label>
+        <select id="pdf_theme_setting" 
+                style="width:100%; padding:8px; font-size:14px; color:var(--value); background:rgba(255,255,255,0.05); border-radius:6px; border:1px solid rgba(255,255,255,0.2); cursor:pointer;">
+          <option value="dark">🌙 深色風格（黑色背景）- 原始設計</option>
+          <option value="light">☀️ 淺色風格（白色背景）- 適合列印</option>
+        </select>
+        <div style="margin-top:6px; font-size:12px; color:#a8b3c3; line-height:1.4;">
+          💡 淺色風格更適合列印，深色風格適合螢幕閱讀
+        </div>
+      </div>
     </div>
 
     <!-- 匯出按鈕 -->
@@ -2742,6 +2756,49 @@ async function continueGenerateReport() {
   const exportGPS = true;
   const exportElevation = true;
 
+  // 🎯 讀取主題設定
+  const themeSetting = document.getElementById('pdf_theme_setting')?.value || 'dark';
+  
+  // 🎯 固定使用高品質設定
+  const qualityConfig = {
+    titleScale: 1.5,
+    titleQuality: 0.9,
+    chartQuality: 0.85,     // 剖面圖高品質
+    blockScale: 1.5,
+    blockQuality: 0.9
+  };
+
+  // 🎨 主題配色方案
+  const themeColors = themeSetting === 'light' ? {
+    // ☀️ 淺色主題配色（白色背景）
+    background: '#ffffff',
+    titleBg: '#f8f9fa',
+    titleMain: '#1a5490',      // 深藍色標題
+    titleSub: '#d97706',       // 橙色副標題
+    titleDate: '#4b5563',      // 深灰色日期
+    blockBg: '#f8f9fa',
+    blockBorder: '#e5e7eb',
+    labelColor: '#374151',     // 深灰色標籤
+    valueColor: '#111827',     // 接近黑色的數值
+    sectionTitle: '#1e40af',   // 深藍色區塊標題
+    highlightValue: '#dc2626', // 紅色強調數值
+    chartBg: '#e0f2fe'         // 淡藍色圖表背景
+  } : {
+    // 🌙 深色主題配色（黑色背景）- 原始設計
+    background: '#0b1526',
+    titleBg: '#0b1526',
+    titleMain: '#5ff0d5',
+    titleSub: '#ffe58f',
+    titleDate: '#a8b3c3',
+    blockBg: '#0b1526',
+    blockBorder: '#1e3a5f',
+    labelColor: '#85c9ff',
+    valueColor: '#e8eef5',
+    sectionTitle: '#5ff0d5',
+    highlightValue: '#ffd43b',
+    chartBg: '#0b1526'
+  };
+
   showExportStatus('📝 正在生成單頁報告...', 'loading');
 
   try {
@@ -2759,8 +2816,12 @@ async function continueGenerateReport() {
   const pdfHeight = 210;
   const margin = 8;
 
-  // 黑色背景
-  pdf.setFillColor(11, 21, 38);
+  // 使用主題背景色
+  if (themeSetting === 'light') {
+    pdf.setFillColor(255, 255, 255);  // 白色背景
+  } else {
+    pdf.setFillColor(11, 21, 38);     // 黑色背景（原始）
+  }
   pdf.rect(0, 0, pdfWidth, pdfHeight, 'F');
 
   let yPos = 5;
@@ -2768,30 +2829,30 @@ async function continueGenerateReport() {
   // === 1. 報告標題 ===
   const titleDiv = document.createElement('div');
   titleDiv.style.cssText = `
-    background: #0b1526;
+    background: ${themeColors.titleBg};
     padding: 4px 15px;
     text-align: center;
     font-family: 'Microsoft JhengHei', sans-serif;
     width: ${(pdfWidth - 2 * margin) * 3.7795}px;
   `;
   titleDiv.innerHTML = `
-    <div style="font-size:18px; color:#5ff0d5; font-weight:bold; margin-bottom:2px;">
+    <div style="font-size:18px; color:${themeColors.titleMain}; font-weight:bold; margin-bottom:2px;">
     ${title}
     </div>
-    ${project ? `<div style="font-size:13px; color:#ffe58f; margin-bottom:1px;">${project}</div>` : ''}
-    <div style="font-size:10px; color:#a8b3c3;">
+    ${project ? `<div style="font-size:13px; color:${themeColors.titleSub}; margin-bottom:1px;">${project}</div>` : ''}
+    <div style="font-size:10px; color:${themeColors.titleDate};">
     ${date}${author ? ' | ' + author : ''}
     </div>
   `;
   document.body.appendChild(titleDiv);
 
   const titleCanvas = await html2canvas(titleDiv, {
-    backgroundColor: '#0b1526',
-    scale: 1.5
+    backgroundColor: themeColors.titleBg,
+    scale: qualityConfig.titleScale  // 使用動態解析度設定
   });
   document.body.removeChild(titleDiv);
 
-  const titleImgData = titleCanvas.toDataURL('image/png');
+  const titleImgData = titleCanvas.toDataURL('image/jpeg', qualityConfig.titleQuality);  // 使用動態品質設定
   const titleHeight = 14;
   pdf.addImage(titleImgData, 'PNG', margin, yPos, pdfWidth - 2 * margin, titleHeight);
   yPos += titleHeight + 2;
@@ -2828,11 +2889,138 @@ async function continueGenerateReport() {
       return null;
       });
 
+      // 🎨 確保 tooltip 顯示（如果有當前選中的點）
+      const tooltipEl = overlay.querySelector('#chartjs-tooltip-fullscreen');
+      let tooltipWasHidden = false;
+      let selectedIndex = window.currentSelectedPointIndex;
+      
+      // 如果沒有選中點，預設選擇中間點來顯示 tooltip
+      if ((selectedIndex === null || selectedIndex === undefined) && fullscreenChartInstance) {
+        const dataset = fullscreenChartInstance.data.datasets.find(d => 
+          d.label && (d.label.includes('地形海拔') || d.label.includes('海拔'))
+        );
+        if (dataset && dataset.data && dataset.data.length > 0) {
+          selectedIndex = Math.floor(dataset.data.length / 2); // 中間點
+          
+          // 觸發圖表懸停事件以顯示 tooltip
+          const meta = fullscreenChartInstance.getDatasetMeta(0);
+          if (meta && meta.data && meta.data[selectedIndex]) {
+            const element = meta.data[selectedIndex];
+            const rect = fullscreenChartInstance.canvas.getBoundingClientRect();
+            const x = element.x;
+            const y = element.y;
+            
+            // 模擬滑鼠移動事件
+            const evt = new MouseEvent('mousemove', {
+              clientX: rect.left + x,
+              clientY: rect.top + y,
+              bubbles: true
+            });
+            fullscreenChartInstance.canvas.dispatchEvent(evt);
+            
+            // 等待 tooltip 渲染
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+        }
+      }
+      
+      if (tooltipEl) {
+        tooltipWasHidden = tooltipEl.style.opacity === '0' || !tooltipEl.style.opacity;
+        // 確保 tooltip 可見
+        if (tooltipEl.style.opacity !== '1') {
+          tooltipEl.style.opacity = '1';
+        }
+      }
+
+      // 🎨 淺色主題：臨時修改圖表配色
+      let originalChartColors = null;
+      if (themeSetting === 'light' && fullscreenChartInstance) {
+        originalChartColors = {
+          bgColor: fullscreenChartInstance.options.chartBackgroundColor,
+          gridColor: fullscreenChartInstance.options.scales.y.grid.color,
+          tickColor: fullscreenChartInstance.options.scales.y.ticks.color,
+          xGridColor: fullscreenChartInstance.options.scales.x.grid.color,
+          xTickColor: fullscreenChartInstance.options.scales.x.ticks.color,
+          legendColor: fullscreenChartInstance.options.plugins.legend.labels.color,
+          yTitleColor: fullscreenChartInstance.options.scales.y.title.color,
+          xTitleColor: fullscreenChartInstance.options.scales.x.title.color
+        };
+        
+        // 應用淺色配色 - 淡藍色背景
+        fullscreenChartInstance.options.chartBackgroundColor = '#e0f2fe';  // 淡藍色背景
+        fullscreenChartInstance.options.scales.y.grid.color = 'rgba(0,0,0,0.15)';
+        fullscreenChartInstance.options.scales.y.ticks.color = '#1e40af';
+        fullscreenChartInstance.options.scales.x.grid.color = 'rgba(0,0,0,0.15)';
+        fullscreenChartInstance.options.scales.x.ticks.color = '#1e40af';
+        fullscreenChartInstance.options.plugins.legend.labels.color = '#0c4a6e';
+        fullscreenChartInstance.options.scales.y.title.color = '#0c4a6e';
+        fullscreenChartInstance.options.scales.x.title.color = '#0c4a6e';
+        
+        // 🎨 修改 tooltip 為深藍色背景（PDF 生成）
+        const tooltipEl = document.getElementById('chartjs-tooltip-fullscreen');
+        if (tooltipEl) {
+          tooltipEl.style.background = 'rgba(30, 58, 138, 0.95)';  // 深藍色背景
+          tooltipEl.style.border = '2px solid #1e40af';  // 深藍色邊框
+          tooltipEl.style.color = '#e0f2fe';  // 淺色文字
+        }
+        
+        fullscreenChartInstance.update('none');
+      }
+
       await new Promise(resolve => setTimeout(resolve, 150));
 
-      // 直接從 Chart.js canvas 取圖，確保不失真
-      capturedCanvas = fullscreenChartInstance.canvas;
-      chartImgData = capturedCanvas.toDataURL('image/jpeg', 0.9);
+      // 🎨 臨時移除 overlay、container 和 wrapper 的背景色，避免黑框
+      const originalOverlayBg = overlay.style.background;
+      const container = overlay.querySelector('.chart-fullscreen-container');
+      const wrapper = overlay.querySelector('.chart-fullscreen-canvas-wrapper');
+      const originalContainerBg = container ? container.style.background : '';
+      const originalWrapperBg = wrapper ? wrapper.style.background : '';
+      
+      overlay.style.background = 'transparent';
+      if (container) container.style.background = 'transparent';
+      if (wrapper) wrapper.style.background = 'transparent';
+
+      // 🎨 使用 html2canvas 截取整個 overlay（包含 tooltip）
+      const selectedBgColor = themeSetting === 'light' ? '#e0f2fe' : '#0b1526';
+      const canvasScreenshot = await html2canvas(overlay, {
+        backgroundColor: selectedBgColor,
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        foreignObjectRendering: false,
+        imageTimeout: 0
+      });
+      
+      // 🎨 恢復 overlay、container 和 wrapper 的背景
+      overlay.style.background = originalOverlayBg;
+      if (container) container.style.background = originalContainerBg;
+      if (wrapper) wrapper.style.background = originalWrapperBg;
+      
+      capturedCanvas = canvasScreenshot;
+      chartImgData = canvasScreenshot.toDataURL('image/jpeg', qualityConfig.chartQuality);
+
+      // 🎨 恢復原始配色
+      if (originalChartColors && fullscreenChartInstance) {
+        fullscreenChartInstance.options.chartBackgroundColor = originalChartColors.bgColor;
+        fullscreenChartInstance.options.scales.y.grid.color = originalChartColors.gridColor;
+        fullscreenChartInstance.options.scales.y.ticks.color = originalChartColors.tickColor;
+        fullscreenChartInstance.options.scales.x.grid.color = originalChartColors.xGridColor;
+        fullscreenChartInstance.options.scales.x.ticks.color = originalChartColors.xTickColor;
+        fullscreenChartInstance.options.plugins.legend.labels.color = originalChartColors.legendColor;
+        fullscreenChartInstance.options.scales.y.title.color = originalChartColors.yTitleColor;
+        fullscreenChartInstance.options.scales.x.title.color = originalChartColors.xTitleColor;
+        
+        // 🎨 恢復 tooltip 原始樣式（PDF 生成）
+        const tooltipEl = document.getElementById('chartjs-tooltip-fullscreen');
+        if (tooltipEl && themeSetting === 'light') {
+          tooltipEl.style.background = 'rgba(13, 71, 161, 0.35)';  // 恢復原始背景
+          tooltipEl.style.border = '2px solid #4dabf7';  // 恢復原始邊框
+          tooltipEl.style.color = 'white';  // 恢復原始文字顏色
+        }
+        
+        fullscreenChartInstance.update('none');
+      }
 
       controlsToHide.forEach((el, index) => {
       if (el) el.style.display = originalDisplayStates[index] || '';
@@ -2842,7 +3030,7 @@ async function continueGenerateReport() {
       const elevationChart = document.getElementById('elevationChart');
       if (elevationChart) {
       capturedCanvas = elevationChart;
-      chartImgData = elevationChart.toDataURL('image/jpeg', 0.85);
+      chartImgData = elevationChart.toDataURL('image/jpeg', qualityConfig.chartQuality);  // 使用動態品質
       }
     }
 
@@ -2932,34 +3120,71 @@ async function continueGenerateReport() {
   const threeBlocksDiv = document.createElement('div');
   threeBlocksDiv.style.cssText = `
     display: flex;
-    gap: 4px;
+    gap: ${themeSetting === 'light' ? '0px' : '4px'};
     width: ${(pdfWidth - 2 * margin) * 3.7795}px;
     font-family: 'Microsoft JhengHei', sans-serif;
   `;
+
+  // 🎨 根據主題設定區塊樣式
+  const blockStyle = themeSetting === 'light' ? {
+    background: '#f8f9fa',
+    border: '2px solid #3b82f6',
+    titleColor: '#1e40af',
+    labelColor: '#374151',
+    valueColor: '#0c4a6e',
+    highlightBg: 'rgba(59, 130, 246, 0.1)',
+    highlightBorder: '2px solid #60a5fa',
+    highlightTitle: '#1e40af',
+    orangeBorder: '#d97706',
+    orangeTitle: '#ea580c',
+    greenBg: 'rgba(34, 197, 94, 0.15)',
+    greenBorder: '2px solid #22c55e',
+    greenText: '#15803d',
+    redText: '#dc2626',
+    yellowBg: 'rgba(234, 179, 8, 0.15)',
+    yellowText: '#a16207'
+  } : {
+    background: 'rgba(20, 30, 50, 1)',
+    border: '2px solid #ff9500',
+    titleColor: '#ffa500',
+    labelColor: '#f0f4f8',
+    valueColor: '#60d6ff',
+    highlightBg: 'rgba(95,240,213,0.2)',
+    highlightBorder: '2px solid rgba(95,240,213,0.5)',
+    highlightTitle: '#60d6ff',
+    orangeBorder: '#ff9500',
+    orangeTitle: '#ffa500',
+    greenBg: 'rgba(95,240,213,0.25)',
+    greenBorder: '2px solid #00e6b8',
+    greenText: '#00e6b8',
+    redText: '#ff6b6b',
+    yellowBg: 'rgba(77,171,247,0.2)',
+    yellowText: '#fef08a'
+  };
 
   // === 左側區塊:A點 + A→B角度 + 發射端RF參數 ===
   const leftBlock = document.createElement('div');
   leftBlock.style.cssText = `
     flex: 1;
-    background: rgba(20, 30, 50, 1);
-    border: 2px solid #ff9500;
+    background: ${blockStyle.background};
+    border: ${themeSetting === 'light' ? blockStyle.border : '2px solid ' + blockStyle.orangeBorder};
     border-radius: 8px;
     padding: 12px;
   `;
 
   let leftContent = `
-    <div style="font-size:22px; color:#ffa500; text-align:center; margin-bottom:8px; font-weight:bold;">
+    <div style="font-size:22px; color:${blockStyle.orangeTitle}; text-align:center; margin-bottom:8px; font-weight:bold;">
     📍 ${nameA}
     </div>
   `;
 
   if (!isNaN(latA) && !isNaN(lonA)) {
     leftContent += `
-    <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
-      座標: <span style="color:#60d6ff; font-weight:700;">${latA.toFixed(6)}°N, ${lonA.toFixed(6)}°E</span>
+    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
+      座標: <span style="color:${blockStyle.valueColor}; font-weight:700;">${latA.toFixed(6)}°N, ${lonA.toFixed(6)}°E</span>
     </div>
-    <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
-      高度(含建物): <span style="color:#60d6ff; font-weight:700;">${eleA.toFixed(1)} m</span>
+    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
+      高度(含建物): <span style="color:${blockStyle.valueColor}; font-weight:700;">${eleA.toFixed(1)} m</span>
     </div>
     `;
   }
@@ -2968,21 +3193,21 @@ async function continueGenerateReport() {
   const antennaHeightA = document.getElementById('antennaHeightStart').value;
   if (antennaHeightA) {
     leftContent += `
-    <div style="font-size:17px; color:#f0f4f8; margin-bottom:6px;">
-      天線高: <span style="color:#60d6ff; font-weight:700;">${antennaHeightA} m</span>
+    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:6px;">
+      天線高: <span style="color:${blockStyle.valueColor}; font-weight:700;">${antennaHeightA} m</span>
     </div>
     `;
   }
 
   if (angles) {
     leftContent += `
-    <div style="background:rgba(95,240,213,0.2); padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(95,240,213,0.5);">
-      <div style="font-size:18px; color:#60d6ff; margin-bottom:4px; font-weight:bold;">${nameA} → ${nameB} 方向</div>
-      <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
-      方位角: <span style="color:#60d6ff; font-weight:700;">${angles.azimuthAtoB.toFixed(1)}°</span>
+    <div style="background:${blockStyle.highlightBg}; padding:8px; border-radius:4px; margin-top:6px; border:${blockStyle.highlightBorder};">
+      <div style="font-size:18px; color:${blockStyle.highlightTitle}; margin-bottom:4px; font-weight:bold;">${nameA} → ${nameB} 方向</div>
+      <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
+      方位角: <span style="color:${blockStyle.valueColor}; font-weight:700;">${angles.azimuthAtoB.toFixed(1)}°</span>
       </div>
-      <div style="font-size:17px; color:#f0f4f8;">
-      俯仰角: <span style="color:#60d6ff; font-weight:700;">${angles.elevationAtoB >= 0 ? '+' : ''}${angles.elevationAtoB.toFixed(2)}°</span>
+      <div style="font-size:17px; color:${blockStyle.labelColor};">
+      俯仰角: <span style="color:${blockStyle.valueColor}; font-weight:700;">${angles.elevationAtoB >= 0 ? '+' : ''}${angles.elevationAtoB.toFixed(2)}°</span>
       </div>
     </div>
     `;
@@ -2996,30 +3221,30 @@ async function continueGenerateReport() {
 
   if (txPower || txGain || txLoss) {
     leftContent += `
-    <div style="background:rgba(77,171,247,0.2); padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(77,171,247,0.5);">
-      <div style="font-size:18px; color:#60a5fa; margin-bottom:4px; font-weight:bold;">發射端 (Tx)</div>
+    <div style="background:${blockStyle.yellowBg}; padding:8px; border-radius:4px; margin-top:6px; border:${blockStyle.highlightBorder};">
+      <div style="font-size:18px; color:${blockStyle.highlightTitle}; margin-bottom:4px; font-weight:bold;">發射端 (Tx)</div>
     `;
 
     if (txPower) {
     leftContent += `
-      <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
-      發射功率: <span style="color:#60d6ff; font-weight:700;">${txPower} ${txPowerUnit}</span>
+      <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
+      發射功率: <span style="color:${blockStyle.valueColor}; font-weight:700;">${txPower} ${txPowerUnit}</span>
       </div>
     `;
     }
 
     if (txGain) {
     leftContent += `
-      <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
-      天線增益: <span style="color:#60d6ff; font-weight:700;">${txGain} dBi</span>
+      <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
+      天線增益: <span style="color:${blockStyle.valueColor}; font-weight:700;">${txGain} dBi</span>
       </div>
     `;
     }
 
     if (txLoss) {
     leftContent += `
-      <div style="font-size:17px; color:#f0f4f8;">
-      線損: <span style="color:#60d6ff; font-weight:700;">${txLoss} dB</span>
+      <div style="font-size:17px; color:${blockStyle.labelColor};">
+      線損: <span style="color:${blockStyle.valueColor}; font-weight:700;">${txLoss} dB</span>
       </div>
     `;
     }
@@ -3033,22 +3258,22 @@ async function continueGenerateReport() {
   const centerBlock = document.createElement('div');
   centerBlock.style.cssText = `
     flex: 1;
-    background: rgba(20, 30, 50, 1);
-    border: 2px solid #5ff0d5;
+    background: ${blockStyle.background};
+    border: ${themeSetting === 'light' ? '2px solid #3b82f6' : '2px solid #5ff0d5'};
     border-radius: 8px;
     padding: 12px;
   `;
 
   let centerContent = `
-    <div style="font-size:21px; color:#60d6ff; text-align:center; margin-bottom:8px; font-weight:bold;">
+    <div style="font-size:21px; color:${blockStyle.titleColor}; text-align:center; margin-bottom:8px; font-weight:bold;">
     📡 RF鏈路計算
     </div>
   `;
 
   if (freq) {
     centerContent += `
-    <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
-      頻率: <span style="color:#60d6ff; font-weight:700;">${freq} MHz</span>
+    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
+      頻率: <span style="color:${blockStyle.titleColor}; font-weight:700;">${freq} MHz</span>
     </div>
     `;
   }
@@ -3067,8 +3292,8 @@ async function continueGenerateReport() {
 
   if (displayDistance) {
     centerContent += `
-    <div style="font-size:17px; color:#f0f4f8; margin-bottom:6px;">
-      距離: <span style="color:#60d6ff; font-weight:700;">${displayDistance} km</span>
+    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:6px;">
+      距離: <span style="color:${blockStyle.titleColor}; font-weight:700;">${displayDistance} km</span>
     </div>
     `;
   }
@@ -3077,9 +3302,9 @@ async function continueGenerateReport() {
   const rssiMatch = rssiText.match(/接收訊號強度:\s*([-+]?\d+\.?\d*)\s*dBm/);
   if (rssiMatch) {
     centerContent += `
-    <div style="background:rgba(95,240,213,0.25); border:2px solid #00e6b8; border-radius:4px; padding:10px; text-align:center; margin-bottom:6px;">
-      <div style="font-size:14px; color:#fef08a; margin-bottom:3px; font-weight:700;">視距(LoS)訊號預估</div>
-      <div style="font-size:26px; color:#00e6b8; font-weight:bold;">${rssiMatch[1]} dBm</div>
+    <div style="background:${blockStyle.greenBg}; border:${blockStyle.greenBorder}; border-radius:4px; padding:10px; text-align:center; margin-bottom:6px;">
+      <div style="font-size:14px; color:${blockStyle.yellowText}; margin-bottom:3px; font-weight:700;">視距(LoS)訊號預估</div>
+      <div style="font-size:26px; color:${blockStyle.greenText}; font-weight:bold;">${rssiMatch[1]} dBm</div>
     </div>
     `;
   }
@@ -3103,14 +3328,14 @@ async function continueGenerateReport() {
     // 顯示遮蔽判斷
     if (hasObstruction) {
     centerContent += `
-      <div style="background:rgba(255,50,50,0.3); border:3px solid #ff1a1a; border-radius:4px; padding:12px; margin-top:2px; text-align:center;">
-      <div style="font-size:28px; color:#ff1a1a; font-weight:bold;">⚠️ 有遮蔽</div>
+      <div style="background:rgba(220, 38, 38, 0.2); border:2px solid ${blockStyle.redText}; border-radius:4px; padding:12px; margin-top:2px; text-align:center;">
+      <div style="font-size:28px; color:${blockStyle.redText}; font-weight:bold;">⚠️ 有遮蔽</div>
       </div>
     `;
     } else {
     centerContent += `
-      <div style="background:rgba(0,230,184,0.2); border:3px solid #00e6b8; border-radius:4px; padding:12px; margin-top:2px; text-align:center;">
-      <div style="font-size:28px; color:#00e6b8; font-weight:bold;">✓ 無遮蔽</div>
+      <div style="background:rgba(34, 197, 94, 0.2); border:2px solid ${blockStyle.greenText}; border-radius:4px; padding:12px; margin-top:2px; text-align:center;">
+      <div style="font-size:28px; color:${blockStyle.greenText}; font-weight:bold;">✓ 無遮蔽</div>
       </div>
     `;
     }
@@ -3122,25 +3347,25 @@ async function continueGenerateReport() {
   const rightBlock = document.createElement('div');
   rightBlock.style.cssText = `
     flex: 1;
-    background: rgba(20, 30, 50, 1);
-    border: 2px solid #ff9500;
+    background: ${blockStyle.background};
+    border: ${themeSetting === 'light' ? '2px solid #059669' : '2px solid #9945ff'};
     border-radius: 8px;
     padding: 12px;
   `;
 
   let rightContent = `
-    <div style="font-size:22px; color:#ffa500; text-align:center; margin-bottom:8px; font-weight:bold;">
+    <div style="font-size:22px; color:${blockStyle.orangeTitle}; text-align:center; margin-bottom:8px; font-weight:bold;">
     📍 ${nameB}
     </div>
   `;
 
   if (!isNaN(latB) && !isNaN(lonB)) {
     rightContent += `
-    <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
-      座標: <span style="color:#60d6ff; font-weight:700;">${latB.toFixed(6)}°N, ${lonB.toFixed(6)}°E</span>
+    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
+      座標: <span style="color:${blockStyle.titleColor}; font-weight:700;">${latB.toFixed(6)}°N, ${lonB.toFixed(6)}°E</span>
     </div>
-    <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
-      高度(含建物): <span style="color:#60d6ff; font-weight:700;">${eleB.toFixed(1)} m</span>
+    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
+      高度(含建物): <span style="color:${blockStyle.titleColor}; font-weight:700;">${eleB.toFixed(1)} m</span>
     </div>
     `;
   }
@@ -3149,8 +3374,8 @@ async function continueGenerateReport() {
   const antennaHeightB = document.getElementById('antennaHeightEnd').value;
   if (antennaHeightB) {
     rightContent += `
-    <div style="font-size:17px; color:#f0f4f8; margin-bottom:6px;">
-      天線高: <span style="color:#60d6ff; font-weight:700;">${antennaHeightB} m</span>
+    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:6px;">
+      天線高: <span style="color:${blockStyle.titleColor}; font-weight:700;">${antennaHeightB} m</span>
     </div>
     `;
   }
@@ -3158,12 +3383,12 @@ async function continueGenerateReport() {
   if (angles) {
     rightContent += `
     <div style="background:rgba(95,240,213,0.2); padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(95,240,213,0.5);">
-      <div style="font-size:18px; color:#60d6ff; margin-bottom:4px; font-weight:bold;">${nameB} → ${nameA} 方向</div>
-      <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
-      方位角: <span style="color:#60d6ff; font-weight:700;">${angles.azimuthBtoA.toFixed(1)}°</span>
+      <div style="font-size:18px; color:${blockStyle.titleColor}; margin-bottom:4px; font-weight:bold;">${nameB} → ${nameA} 方向</div>
+      <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
+      方位角: <span style="color:${blockStyle.titleColor}; font-weight:700;">${angles.azimuthBtoA.toFixed(1)}°</span>
       </div>
-      <div style="font-size:17px; color:#f0f4f8;">
-      俯仰角: <span style="color:#60d6ff; font-weight:700;">${angles.elevationBtoA >= 0 ? '+' : ''}${angles.elevationBtoA.toFixed(2)}°</span>
+      <div style="font-size:17px; color:${blockStyle.labelColor};">
+      俯仰角: <span style="color:${blockStyle.titleColor}; font-weight:700;">${angles.elevationBtoA >= 0 ? '+' : ''}${angles.elevationBtoA.toFixed(2)}°</span>
       </div>
     </div>
     `;
@@ -3175,22 +3400,22 @@ async function continueGenerateReport() {
 
   if (rxGain || rxLoss) {
     rightContent += `
-    <div style="background:rgba(77,171,247,0.2); padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(77,171,247,0.5);">
-      <div style="font-size:18px; color:#60a5fa; margin-bottom:4px; font-weight:bold;">接收端 (Rx)</div>
+    <div style="background:${blockStyle.yellowBg}; padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(77,171,247,0.5);">
+      <div style="font-size:18px; color:${blockStyle.titleColor}; margin-bottom:4px; font-weight:bold;">接收端 (Rx)</div>
     `;
 
     if (rxGain) {
     rightContent += `
-      <div style="font-size:17px; color:#f0f4f8; margin-bottom:3px;">
-      天線增益: <span style="color:#60d6ff; font-weight:700;">${rxGain} dBi</span>
+      <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
+      天線增益: <span style="color:${blockStyle.titleColor}; font-weight:700;">${rxGain} dBi</span>
       </div>
     `;
     }
 
     if (rxLoss) {
     rightContent += `
-      <div style="font-size:17px; color:#f0f4f8;">
-      線損: <span style="color:#60d6ff; font-weight:700;">${rxLoss} dB</span>
+      <div style="font-size:17px; color:${blockStyle.labelColor};">
+      線損: <span style="color:${blockStyle.titleColor}; font-weight:700;">${rxLoss} dB</span>
       </div>
     `;
     }
@@ -3210,12 +3435,12 @@ async function continueGenerateReport() {
 
   const blocksCanvas = await html2canvas(threeBlocksDiv, {
     backgroundColor: null,
-    scale: 1.5  // 降低解析度以減小檔案大小
+    scale: qualityConfig.blockScale  // 使用動態解析度設定
   });
 
   document.body.removeChild(threeBlocksDiv);
 
-  const blocksImgData = blocksCanvas.toDataURL('image/png');
+  const blocksImgData = blocksCanvas.toDataURL('image/jpeg', qualityConfig.blockQuality);  // 使用動態品質
   const blocksHeight = 72;
   pdf.addImage(blocksImgData, 'PNG', margin, yPos, pdfWidth - 2 * margin, blocksHeight);
 
@@ -6091,7 +6316,7 @@ function renderChart(elevations) {
   if (!ctx) {
     return;
   }
-  const pointColors = adjustedElevations.map((_, i) => '#28a745');
+  const pointColors = adjustedElevations.map((_, i) => '#059669');
   const losLine = adjustedElevations.map((_, i) =>
     adjustedElevations[0] + (adjustedElevations[adjustedElevations.length-1] - adjustedElevations[0]) * (i / (adjustedElevations.length-1))
   );
@@ -6370,7 +6595,7 @@ function renderChart(elevations) {
   window.currentSelectedPointIndex = -1;
   const pointRadiusArray = adjustedElevations.map((_, i) => 3);
   const pointHoverRadiusArray = adjustedElevations.map((_, i) => 8);
-  const pointColorArray = adjustedElevations.map((_, i) => '#28a745');
+  const pointColorArray = adjustedElevations.map((_, i) => '#059669');
   chartInstance = new Chart(ctx, {
     type: 'line',
     data: {
@@ -6379,8 +6604,8 @@ function renderChart(elevations) {
         {
           label: '地形海拔 (m)',
           data: adjustedElevations,
-          borderColor: '#28a745',
-          backgroundColor: 'rgba(40, 167, 69, 0.2)',
+          borderColor: '#059669',
+          backgroundColor: 'rgba(5, 150, 105, 0.2)',
           fill: true,
           tension: 0.4,
           pointRadius: pointRadiusArray,
@@ -6492,7 +6717,7 @@ function renderChart(elevations) {
               pointRadiusArray[i] = 6;
               pointHoverRadiusArray[i] = 10;
             } else {
-              pointColorArray[i] = '#28a745';
+              pointColorArray[i] = '#059669';
               if (typeof greenPointsVisible !== 'undefined' && !greenPointsVisible) {
                 pointRadiusArray[i] = 0;
                 pointHoverRadiusArray[i] = 0;
@@ -7044,7 +7269,9 @@ function openChartFullscreen() {
       beforeDraw: (chart) => {
         const ctx = chart.ctx;
         ctx.save();
-        ctx.fillStyle = '#000000';
+        // 🎨 根據主題設定背景色
+        const bgColor = chart.options.chartBackgroundColor || '#000000';
+        ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, chart.width, chart.height);
         ctx.restore();
       },
@@ -7186,16 +7413,19 @@ function openChartFullscreen() {
         const pathData = window.currentPathData;
         const totalDist = pathData[pathData.length - 1].dist;
 
+        // 🎨 根據背景色決定文字顏色
+        const bgColor = chart.options.chartBackgroundColor || '#0b1526';
+        const textColor = bgColor === '#e0f2fe' ? '#0c4a6e' : '#ffe58f';  // 淡藍底用深藍文字，黑底用黃文字
+
         // 顯示總距離（右下）
         ctx.save();
         ctx.font = '13px Arial';
-        ctx.fillStyle = '#ffd43b';
+        ctx.fillStyle = textColor;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'top';
         const text = `總距離: ${parseFloat(totalDist).toFixed(2)} km`;
         const x = xAxis.right - 1;  // 從 -8 改為 -1（右移約7像素）
         const y = yAxis.bottom + 30;  // 從38改為30（上移8像素）
-        ctx.fillStyle = '#ffe58f';
         ctx.fillText(text, x, y);
         ctx.restore();
 
@@ -7209,7 +7439,7 @@ function openChartFullscreen() {
           const freqMHz = parseFloat(document.getElementById('link_freq_mhz')?.value) || 2400;
           ctx.save();
           ctx.font = '13px Arial';  // 與總距離相同的字體
-          ctx.fillStyle = '#ffe58f';  // 與總距離相同的顏色
+          ctx.fillStyle = textColor;  // 🎨 使用相同的動態顏色
           ctx.textAlign = 'right';  // 改為右對齊
           ctx.textBaseline = 'top';
           const freqText = `頻率: ${freqMHz} MHz`;
@@ -7279,6 +7509,7 @@ function openChartFullscreen() {
         })
       },
       options: {
+        chartBackgroundColor: '#0b1526',  // 🎨 預設背景色（深色）
         responsive: true,
         maintainAspectRatio: false,
         interaction: {
@@ -7618,7 +7849,7 @@ function openChartFullscreen() {
                     pointRadiusArray[i] = 6;
                     pointHoverRadiusArray[i] = 10;
                   } else {
-                    pointColorArray[i] = '#28a745';
+                    pointColorArray[i] = '#059669';
                     if (typeof greenPointsVisible !== 'undefined' && !greenPointsVisible) {
                       pointRadiusArray[i] = 0;
                       pointHoverRadiusArray[i] = 0;
@@ -8223,12 +8454,182 @@ function closeChartFullscreen() {
   }
   fullscreenDraggingLabel = null;
 }
+
+// 🎨 顯示主題選擇對話框（不離開全螢幕）
+function showThemeChoiceDialog() {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('chartFullscreenOverlay');
+    if (!overlay) {
+      resolve(null);
+      return;
+    }
+
+    // 創建選擇對話框
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.95);
+      border: 2px solid #5ff0d5;
+      border-radius: 12px;
+      padding: 30px;
+      z-index: 10000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    `;
+
+    dialog.innerHTML = `
+      <div style="text-align: center; color: #ffe58f; font-size: 20px; font-weight: bold; margin-bottom: 20px;">
+        選擇截圖風格
+      </div>
+      <div style="display: flex; gap: 15px; justify-content: center;">
+        <button id="themeLightBtn" style="
+          background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+          border: 3px solid #0ea5e9;
+          color: #0c4a6e;
+          padding: 15px 30px;
+          border-radius: 8px;
+          font-size: 18px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.3s;
+          min-width: 160px;
+        ">
+          ☀️ 淺色風格
+        </button>
+        <button id="themeDarkBtn" style="
+          background: linear-gradient(135deg, #1e293b, #0f172a);
+          border: 3px solid #5ff0d5;
+          color: #5ff0d5;
+          padding: 15px 30px;
+          border-radius: 8px;
+          font-size: 18px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.3s;
+          min-width: 160px;
+        ">
+          🌙 深色風格
+        </button>
+      </div>
+      <div style="text-align: center; margin-top: 15px;">
+        <button id="themeCancelBtn" style="
+          background: transparent;
+          border: 1px solid #666;
+          color: #999;
+          padding: 8px 20px;
+          border-radius: 6px;
+          font-size: 14px;
+          cursor: pointer;
+        ">
+          取消
+        </button>
+      </div>
+    `;
+
+    overlay.appendChild(dialog);
+
+    // 添加懸停效果
+    const lightBtn = dialog.querySelector('#themeLightBtn');
+    const darkBtn = dialog.querySelector('#themeDarkBtn');
+    const cancelBtn = dialog.querySelector('#themeCancelBtn');
+
+    lightBtn.onmouseenter = () => {
+      lightBtn.style.transform = 'scale(1.05)';
+      lightBtn.style.boxShadow = '0 4px 20px rgba(14, 165, 233, 0.5)';
+    };
+    lightBtn.onmouseleave = () => {
+      lightBtn.style.transform = 'scale(1)';
+      lightBtn.style.boxShadow = 'none';
+    };
+
+    darkBtn.onmouseenter = () => {
+      darkBtn.style.transform = 'scale(1.05)';
+      darkBtn.style.boxShadow = '0 4px 20px rgba(95, 240, 213, 0.5)';
+    };
+    darkBtn.onmouseleave = () => {
+      darkBtn.style.transform = 'scale(1)';
+      darkBtn.style.boxShadow = 'none';
+    };
+
+    // 按鈕事件
+    lightBtn.onclick = () => {
+      dialog.remove();
+      resolve(true);  // 淺色風格
+    };
+
+    darkBtn.onclick = () => {
+      dialog.remove();
+      resolve(false);  // 深色風格
+    };
+
+    cancelBtn.onclick = () => {
+      dialog.remove();
+      resolve(null);  // 取消
+    };
+  });
+}
+
 async function generateChartImage() {
   try {
     if (!fullscreenChartInstance) {
       alert('❌ 找不到全螢幕剖面圖，請先進入全螢幕模式');
       return;
     }
+
+    // 🎨 判斷背景色選擇方式
+    let bgChoice;
+    if (window.isGeneratingReport) {
+      // 如果正在生成報告，自動根據 pdf_theme_setting 選擇
+      const themeSetting = document.getElementById('pdf_theme_setting')?.value || 'dark';
+      bgChoice = themeSetting === 'light';
+    } else {
+      // 如果是手動截圖，顯示自定義選擇介面（不離開全螢幕）
+      bgChoice = await showThemeChoiceDialog();
+      if (bgChoice === null) {
+        // 用戶取消了選擇
+        return;
+      }
+    }
+    
+    const selectedBgColor = bgChoice ? '#e0f2fe' : '#0b1526';
+    const selectedTextColor = bgChoice ? '#0c4a6e' : '#ffe58f';
+
+    // 暫存原始配色
+    const originalBgColor = fullscreenChartInstance.options.chartBackgroundColor;
+    const originalGridColor = fullscreenChartInstance.options.scales.y.grid.color;
+    const originalTickColor = fullscreenChartInstance.options.scales.y.ticks.color;
+    const originalXGridColor = fullscreenChartInstance.options.scales.x.grid.color;
+    const originalXTickColor = fullscreenChartInstance.options.scales.x.ticks.color;
+    const originalLegendColor = fullscreenChartInstance.options.plugins.legend.labels.color;
+    const originalYTitleColor = fullscreenChartInstance.options.scales.y.title.color;
+    const originalXTitleColor = fullscreenChartInstance.options.scales.x.title.color;
+
+    // 🎨 套用選擇的配色
+    if (bgChoice) {
+      // 淺色背景
+      fullscreenChartInstance.options.chartBackgroundColor = '#e0f2fe';
+      fullscreenChartInstance.options.scales.y.grid.color = 'rgba(0,0,0,0.15)';
+      fullscreenChartInstance.options.scales.y.ticks.color = '#1e40af';
+      fullscreenChartInstance.options.scales.x.grid.color = 'rgba(0,0,0,0.15)';
+      fullscreenChartInstance.options.scales.x.ticks.color = '#1e40af';
+      fullscreenChartInstance.options.plugins.legend.labels.color = '#0c4a6e';
+      fullscreenChartInstance.options.scales.y.title.color = '#0c4a6e';
+      fullscreenChartInstance.options.scales.x.title.color = '#0c4a6e';
+      
+      // 🎨 修改 tooltip 為深藍色背景
+      const tooltipEl = document.getElementById('chartjs-tooltip-fullscreen');
+      if (tooltipEl) {
+        tooltipEl.style.background = 'rgba(30, 58, 138, 0.95)';  // 深藍色背景
+        tooltipEl.style.border = '2px solid #1e40af';  // 深藍色邊框
+        tooltipEl.style.color = '#e0f2fe';  // 淺色文字
+      }
+      
+      fullscreenChartInstance.update('none');
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
     const button = document.querySelector('.chart-fullscreen-screenshot');
     if (button) {
       button.textContent = '⏳';
@@ -8264,8 +8665,20 @@ async function generateChartImage() {
       return null;
     });
     await new Promise(resolve => setTimeout(resolve, 50));
+    
+    // 🎨 臨時移除 overlay、container 和 wrapper 的背景色，避免黑框
+    const originalOverlayBg = overlay.style.background;
+    const container = overlay.querySelector('.chart-fullscreen-container');
+    const wrapper = overlay.querySelector('.chart-fullscreen-canvas-wrapper');
+    const originalContainerBg = container ? container.style.background : '';
+    const originalWrapperBg = wrapper ? wrapper.style.background : '';
+    
+    overlay.style.background = 'transparent';
+    if (container) container.style.background = 'transparent';
+    if (wrapper) wrapper.style.background = 'transparent';
+    
     const canvas = await html2canvas(overlay, {
-      backgroundColor: '#0b1526',
+      backgroundColor: selectedBgColor,  // 🎨 使用選擇的背景色
       scale: 2,
       logging: false,
       useCORS: true,
@@ -8273,11 +8686,37 @@ async function generateChartImage() {
       foreignObjectRendering: false,
       imageTimeout: 0
     });
+    
+    // 🎨 恢復 overlay、container 和 wrapper 的背景
+    overlay.style.background = originalOverlayBg;
+    if (container) container.style.background = originalContainerBg;
+    if (wrapper) wrapper.style.background = originalWrapperBg;
+    
     controlsToHide.forEach((el, index) => {
       if (el) {
         el.style.display = originalDisplayStates[index] || '';
       }
     });
+
+    // 🎨 恢復原始配色
+    fullscreenChartInstance.options.chartBackgroundColor = originalBgColor;
+    fullscreenChartInstance.options.scales.y.grid.color = originalGridColor;
+    fullscreenChartInstance.options.scales.y.ticks.color = originalTickColor;
+    fullscreenChartInstance.options.scales.x.grid.color = originalXGridColor;
+    fullscreenChartInstance.options.scales.x.ticks.color = originalXTickColor;
+    fullscreenChartInstance.options.plugins.legend.labels.color = originalLegendColor;
+    fullscreenChartInstance.options.scales.y.title.color = originalYTitleColor;
+    
+    // 🎨 恢復 tooltip 原始樣式
+    const tooltipEl = document.getElementById('chartjs-tooltip-fullscreen');
+    if (tooltipEl && bgChoice) {
+      tooltipEl.style.background = 'rgba(13, 71, 161, 0.35)';  // 恢復原始背景
+      tooltipEl.style.border = '2px solid #4dabf7';  // 恢復原始邊框
+      tooltipEl.style.color = 'white';  // 恢復原始文字顏色
+    }
+    fullscreenChartInstance.options.scales.x.title.color = originalXTitleColor;
+    fullscreenChartInstance.update('none');
+
     const imageUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
@@ -8759,8 +9198,8 @@ function toggleObstructionColor() {
     for (let i = 0; i < terrainData.length - 1; i++) {
       const isObstructed = terrainData[i] > losData[i] || terrainData[i + 1] > losData[i + 1];
       segmentColors.push({
-        borderColor: isObstructed ? '#ff4444' : '#5ff0d5',
-        backgroundColor: isObstructed ? 'rgba(255, 68, 68, 0.1)' : 'rgba(95, 240, 213, 0.1)'
+        borderColor: isObstructed ? '#ff4444' : '#059669',
+        backgroundColor: isObstructed ? 'rgba(255, 68, 68, 0.1)' : 'rgba(5, 150, 105, 0.2)'
       });
     }
     terrainDataset.segment = {
@@ -8769,14 +9208,14 @@ function toggleObstructionColor() {
         if (idx < segmentColors.length) {
           return segmentColors[idx].borderColor;
         }
-        return '#5ff0d5';
+        return '#059669';
       },
       backgroundColor: (ctx) => {
         const idx = ctx.p0DataIndex;
         if (idx < segmentColors.length) {
           return segmentColors[idx].backgroundColor;
         }
-        return 'rgba(95, 240, 213, 0.1)';
+        return 'rgba(5, 150, 105, 0.2)';
       }
     };
     terrainDataset.borderColor = '#ff8866';
@@ -8785,8 +9224,8 @@ function toggleObstructionColor() {
     toggleBtn.classList.add('disabled');
     toggleBtn.style.opacity = '0.6';
     delete terrainDataset.segment;
-    terrainDataset.borderColor = '#5ff0d5';
-    terrainDataset.backgroundColor = 'rgba(95, 240, 213, 0.1)';
+    terrainDataset.borderColor = '#059669';
+    terrainDataset.backgroundColor = 'rgba(5, 150, 105, 0.2)';
   }
   fullscreenChartInstance.update();
 
@@ -9187,7 +9626,7 @@ function showMap(index, height) {
         pointRadius[i] = 6;
         pointHoverRadius[i] = 10;
       } else {
-        pointColors[i] = '#28a745';
+        pointColors[i] = '#059669';
         if (typeof greenPointsVisible !== 'undefined' && !greenPointsVisible) {
           pointRadius[i] = 0;
           pointHoverRadius[i] = 0;
@@ -11644,8 +12083,8 @@ function drawElevationChart(data) {
     datasets: [{
     label: '高度 (m)',
     data: elevations,
-    borderColor: '#5ff0d5',
-    backgroundColor: 'rgba(95, 240, 213, 0.1)',
+    borderColor: '#059669',
+    backgroundColor: 'rgba(5, 150, 105, 0.2)',
     tension: 0.4,
     fill: true,
     borderWidth: 2,
@@ -11653,7 +12092,7 @@ function drawElevationChart(data) {
     pointBackgroundColor: 'transparent',
     pointBorderColor: 'transparent',
     pointHoverRadius: 6,
-    pointHoverBackgroundColor: '#5ff0d5',
+    pointHoverBackgroundColor: '#059669',
     pointHoverBorderColor: '#fff',
     pointHoverBorderWidth: 2
     }]
