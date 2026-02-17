@@ -2934,6 +2934,7 @@ async function continueGenerateReport() {
 
       // 🎨 淺色主題：臨時修改圖表配色
       let originalChartColors = null;
+      let originalLegendGenerator = null;
       if (themeSetting === 'light' && fullscreenChartInstance) {
         originalChartColors = {
           bgColor: fullscreenChartInstance.options.chartBackgroundColor,
@@ -2946,15 +2947,36 @@ async function continueGenerateReport() {
           xTitleColor: fullscreenChartInstance.options.scales.x.title.color
         };
         
+        // 保存原始圖例生成器
+        originalLegendGenerator = fullscreenChartInstance.options.plugins.legend.labels.generateLabels;
+        
         // 應用淺色配色 - 淡藍色背景
         fullscreenChartInstance.options.chartBackgroundColor = '#e0f2fe';  // 淡藍色背景
         fullscreenChartInstance.options.scales.y.grid.color = 'rgba(0,0,0,0.15)';
         fullscreenChartInstance.options.scales.y.ticks.color = '#1e40af';
         fullscreenChartInstance.options.scales.x.grid.color = 'rgba(0,0,0,0.15)';
         fullscreenChartInstance.options.scales.x.ticks.color = '#1e40af';
-        fullscreenChartInstance.options.plugins.legend.labels.color = '#0c4a6e';
+        fullscreenChartInstance.options.plugins.legend.labels.color = '#000000';  // 黑色
         fullscreenChartInstance.options.scales.y.title.color = '#0c4a6e';
         fullscreenChartInstance.options.scales.x.title.color = '#0c4a6e';
+        
+        // 🎨 修改圖例生成器，將文字顏色改為黑色
+        fullscreenChartInstance.options.plugins.legend.labels.generateLabels = function(chart) {
+          const labels = originalLegendGenerator(chart);
+          return labels.map(label => {
+            // 淺色風格：檢查實際的隱藏狀態
+            const meta = chart.getDatasetMeta(label.datasetIndex);
+            const dataset = chart.data.datasets[label.datasetIndex];
+            const isHidden = (meta && meta.hidden) || !!(dataset && dataset.hidden);
+            
+            if (isHidden) {
+              label.fontColor = '#6b7280';  // 深灰色（隱藏狀態）
+            } else {
+              label.fontColor = '#000000';  // 黑色（顯示狀態）
+            }
+            return label;
+          });
+        };
         
         // 🎨 修改 tooltip 為深藍色背景（PDF 生成）
         const tooltipEl = document.getElementById('chartjs-tooltip-fullscreen');
@@ -3010,6 +3032,11 @@ async function continueGenerateReport() {
         fullscreenChartInstance.options.plugins.legend.labels.color = originalChartColors.legendColor;
         fullscreenChartInstance.options.scales.y.title.color = originalChartColors.yTitleColor;
         fullscreenChartInstance.options.scales.x.title.color = originalChartColors.xTitleColor;
+        
+        // 恢復原始圖例生成器
+        if (originalLegendGenerator) {
+          fullscreenChartInstance.options.plugins.legend.labels.generateLabels = originalLegendGenerator;
+        }
         
         // 🎨 恢復 tooltip 原始樣式（PDF 生成）
         const tooltipEl = document.getElementById('chartjs-tooltip-fullscreen');
@@ -8464,19 +8491,21 @@ function showThemeChoiceDialog() {
       return;
     }
 
-    // 創建選擇對話框
+    // 創建選擇對話框 - 添加到 overlay 內部，使用極高的 z-index
     const dialog = document.createElement('div');
     dialog.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.95);
-      border: 2px solid #5ff0d5;
-      border-radius: 12px;
-      padding: 30px;
-      z-index: 10000;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+      position: fixed !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      background: rgba(0, 0, 0, 0.95) !important;
+      border: 2px solid #5ff0d5 !important;
+      border-radius: 12px !important;
+      padding: 30px !important;
+      z-index: 999999 !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8) !important;
+      display: block !important;
+      visibility: visible !important;
     `;
 
     dialog.innerHTML = `
@@ -8528,7 +8557,17 @@ function showThemeChoiceDialog() {
       </div>
     `;
 
+    // 添加到 overlay 內部
     overlay.appendChild(dialog);
+
+    // 只阻止對話框背景的點擊冒泡，不阻止按鈕點擊
+    dialog.addEventListener('click', (e) => {
+      // 只有點擊對話框本身（不是按鈕）時才阻止冒泡
+      if (e.target === dialog) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    });
 
     // 添加懸停效果
     const lightBtn = dialog.querySelector('#themeLightBtn');
@@ -8553,21 +8592,36 @@ function showThemeChoiceDialog() {
       darkBtn.style.boxShadow = 'none';
     };
 
-    // 按鈕事件
-    lightBtn.onclick = () => {
+    // 按鈕事件 - 同時支援點擊和觸摸，並阻止冒泡
+    const handleLightClick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
       dialog.remove();
       resolve(true);  // 淺色風格
     };
-
-    darkBtn.onclick = () => {
+    
+    const handleDarkClick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
       dialog.remove();
       resolve(false);  // 深色風格
     };
-
-    cancelBtn.onclick = () => {
+    
+    const handleCancelClick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
       dialog.remove();
       resolve(null);  // 取消
     };
+
+    lightBtn.addEventListener('click', handleLightClick);
+    lightBtn.addEventListener('touchend', handleLightClick);
+    
+    darkBtn.addEventListener('click', handleDarkClick);
+    darkBtn.addEventListener('touchend', handleDarkClick);
+    
+    cancelBtn.addEventListener('click', handleCancelClick);
+    cancelBtn.addEventListener('touchend', handleCancelClick);
   });
 }
 
@@ -8605,6 +8659,7 @@ async function generateChartImage() {
     const originalLegendColor = fullscreenChartInstance.options.plugins.legend.labels.color;
     const originalYTitleColor = fullscreenChartInstance.options.scales.y.title.color;
     const originalXTitleColor = fullscreenChartInstance.options.scales.x.title.color;
+    const originalLegendGenerator = fullscreenChartInstance.options.plugins.legend.labels.generateLabels;
 
     // 🎨 套用選擇的配色
     if (bgChoice) {
@@ -8614,9 +8669,24 @@ async function generateChartImage() {
       fullscreenChartInstance.options.scales.y.ticks.color = '#1e40af';
       fullscreenChartInstance.options.scales.x.grid.color = 'rgba(0,0,0,0.15)';
       fullscreenChartInstance.options.scales.x.ticks.color = '#1e40af';
-      fullscreenChartInstance.options.plugins.legend.labels.color = '#0c4a6e';
+      fullscreenChartInstance.options.plugins.legend.labels.color = '#000000';
       fullscreenChartInstance.options.scales.y.title.color = '#0c4a6e';
       fullscreenChartInstance.options.scales.x.title.color = '#0c4a6e';
+      
+      // 🎨 修改圖例生成器，將文字顏色改為黑色
+      const originalGenerator = fullscreenChartInstance.options.plugins.legend.labels.generateLabels;
+      fullscreenChartInstance.options.plugins.legend.labels.generateLabels = function(chart) {
+        const labels = originalGenerator(chart);
+        return labels.map(label => {
+          // 淺色風格：隱藏時用深灰色，顯示時用黑色
+          if (label.hidden || (chart.getDatasetMeta(label.datasetIndex) && chart.getDatasetMeta(label.datasetIndex).hidden)) {
+            label.fontColor = '#6b7280';  // 深灰色（隱藏狀態）
+          } else {
+            label.fontColor = '#000000';  // 黑色（顯示狀態）
+          }
+          return label;
+        });
+      };
       
       // 🎨 修改 tooltip 為深藍色背景
       const tooltipEl = document.getElementById('chartjs-tooltip-fullscreen');
@@ -8706,6 +8776,7 @@ async function generateChartImage() {
     fullscreenChartInstance.options.scales.x.ticks.color = originalXTickColor;
     fullscreenChartInstance.options.plugins.legend.labels.color = originalLegendColor;
     fullscreenChartInstance.options.scales.y.title.color = originalYTitleColor;
+    fullscreenChartInstance.options.plugins.legend.labels.generateLabels = originalLegendGenerator;
     
     // 🎨 恢復 tooltip 原始樣式
     const tooltipEl = document.getElementById('chartjs-tooltip-fullscreen');
@@ -10458,19 +10529,114 @@ function showRouteMap() {
         }
       }, 100);
     } catch (error) {
-      clickPopup.setContent(`
-        <div class="popup-drag-bar">⠿ 📍 點選位置</div>
-        <div class="popup-body">
-          <div style="font-weight:bold; color:#dc3545; font-size:11px; margin-bottom:2px;">❌ 查詢失敗</div>
-          <div>
-            <span style="color:#666;">緯:</span> ${lat.toFixed(6)}°
+      // 如果 DSM 失敗（例如負值或無資料），嘗試使用 Open Elevation SRTM
+      try {
+        const elevation = await getElevationFromOpenElevationSimple(lat, lng);
+        
+        // 檢查是否點擊在路徑線附近（容差範圍內）
+        let clearanceInfo = '';
+        let isNearPath = false;
+        let nearestIndex = -1;
+
+        if (elevationData && elevationData.length > 0 && chartInstance && chartInstance.data.datasets[1] && pathData && pathData.length > 1) {
+          // 找到離點擊位置最近的路徑點
+          let minDistance = Infinity;
+
+          for (let i = 0; i < pathData.length; i++) {
+            const pointLat = parseFloat(pathData[i].lat);
+            const pointLng = parseFloat(pathData[i].lng);
+            const distance = Math.sqrt(
+              Math.pow(lat - pointLat, 2) + Math.pow(lng - pointLng, 2)
+            );
+            if (distance < minDistance) {
+              minDistance = distance;
+              nearestIndex = i;
+            }
+          }
+
+          // 判斷是否在路徑線附近（容差約 0.0002 度，約 20m）
+          const tolerance = 0.0002;
+          if (minDistance < tolerance) {
+            isNearPath = true;
+            const losLineData = chartInstance.data.datasets[1].data;
+            if (losLineData && losLineData[nearestIndex] !== undefined) {
+              const losHeight = losLineData[nearestIndex];
+              const terrainHeight = elevationData[nearestIndex];
+              const clearance = losHeight - terrainHeight;
+
+              const clearanceColor = clearance >= 0 ? '#4caf50' : '#ff4444';
+              let clearanceText = '';
+              let obstructionStatus = '';
+              if (clearance > 0) {
+                clearanceText = `+${clearance.toFixed(2)} m`;
+                obstructionStatus = '無遮蔽';
+              } else if (clearance < 0) {
+                clearanceText = `${clearance.toFixed(2)} m`;
+                obstructionStatus = '有遮蔽';
+              } else {
+                clearanceText = '0.00 m';
+                obstructionStatus = '無遮蔽';
+              }
+
+              clearanceInfo = `<div style="color: ${clearanceColor}; font-weight: bold; font-size: 13px; margin-top: 2px;">${obstructionStatus}: ${clearanceText}</div>`;
+            }
+          }
+        }
+
+        const popupTitle = (isNearPath && nearestIndex >= 0) ? `點 ${nearestIndex + 1}` : '點選位置';
+        const popupContent = `
+          <div class="popup-drag-bar">⠿ 📍 ${popupTitle}</div>
+          <div class="popup-body">
+            <div>
+              <span style="color:#555;">緯：</span><span style="color:#000; font-weight:600;">${lat.toFixed(6)}°</span>
+            </div>
+            <div>
+              <span style="color:#555;">經：</span><span style="color:#000; font-weight:600;">${lng.toFixed(6)}°</span>
+            </div>
+            <div>
+              <span style="color:#555;">高度：</span><span style="color:#FF6B00; font-weight:700; font-size:15px;">${elevation.toFixed(1)} m</span>
+            </div>
+            <div style="color:#888; font-size:10px; margin-top:2px;">⚠️ 使用 SRTM 備用資料</div>
+            ${clearanceInfo}
           </div>
-          <div>
-            <span style="color:#666;">經:</span> ${lng.toFixed(6)}°
+        `;
+
+        clickPopup.setContent(popupContent);
+
+        // 應用當前顯示模式並添加拖曳功能
+        setTimeout(() => {
+          const popupElement = clickPopup.getElement();
+
+          if (popupElement) {
+            if (popupDisplayMode === 'hide') {
+              popupElement.style.opacity = '0';
+              popupElement.style.pointerEvents = 'none';
+            } else {
+              popupElement.style.opacity = '1';
+              popupElement.style.pointerEvents = 'auto';
+            }
+
+            // 添加拖曳功能
+            enablePopupDragging(popupElement);
+          }
+        }, 100);
+        
+      } catch (openElevError) {
+        // 如果 Open Elevation 也失敗，顯示錯誤訊息
+        clickPopup.setContent(`
+          <div class="popup-drag-bar">⠿ 📍 點選位置</div>
+          <div class="popup-body">
+            <div style="font-weight:bold; color:#dc3545; font-size:11px; margin-bottom:2px;">❌ 查詢失敗</div>
+            <div>
+              <span style="color:#666;">緯:</span> ${lat.toFixed(6)}°
+            </div>
+            <div>
+              <span style="color:#666;">經:</span> ${lng.toFixed(6)}°
+            </div>
+            <div style="color:#dc3545; font-size:10px; margin-top:2px;">${error.message || '無法取得高度資料'}</div>
           </div>
-          <div style="color:#dc3545; font-size:10px; margin-top:2px;">${error.message || '無法取得高度資料'}</div>
-        </div>
-      `);
+        `);
+      }
     }
   });
 
@@ -10677,6 +10843,87 @@ async function mapJumpToPoint(index) {
     }, 100);
 
   } catch (error) {
+    // 如果 DSM 失敗，嘗試使用 Open Elevation SRTM
+    try {
+      const elevation = await getElevationFromOpenElevationSimple(lat, lng);
+      
+      // 計算遮蔽資訊
+      let clearanceInfo = '';
+      if (elevationData && elevationData.length > 0 && chartInstance && chartInstance.data.datasets[1]) {
+        const losLineData = chartInstance.data.datasets[1].data;
+
+        if (losLineData && losLineData[index] !== undefined) {
+          const losHeight = losLineData[index];
+          const terrainHeight = elevationData[index];
+          const clearance = losHeight - terrainHeight;
+
+          const clearanceColor = clearance >= 0 ? '#4caf50' : '#ff4444';
+          let clearanceText = '';
+          let obstructionStatus = '';
+          if (clearance > 0) {
+            clearanceText = `+${clearance.toFixed(2)} m`;
+            obstructionStatus = '無遮蔽';
+          } else if (clearance < 0) {
+            clearanceText = `${clearance.toFixed(2)} m`;
+            obstructionStatus = '有遮蔽';
+          } else {
+            clearanceText = '0.00 m';
+            obstructionStatus = '無遮蔽';
+          }
+
+          clearanceInfo = `<div style="color: ${clearanceColor}; font-weight: bold; font-size: 13px; margin-top: 2px;">${obstructionStatus}: ${clearanceText}</div>`;
+        }
+      }
+
+      // 顯示彈窗（帶有備用資料提示）
+      clickPopup = L.popup({
+        maxWidth: 240,
+        minWidth: 150,
+        className: 'custom-popup-compact',
+        autoPan: false,
+        offset: [popupRelOffset.x, popupRelOffset.y]
+      })
+        .setLatLng([lat, lng])
+        .setContent(`
+          <div class="popup-drag-bar">⠿ 📍 點 ${index + 1}</div>
+          <div class="popup-body">
+            <div>
+              <span style="color:#555;">緯：</span><span style="color:#000; font-weight:600;">${lat.toFixed(6)}°</span>
+            </div>
+            <div>
+              <span style="color:#555;">經：</span><span style="color:#000; font-weight:600;">${lng.toFixed(6)}°</span>
+            </div>
+            <div>
+              <span style="color:#555;">高度：</span><span style="color:#FF6B00; font-weight:700; font-size:15px;">${elevation.toFixed(1)} m</span>
+            </div>
+            <div style="color:#888; font-size:10px; margin-top:2px;">⚠️ 使用 SRTM 備用資料</div>
+            ${clearanceInfo}
+          </div>
+        `)
+        .openOn(routeMapInstance);
+
+      // 連動剖面圖 - 使用 getElevationForIndex 從圖表實時讀取
+      showMap(index, getElevationForIndex(index));
+
+      // 應用彈窗顯示模式並添加拖曳功能
+      setTimeout(() => {
+        const popupElement = clickPopup.getElement();
+        if (popupElement) {
+          if (popupDisplayMode === 'hide') {
+            popupElement.style.opacity = '0';
+            popupElement.style.pointerEvents = 'none';
+          } else {
+            popupElement.style.opacity = '1';
+            popupElement.style.pointerEvents = 'auto';
+          }
+          enablePopupDragging(popupElement);
+        }
+      }, 100);
+      
+    } catch (openElevError) {
+      // 如果 Open Elevation 也失敗，不顯示任何內容（保持原有行為）
+      console.error('高度查詢失敗:', error, openElevError);
+    }
   }
 }
 
@@ -10838,6 +11085,14 @@ async function getElevationFromDSM(lat, lng) {
         throw new Error('該位置的高度數據不可用');
       }
 
+      // 檢查常見的 NoData 值和無效範圍
+      const commonNoDataValues = [-32768, -32767, -9999, -99999, -12345, 32767, 65535, -3.4028235e+38];
+      const isNoData = commonNoDataValues.some(noData => Math.abs(elevation - noData) < 0.01);
+      
+      if (isNoData || elevation < -500 || elevation > 9000) {
+        throw new Error('檢測到無圖資區域');
+      }
+
       return elevation;
     } else {
       throw new Error('座標超出資料範圍');
@@ -10874,11 +11129,55 @@ async function getElevationFromDSM(lat, lng) {
       throw new Error('該位置的高度數據不可用');
     }
 
+    // 檢查常見的 NoData 值和無效範圍（與 GPS 分頁邏輯一致）
+    const commonNoDataValues = [-32768, -32767, -9999, -99999, -12345, 32767, 65535, -3.4028235e+38];
+    const isNoData = commonNoDataValues.some(noData => Math.abs(elevation - noData) < 0.01);
+    
+    if (isNoData || elevation < -500 || elevation > 9000) {
+      throw new Error('檢測到無圖資區域');
+    }
+
     return elevation;
   } else {
     throw new Error('座標超出 DSM 資料範圍');
   }
 }
+
+// 從 Open Elevation SRTM 獲取高度（用於 AB 圖的備用方案）
+async function getElevationFromOpenElevationSimple(lat, lng) {
+  const response = await fetch('https://api.open-elevation.com/api/v1/lookup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      locations: [{
+        latitude: lat,
+        longitude: lng
+      }]
+    })
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP 錯誤: ${response.status}`);
+  }
+  
+  const data = await response.json();
+  
+  if (!data.results || data.results.length === 0) {
+    throw new Error('該位置的高度數據不可用');
+  }
+  
+  const elevation = data.results[0].elevation;
+  
+  if (elevation === null || elevation === undefined) {
+    throw new Error('該位置的高度數據不可用');
+  }
+  
+  return elevation;
+}
+
 let isMapMaximized = false;
 let originalMapStyles = {};
 let exitFullscreenBtn = null;
@@ -11195,7 +11494,7 @@ function jumpToMaxObstruction() {
   }
   if (maxObstructionIndex === -1) {
     const fullscreenOverlay = document.getElementById('chartFullscreenOverlay');
-    const isInFullscreen = fullscreenOverlay && fullscreenOverlay.style.display === 'flex';
+    const isInFullscreen = fullscreenOverlay && fullscreenOverlay.classList.contains('active');
     if (isInFullscreen) {
       const alertBox = document.createElement('div');
       alertBox.style.position = 'fixed';
@@ -11247,7 +11546,40 @@ function jumpToFirstObstructionFromStart() {
       return;
     }
   }
-  alert('✓ 從起點開始沒有發現遮蔽點');
+  
+  // 使用自訂對話框而不是 alert，避免離開全屏
+  const fullscreenOverlay = document.getElementById('chartFullscreenOverlay');
+  const isFullscreen = fullscreenOverlay && fullscreenOverlay.classList.contains('active');
+  
+  if (isFullscreen) {
+    if (fullscreenOverlay) {
+      const alertBox = document.createElement('div');
+      alertBox.style.position = 'fixed';
+      alertBox.style.top = '50%';
+      alertBox.style.left = '50%';
+      alertBox.style.transform = 'translate(-50%, -50%)';
+      alertBox.style.backgroundColor = 'rgba(39, 174, 96, 0.95)';
+      alertBox.style.color = 'white';
+      alertBox.style.padding = '30px 50px';
+      alertBox.style.borderRadius = '12px';
+      alertBox.style.fontSize = '24px';
+      alertBox.style.fontWeight = 'bold';
+      alertBox.style.zIndex = '10003';
+      alertBox.style.boxShadow = '0 8px 24px rgba(0,0,0,0.5)';
+      alertBox.style.border = '3px solid #27ae60';
+      alertBox.textContent = '✓ 從起點開始沒有發現遮蔽點';
+      fullscreenOverlay.appendChild(alertBox);
+      setTimeout(() => {
+        if (alertBox.parentNode) {
+          alertBox.parentNode.removeChild(alertBox);
+        }
+      }, 3000);
+    } else {
+      alert('✓ 從起點開始沒有發現遮蔽點');
+    }
+  } else {
+    alert('✓ 從起點開始沒有發現遮蔽點');
+  }
 }
 function jumpToFirstObstructionFromEnd() {
   selectedPointsInCurrentHeight.clear();
@@ -11270,7 +11602,40 @@ function jumpToFirstObstructionFromEnd() {
       return;
     }
   }
-  alert('✓ 從終點開始沒有發現遮蔽點');
+  
+  // 使用自訂對話框而不是 alert，避免離開全屏
+  const fullscreenOverlay = document.getElementById('chartFullscreenOverlay');
+  const isFullscreen = fullscreenOverlay && fullscreenOverlay.classList.contains('active');
+  
+  if (isFullscreen) {
+    if (fullscreenOverlay) {
+      const alertBox = document.createElement('div');
+      alertBox.style.position = 'fixed';
+      alertBox.style.top = '50%';
+      alertBox.style.left = '50%';
+      alertBox.style.transform = 'translate(-50%, -50%)';
+      alertBox.style.backgroundColor = 'rgba(39, 174, 96, 0.95)';
+      alertBox.style.color = 'white';
+      alertBox.style.padding = '30px 50px';
+      alertBox.style.borderRadius = '12px';
+      alertBox.style.fontSize = '24px';
+      alertBox.style.fontWeight = 'bold';
+      alertBox.style.zIndex = '10003';
+      alertBox.style.boxShadow = '0 8px 24px rgba(0,0,0,0.5)';
+      alertBox.style.border = '3px solid #27ae60';
+      alertBox.textContent = '✓ 從終點開始沒有發現遮蔽點';
+      fullscreenOverlay.appendChild(alertBox);
+      setTimeout(() => {
+        if (alertBox.parentNode) {
+          alertBox.parentNode.removeChild(alertBox);
+        }
+      }, 3000);
+    } else {
+      alert('✓ 從終點開始沒有發現遮蔽點');
+    }
+  } else {
+    alert('✓ 從終點開始沒有發現遮蔽點');
+  }
 }
 let selectedPointsInCurrentHeight = new Set();
 let lastButtonPressed = null;
