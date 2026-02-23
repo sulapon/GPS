@@ -4261,9 +4261,12 @@ async function continueGenerateReport() {
     : parseFloat(document.getElementById('eleB').value || 0);
   const nameB = document.getElementById('nameB').value || 'B點';
 
-  // 計算角度
+  // 計算角度 - 優先使用GPS分頁的計算結果
   let angles = null;
-  if (!isNaN(latA) && !isNaN(lonA) && !isNaN(latB) && !isNaN(lonB)) {
+  if (window.gpsCalcAngles && !isNaN(window.gpsCalcAngles.azimuthAtoB)) {
+    // 直接讀取GPS分頁已計算的方位角與俯仰角
+    angles = window.gpsCalcAngles;
+  } else if (!isNaN(latA) && !isNaN(lonA) && !isNaN(latB) && !isNaN(lonB)) {
     angles = calculateAngles(latA, lonA, eleA, latB, lonB, eleB);
   }
 
@@ -6135,6 +6138,33 @@ async function getElevationFromSRTM(location) {
   }
   let success = false;
   try {
+    // 優先使用已載入的本地TIF檔案
+    if (localTifFileData && localTifFileData.tiff && localTifFileData.image) {
+      try {
+        const localImage = localTifFileData.image;
+        const bbox = localImage.getBoundingBox();
+        const width = localImage.getWidth();
+        const height = localImage.getHeight();
+        const pixelX = Math.floor((lon - bbox[0]) / (bbox[2] - bbox[0]) * width);
+        const pixelY = Math.floor((bbox[3] - lat) / (bbox[3] - bbox[1]) * height);
+        if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
+          const rasters = await localImage.readRasters({
+            window: [pixelX, pixelY, pixelX + 1, pixelY + 1]
+          });
+          const elevation = rasters[0][0];
+          const commonNoDataValues = [-32768, -32767, -9999, -99999, -12345, 32767, 65535, -3.4028235e+38];
+          const isNoData = !elevation && elevation !== 0 || isNaN(elevation) || commonNoDataValues.some(noData => Math.abs(elevation - noData) < 0.01);
+          if (!isNoData && elevation >= -500 && elevation <= 9000) {
+            eleInput.value = Math.round(parseFloat(elevation));
+            success = true;
+            calculate();
+            return;
+          }
+        }
+      } catch (localErr) {
+        // 本地TIF讀取失敗，繼續使用網路資料源
+      }
+    }
     if (!window.GeoTIFF) {
       await loadGeoTIFFLibrary();
     }
@@ -6695,6 +6725,14 @@ function calculate() {
     <p><span class="gps-label-title">⏫ ${nameA} 對 ${nameB} 的俯仰角</span>：<strong class="v-pitch-value">${pitch.pitchAB.toFixed(2)}°</strong></p>
     <p><span class="gps-label-title">⏬ ${nameB} 對 ${nameA} 的俯仰角</span>：<strong class="v-pitch-value">${pitch.pitchBA.toFixed(2)}°</strong></p>
   `;
+  // 儲存GPS計算結果供報告使用
+  window.gpsCalcAngles = {
+    azimuthAtoB: bAB,
+    azimuthBtoA: bBA,
+    elevationAtoB: pitch.pitchAB,
+    elevationBtoA: pitch.pitchBA,
+    distance: hD
+  };
   }
   const displayModeSelect = document.getElementById('displayMode');
   function updateDisplayMode(mode){
