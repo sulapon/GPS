@@ -3131,9 +3131,18 @@ async function continueGenerateReport() {
     : parseFloat(document.getElementById('eleB').value || 0);
   const nameB = document.getElementById('nameB').value || 'B點';
 
-  // 計算角度
+  // 優先使用 GPS 分頁的計算結果（含地球曲率修正的 getBearing/getPitch 精確值）
+  // 若 GPS 分頁尚未計算，則 fallback 到報告內部的 calculateAngles
   let angles = null;
-  if (!isNaN(latA) && !isNaN(lonA) && !isNaN(latB) && !isNaN(lonB)) {
+  if (window.gpsCalcResult) {
+    angles = {
+      azimuthAtoB: window.gpsCalcResult.azimuthAtoB,
+      azimuthBtoA: window.gpsCalcResult.azimuthBtoA,
+      elevationAtoB: window.gpsCalcResult.pitchAtoB,
+      elevationBtoA: window.gpsCalcResult.pitchBtoA,
+      distance: window.gpsCalcResult.distKm
+    };
+  } else if (!isNaN(latA) && !isNaN(lonA) && !isNaN(latB) && !isNaN(lonB)) {
     angles = calculateAngles(latA, lonA, eleA, latB, lonB, eleB);
   }
 
@@ -4987,6 +4996,47 @@ async function getElevationFromSRTM(location) {
     alert(`❌ 座標超出有效範圍\n緯度: -90 ~ 90\n經度: -180 ~ 180`);
     return;
   }
+
+  // ★ 優先使用高度圖分頁已載入的本地 TIF 檔案
+  if (typeof localTifFileData !== 'undefined' && localTifFileData && localTifFileData.tiff && localTifFileData.image) {
+    const eleInput = document.getElementById(eleId);
+    const loadingId = eleId + '-loading';
+    const loadingSpan = document.getElementById(loadingId);
+    if (loadingSpan) {
+      loadingSpan.innerHTML = '讀取TIF<span class="loading-dots"></span>';
+      loadingSpan.style.display = 'inline';
+      eleInput.style.opacity = '0.3';
+    }
+    eleInput.disabled = true;
+    try {
+      const image = localTifFileData.image;
+      const bbox = image.getBoundingBox();
+      const width = image.getWidth();
+      const height = image.getHeight();
+      const pixelX = Math.floor((lon - bbox[0]) / (bbox[2] - bbox[0]) * width);
+      const pixelY = Math.floor((bbox[3] - lat) / (bbox[3] - bbox[1]) * height);
+      if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
+        const rasters = await image.readRasters({ window: [pixelX, pixelY, pixelX + 1, pixelY + 1] });
+        const elevation = rasters[0][0];
+        const commonNoDataValues = [-32768, -32767, -9999, -99999, -12345, 32767, 65535, -3.4028235e+38];
+        const isNoData = commonNoDataValues.some(noData => Math.abs(elevation - noData) < 0.01);
+        if (!isNoData && elevation >= -500 && elevation <= 9000 && !isNaN(elevation)) {
+          eleInput.value = Math.round(parseFloat(elevation));
+          eleInput.disabled = false;
+          if (loadingSpan) { loadingSpan.style.display = 'none'; eleInput.style.opacity = '1'; }
+          calculate();
+          return;  // ★ 成功取得，直接返回
+        }
+      }
+      // TIF 範圍內無資料，繼續用原始方式
+    } catch (tifErr) {
+      // TIF 讀取失敗，繼續用原始方式
+    } finally {
+      eleInput.disabled = false;
+      if (loadingSpan) { loadingSpan.style.display = 'none'; eleInput.style.opacity = '1'; }
+    }
+  }
+
   if (lat < 21.5 || lat > 25.5 || lon < 119.5 || lon > 122.5) {
     alert(`⚠️ 警告：座標超出台灣範圍\n內政部 DSM 僅涵蓋台灣地區\n\n將嘗試使用 Open-Elevation SRTM 作為備用資料源`);
     await getElevationFromOpenElevation(location);
@@ -5553,6 +5603,15 @@ function calculate() {
   const bAB = getBearing(latA, lonA, latB, lonB);
   const bBA = getBearing(latB, lonB, latA, lonA);
   const pitch = getPitch(hD, eleA, eleB);
+  // 儲存 GPS 計算結果供 PDF 報告使用（含地球曲率修正的精確值）
+  window.gpsCalcResult = {
+    azimuthAtoB: bAB,
+    azimuthBtoA: bBA,
+    pitchAtoB: pitch.pitchAB,
+    pitchBtoA: pitch.pitchBA,
+    distKm: hD,
+    distStraight: sD
+  };
   const fDist = sD < 1
     ? `<strong class="v-dist">${(sD * 1000).toFixed(2)}</strong> 公尺`
     : `<strong class="v-dist">${sD.toFixed(2)}</strong> 公里`;
