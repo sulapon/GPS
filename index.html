@@ -6224,22 +6224,40 @@ async function getElevationFromGoogleAPI(lat, lng) {
 }
 
 async function loadGeoTIFFLibrary() {
-  return new Promise((resolve, reject) => {
-    if (window.GeoTIFF) {
-      resolve();
-      return;
+  if (window.GeoTIFF) return;
+
+  // 嘗試依序從多個來源載入
+  const sources = [
+    'geotiff.js',                                                          // 同目錄本地檔案（離線優先）
+    'https://cdn.jsdelivr.net/npm/geotiff@2.0.7/dist-browser/geotiff.js', // CDN 1
+    'https://unpkg.com/geotiff@2.0.7/dist-browser/geotiff.js',            // CDN 2
+  ];
+
+  function tryLoad(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = () => { if (window.GeoTIFF) resolve(); else reject(new Error('GeoTIFF 未定義')); };
+      s.onerror = () => reject(new Error('無法載入: ' + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  for (const src of sources) {
+    try {
+      await tryLoad(src);
+      return; // 成功就結束
+    } catch (e) {
+      // 繼續試下一個
     }
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/geotiff@2.0.7/dist-browser/geotiff.js';
-    script.async = true;
-    script.onload = () => {
-      resolve();
-    };
-    script.onerror = () => {
-      reject(new Error('無法載入 GeoTIFF 函式庫'));
-    };
-    document.head.appendChild(script);
-  });
+  }
+
+  throw new Error(
+    '❌ 無法載入 GeoTIFF 函式庫\n\n' +
+    '【離線解決方法】請將 geotiff.js 放到與 index.html 相同目錄\n\n' +
+    '下載網址（有網路時先下載存檔）：\nhttps://cdn.jsdelivr.net/npm/geotiff@2.0.7/dist-browser/geotiff.js'
+  );
 }
 function renderChart(elevations) {
   const labelALat = document.getElementById('labelALat');
@@ -9289,23 +9307,6 @@ function openABMapFromFullscreen() {
     closeBtn.onclick = closeABMapFromFullscreen;
     panel.appendChild(closeBtn);
 
-    // 方向切換按鈕（左邊緊鄰關閉按鈕）
-    const orientBtn = document.createElement('button');
-    orientBtn.id = 'ab-map-orient-btn';
-    orientBtn.innerHTML = '⇄';
-    orientBtn.style.cssText = [
-      'position:absolute', 'top:10px', 'right:54px', 'z-index:10010',
-      'width:36px', 'height:36px',
-      'background:rgba(95,240,213,0.9)', 'color:#022',
-      'border:2px solid rgba(255,255,255,0.3)', 'border-radius:50%',
-      'font-size:18px', 'font-weight:bold', 'cursor:pointer',
-      'display:flex', 'align-items:center', 'justify-content:center',
-      'box-shadow:0 4px 12px rgba(0,0,0,0.5)', 'line-height:1'
-    ].join(';');
-    orientBtn.title = '切換橫向／垂直';
-    orientBtn.onclick = toggleAbMapOrientation;
-    panel.appendChild(orientBtn);
-
     overlay.appendChild(panel);
   }
 
@@ -9364,14 +9365,6 @@ function closeABMapFromFullscreen() {
   panel.style.display = 'none';
   _abPanelOriginalParent = null;
   _abPanelOriginalNextSibling = null;
-  _abMapIsLandscape = true; // 重置狀態
-
-  // 回到剖面圖全畫面時自動鎖橫屏
-  if (screen.orientation && screen.orientation.lock) {
-    screen.orientation.lock('landscape').catch(() => {
-      screen.orientation.lock('landscape-primary').catch(() => {});
-    });
-  }
 
   // 通知 Leaflet 還原尺寸
   setTimeout(() => {
@@ -9379,31 +9372,6 @@ function closeABMapFromFullscreen() {
       routeMapInstance.invalidateSize();
     }
   }, 80);
-}
-
-// ===== 地圖方向切換 =====
-let _abMapIsLandscape = true; // 預設橫向
-
-function toggleAbMapOrientation() {
-  const btn = document.getElementById('ab-map-orient-btn');
-  if (_abMapIsLandscape) {
-    // 切換為垂直
-    _abMapIsLandscape = false;
-    if (screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock('portrait').catch(() => {});
-    }
-    if (btn) { btn.innerHTML = '⇅'; btn.title = '切換為橫向（目前：垂直）'; }
-  } else {
-    // 切換為橫向
-    _abMapIsLandscape = true;
-    if (screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock('landscape').catch(() => {});
-    }
-    if (btn) { btn.innerHTML = '⇄'; btn.title = '切換為垂直（目前：橫向）'; }
-  }
-  setTimeout(() => {
-    if (routeMapInstance) routeMapInstance.invalidateSize();
-  }, 300);
 }
 
 function openGoogleMapForYellowPoint() {
@@ -10002,13 +9970,13 @@ function showRouteMap() {
   }
 
   const layerControlHTML = `
-    <div style="position:absolute; top:10px; left:60px; z-index:1000; background:rgba(0,0,0,0.7); border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px;">
+    <div style="position:absolute; top:10px; right:10px; z-index:1000; background:rgba(0,0,0,0.7); border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px;">
       <button id="route-layer-toggle" style="background:linear-gradient(90deg, #9b59b6, #8e44ad); border:none; padding:8px 12px; border-radius:6px; font-weight:bold; color:#fff; cursor:pointer; font-size:13px; white-space:nowrap;">🛰️ 衛星圖</button>
     </div>
   `;
   const controlDiv = document.createElement('div');
   controlDiv.innerHTML = layerControlHTML;
-  controlDiv.style.cssText = 'position: absolute; top: 10px; left: 60px; z-index: 1000;';
+  controlDiv.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 1000;';
   routeMapDiv.appendChild(controlDiv);
   const toggleButton = document.getElementById('route-layer-toggle');
   if (toggleButton) {
