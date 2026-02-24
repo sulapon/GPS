@@ -1386,7 +1386,7 @@ div.gps-ig.orange-border-card,
 <div class="results-card-border" id="los_output">最大通視距離:</div></section><section class="card section-item" id="section-fspl"><div class="section-header-with-controls"><div class="section-title">5. 自由空間損耗 (Free Space Path Loss, FSPL)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-fspl')">預設</button><button class="btn btn-clear" onclick="clearSection('section-fspl')">清除</button></div></div><div class="input-group-border"><label for="fspl_freq">頻率 (Frequency) [MHz]:</label><div class="input-with-clear"><input id="fspl_freq" oninput="calculateFSPL()" placeholder="例如: 2400 (2.4 GHz)" type="number" value="2400"/><button class="clear-button" onclick="clearAndRecalculate('fspl_freq', 'calculateFSPL')">×</button></div><label for="fspl_dist">距離 (Distance) [km]:</label><div class="input-with-clear"><input id="fspl_dist" oninput="calculateFSPL()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('fspl_dist', 'calculateFSPL')">×</button></div></div><div class="results-card-border" id="fspl_output">自由空間衰減量 (FSPL):</div></section><section class="card section-item" id="section-linkbudget"><div class="section-header-with-controls"><div class="section-title">6. 通訊模擬 (Link Budget)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-linkbudget')">預設</button><button class="btn btn-clear" onclick="clearSection('section-linkbudget')">清除</button></div></div><div class="input-group-border"><div class="los-point-title" style="margin-top:0;">通信參數</div><div class="los-input-container"><div class="input-item"><label for="link_freq_mhz">頻率 [MHz]:</label><div class="input-with-clear"><input id="link_freq_mhz" oninput="calculateLinkBudget()" placeholder="例如: 2400 (2.4 GHz)" type="number" value="2400"/><button class="clear-button" onclick="clearAndRecalculate('link_freq_mhz', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_dist_km">距離 [km]:</label><div class="input-with-clear"><input id="link_dist_km" oninput="calculateLinkBudget()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('link_dist_km', 'calculateLinkBudget')">×</button></div></div></div><div class="los-point-title">發射端(TX)</div><div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;"><label for="link_tx_power_unit" style="margin-bottom:0; flex-shrink:0; white-space:nowrap; min-width:160px;">發射功率輸入單位:</label><select id="link_tx_power_unit" onchange="swapLinkTxUnit()" style="flex:1; margin-bottom:0;"><option value="w">W</option><option value="dbm">dBm</option></select></div><div class="los-input-container"><div class="input-item"><label for="link_tx_power_input">發射功率 [W/dBm]:</label><div class="input-with-clear"><input id="link_tx_power_input" oninput="calculateLinkBudget()" placeholder="例如: 1 (1W)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_power_input', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_tx_gain_dbi">天線增益 [dBi]:</label><div class="input-with-clear"><input id="link_tx_gain_dbi" oninput="calculateLinkBudget()" placeholder="例如: 3" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_gain_dbi', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_tx_loss_db">線損 [dB]:</label><div class="input-with-clear"><input id="link_tx_loss_db" oninput="calculateLinkBudget()" placeholder="例如: 3 (3 dB)" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_loss_db', 'calculateLinkBudget')">×</button></div></div></div><div class="los-point-title">接收端(RX)</div><div class="los-input-container"><div class="input-item"><label for="link_rx_gain_dbi">天線增益 [dBi]:</label><div class="input-with-clear"><input id="link_rx_gain_dbi" oninput="calculateLinkBudget()" placeholder="例如: 3" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_rx_gain_dbi', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_rx_loss_db">線損 [dB]:</label><div class="input-with-clear"><input id="link_rx_loss_db" oninput="calculateLinkBudget()" placeholder="例如: 3 (3 dB)" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_rx_loss_db', 'calculateLinkBudget')">×</button></div></div></div></div><div class="results-card-border" id="linkbudget_output">接收訊號強度:</div></section></div><div id="elevation-content" class="tab-content">
 <div class="card">
 <h2 class="section-title" style="margin-top:0;">地形遮蔽分析 - 路徑高度圖</h2>
-<div class="orange-border-card" style="padding:10px 12px; margin-bottom:15px;">
+<div class="orange-border-card" style="padding:10px 12px; margin-bottom:6px;">
 <div style="display:grid; grid-template-columns:2fr 2fr 1.2fr; gap:5px; align-items:end; margin-bottom:10px;">
 <div><label id="labelALat" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">A點緯度</label><input type="number" id="sLat" value="25.0336" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"></div>
 <div><label id="labelALng" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">A點經度</label><input type="number" id="sLng" value="121.5648" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"></div>
@@ -1413,19 +1413,19 @@ div.gps-ig.orange-border-card,
 <div style="flex:1; display:flex; flex-direction:column; gap:3px;"><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">結束距離 (點)</label><div style="display:flex; gap:3px;"><input type="number" id="maxDistance" placeholder="自動" oninput="updateChartXAxis()" style="flex:1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"><button class="btn" style="background:linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; white-space:nowrap; flex-shrink:0; height:fit-content;" onclick="document.getElementById('maxDistance').value=''; document.getElementById('maxDistance').placeholder='自動'; updateChartXAxis();">自動</button></div></div>
 </div>
 </div>
-<div style="margin-bottom:12px; padding:10px 8px; background:rgba(187, 102, 255, 0.08); border:1px solid var(--purple-accent); border-radius:6px;">
-<label style="color:var(--label); font-size:15px; font-weight:700; display:block; margin-bottom:6px;">高度資料來源選擇</label>
+<div style="margin-bottom:6px; padding:10px 8px; background:rgba(187, 102, 255, 0.08); border:1px solid var(--purple-accent); border-radius:6px;">
+<label style="color:var(--label); font-size:15px; font-weight:700; display:block; margin-bottom:6px;">📡 高度資料來源 <span style="font-size:12px; font-weight:400; color:var(--muted);">（連網使用）</span></label>
 <select id="elevationApiSelector" style="width:100%; padding:6px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); cursor:pointer;" onchange="toggleLocalFileUpload()">
-<option value="taiwan-dsm" selected>🇹🇼 內政部 DSM 20m (台灣專用含建物) - 預設</option>
+<option value="taiwan-dsm" selected>🇹🇼 內政部 DSM 20m（台灣，含建物）</option>
 <option value="google-maps">🗺️ Google Maps Elevation API</option>
-<option value="open-elevation">🗻 Open-Elevation SRTM (30m)</option>
-<option value="openmeteo">🌍 Open-Meteo API (90米)</option>
-<option value="astergdem">🏔️ ASTER GDEM v3 (30m)</option>
+<option value="open-elevation">🗻 Open-Elevation SRTM（30m）</option>
+<option value="openmeteo">🌍 Open-Meteo API（90m）</option>
+<option value="astergdem">🏔️ ASTER GDEM v3（30m）</option>
 </select>
 <span id="apiInfo" style="font-size:12px; color:var(--muted); margin-top:4px; display:block;"></span>
 <div id="localFileUploadDiv" style="margin-top:8px; display:block;">
-<label style="color:#ffd43b; font-size:14px; font-weight:700; display:block; margin-bottom:6px;">📂 離線模式：請選擇本機 TIF 檔案</label>
-<div style="font-size:12px; color:var(--muted); margin-bottom:6px;">將 <span style="color:#5ff0d5; font-weight:700;">taiwan_dsm_wgs84_cog.tif</span> 放到任意位置後，點下方按鈕選取它</div>
+<label style="color:#ffd43b; font-size:14px; font-weight:700; display:block; margin-bottom:6px;">📂 離線模式：選擇本機 TIF 檔案 <span style="font-size:12px; font-weight:400; color:var(--muted);">（優先使用）</span></label>
+
 <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">
 <input type="file" id="localTifFile" accept=".tif,.tiff,*/*" style="display:none;" onchange="handleLocalTifFile(event)">
 <button onclick="document.getElementById('localTifFile').click()" style="flex:1; padding:8px 12px; font-size:15px; color:#022; background:linear-gradient(90deg,#5ff0d5,#79a8ff); border:none; border-radius:6px; cursor:pointer; font-weight:700;">
@@ -1442,21 +1442,21 @@ div.gps-ig.orange-border-card,
 <span id="localFileInfo" style="font-size:12px; color:var(--muted); margin-top:4px; display:block;"></span>
 </div>
 </div>
-<div style="margin-bottom:12px; padding:10px 8px; background:rgba(255, 170, 0, 0.08); border:1px solid var(--orange-border); border-radius:6px; display:none;" id="nodataHandlingDiv">
-<label style="color:#ffd43b; font-size:14px; font-weight:700; display:block; margin-bottom:6px;">📊 缺失數據處理方式</label>
+<div style="margin-bottom:6px; padding:10px 8px; background:rgba(255, 170, 0, 0.08); border:1px solid var(--orange-border); border-radius:6px; display:none;" id="nodataHandlingDiv">
+<label style="color:#ffd43b; font-size:14px; font-weight:700; display:block; margin-bottom:6px;">⚠️ 缺失數據處理方式</label>
 <select id="nodataHandling" style="width:100%; padding:6px 8px; font-size:14px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); cursor:pointer;">
-<option value="google-api" selected>🗺️ 使用 Google Map Elevation API（推薦）</option>
-<option value="interpolate">🔄 智慧插值 - 使用鄰近有效值</option>
+<option value="google-api" selected>🗺️ Google Map Elevation API（推薦）</option>
+<option value="interpolate">🔄 智慧插值（鄰近有效值）</option>
 <option value="zero">0️⃣ 設為 0 米</option>
-<option value="skip">⏭️ 標記為無效並跳過</option>
+<option value="skip">⏭️ 標記無效並跳過</option>
 </select>
-<span style="font-size:11px; color:var(--muted); margin-top:4px; display:block;">💡 當路徑經過無圖資區域（如樂山雷達站）時使用</span>
+<span style="font-size:11px; color:var(--muted); margin-top:4px; display:block;">路徑經過無圖資區域時使用（如樂山雷達站）</span>
 </div>
-<button class="btn" style="background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:18px; color:#022; cursor:pointer; width:100%; margin-bottom:8px;" onclick="runAnalysis()">🌐 生成路徑剖面</button>
-<div style="display:flex; gap:8px; margin-bottom:8px;">
+<button class="btn" style="background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:18px; color:#022; cursor:pointer; width:100%; margin-bottom:4px;" onclick="runAnalysis()">🌐 生成路徑剖面</button>
+<div style="display:flex; gap:8px; margin-bottom:4px;">
 <button id="toggleGreenPointsBtn" class="btn" style="background:linear-gradient(90deg,#6c757d,#5a6268); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; width:100%;" onclick="toggleGreenPoints()">👁️ 顯示節點</button>
 </div>
-<div id="summary" style="margin:8px 0; padding:6px; text-align:center; font-weight:bold; color:#79a8ff; font-size:14px;">請輸入座標並執行</div>
+<div id="summary" style="margin:4px 0; padding:6px; text-align:center; font-weight:bold; color:#79a8ff; font-size:14px;">請輸入座標並執行</div>
 <div style="position:relative; height:300px; width:100%; margin-bottom:20px; border:3px solid #4dabf7; border-radius:8px; padding:8px; background:rgba(77, 171, 247, 0.05);">
 <canvas id="elevationChart"></canvas>
 <button class="chart-zoom-btn" onclick="openChartFullscreen()" title="放大圖表">
@@ -3156,9 +3156,11 @@ async function continueGenerateReport() {
   const threeBlocksDiv = document.createElement('div');
   threeBlocksDiv.style.cssText = `
     display: flex;
-    gap: ${themeSetting === 'light' ? '0px' : '4px'};
+    gap: 6px;
     width: ${(pdfWidth - 2 * margin) * 3.7795}px;
     font-family: 'Microsoft JhengHei', sans-serif;
+    background: ${themeSetting === 'light' ? '#ffffff' : '#0b1526'};
+    padding: 2px;
   `;
 
   // 🎨 根據主題設定區塊樣式
@@ -3178,7 +3180,9 @@ async function continueGenerateReport() {
     greenText: '#15803d',
     redText: '#dc2626',
     yellowBg: 'rgba(234, 179, 8, 0.15)',
-    yellowText: '#a16207'
+    yellowText: '#a16207',
+    lrTitle: '#000000',
+    lrValue: '#1d4ed8'
   } : {
     background: 'rgba(20, 30, 50, 1)',
     border: '2px solid #ff9500',
@@ -3195,7 +3199,9 @@ async function continueGenerateReport() {
     greenText: '#00e6b8',
     redText: '#ff6b6b',
     yellowBg: 'rgba(77,171,247,0.2)',
-    yellowText: '#fef08a'
+    yellowText: '#fef08a',
+    lrTitle: '#fef08a',
+    lrValue: '#93c5fd'
   };
 
   // === 左側區塊:A點 + A→B角度 + 發射端RF參數 ===
@@ -3203,24 +3209,24 @@ async function continueGenerateReport() {
   leftBlock.style.cssText = `
     flex: 1;
     background: ${blockStyle.background};
-    border: ${themeSetting === 'light' ? blockStyle.border : '2px solid ' + blockStyle.orangeBorder};
-    border-radius: 8px;
+    border: 1px solid ${themeSetting === 'light' ? '#1e3a8a' : blockStyle.orangeBorder};
+    border-radius: 6px;
     padding: 12px;
   `;
 
   let leftContent = `
-    <div style="font-size:22px; color:${blockStyle.orangeTitle}; text-align:center; margin-bottom:8px; font-weight:bold;">
+    <div style="font-size:22px; color:${blockStyle.lrTitle}; text-align:center; margin-bottom:8px; font-weight:bold;">
     📍 ${nameA}
     </div>
   `;
 
   if (!isNaN(latA) && !isNaN(lonA)) {
     leftContent += `
-    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
-      座標: <span style="color:${blockStyle.valueColor}; font-weight:700;">${latA.toFixed(6)}°N, ${lonA.toFixed(6)}°E</span>
+    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      座標: <span style="color:${blockStyle.lrValue}; font-weight:700;">${latA.toFixed(6)}°N, ${lonA.toFixed(6)}°E</span>
     </div>
-    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
-      高度(含建物): <span style="color:${blockStyle.valueColor}; font-weight:700;">${eleA.toFixed(1)} m</span>
+    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      高度(含建物): <span style="color:${blockStyle.lrValue}; font-weight:700;">${eleA.toFixed(1)} m</span>
     </div>
     `;
   }
@@ -3229,8 +3235,8 @@ async function continueGenerateReport() {
   const antennaHeightA = document.getElementById('antennaHeightStart').value;
   if (antennaHeightA) {
     leftContent += `
-    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:6px;">
-      天線高: <span style="color:${blockStyle.valueColor}; font-weight:700;">${antennaHeightA} m</span>
+    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:6px;">
+      天線高: <span style="color:${blockStyle.lrValue}; font-weight:700;">${antennaHeightA} m</span>
     </div>
     `;
   }
@@ -3238,12 +3244,12 @@ async function continueGenerateReport() {
   if (angles) {
     leftContent += `
     <div style="background:${blockStyle.highlightBg}; padding:8px; border-radius:4px; margin-top:6px; border:${blockStyle.highlightBorder};">
-      <div style="font-size:18px; color:${blockStyle.highlightTitle}; margin-bottom:4px; font-weight:bold;">${nameA} → ${nameB} 方向</div>
-      <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
-      方位角: <span style="color:${blockStyle.valueColor}; font-weight:700;">${angles.azimuthAtoB.toFixed(1)}°</span>
+      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">${nameA} → ${nameB} 方向</div>
+      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      方位角: <span style="color:${blockStyle.lrValue}; font-weight:700;">${angles.azimuthAtoB.toFixed(1)}°</span>
       </div>
-      <div style="font-size:17px; color:${blockStyle.labelColor};">
-      俯仰角: <span style="color:${blockStyle.valueColor}; font-weight:700;">${angles.elevationAtoB >= 0 ? '+' : ''}${angles.elevationAtoB.toFixed(2)}°</span>
+      <div style="font-size:17px; color:${blockStyle.lrTitle};">
+      俯仰角: <span style="color:${blockStyle.lrValue}; font-weight:700;">${angles.elevationAtoB >= 0 ? '+' : ''}${angles.elevationAtoB.toFixed(2)}°</span>
       </div>
     </div>
     `;
@@ -3258,29 +3264,29 @@ async function continueGenerateReport() {
   if (txPower || txGain || txLoss) {
     leftContent += `
     <div style="background:${blockStyle.yellowBg}; padding:8px; border-radius:4px; margin-top:6px; border:${blockStyle.highlightBorder};">
-      <div style="font-size:18px; color:${blockStyle.highlightTitle}; margin-bottom:4px; font-weight:bold;">發射端 (Tx)</div>
+      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">發射端 (Tx)</div>
     `;
 
     if (txPower) {
     leftContent += `
-      <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
-      發射功率: <span style="color:${blockStyle.valueColor}; font-weight:700;">${txPower} ${txPowerUnit}</span>
+      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      發射功率: <span style="color:${blockStyle.lrValue}; font-weight:700;">${txPower} ${txPowerUnit}</span>
       </div>
     `;
     }
 
     if (txGain) {
     leftContent += `
-      <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
-      天線增益: <span style="color:${blockStyle.valueColor}; font-weight:700;">${txGain} dBi</span>
+      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      天線增益: <span style="color:${blockStyle.lrValue}; font-weight:700;">${txGain} dBi</span>
       </div>
     `;
     }
 
     if (txLoss) {
     leftContent += `
-      <div style="font-size:17px; color:${blockStyle.labelColor};">
-      線損: <span style="color:${blockStyle.valueColor}; font-weight:700;">${txLoss} dB</span>
+      <div style="font-size:17px; color:${blockStyle.lrTitle};">
+      線損: <span style="color:${blockStyle.lrValue}; font-weight:700;">${txLoss} dB</span>
       </div>
     `;
     }
@@ -3295,8 +3301,8 @@ async function continueGenerateReport() {
   centerBlock.style.cssText = `
     flex: 1;
     background: ${blockStyle.background};
-    border: ${themeSetting === 'light' ? '2px solid #3b82f6' : '2px solid #5ff0d5'};
-    border-radius: 8px;
+    border: 1px solid ${themeSetting === 'light' ? '#1e3a8a' : '#5ff0d5'};
+    border-radius: 6px;
     padding: 12px;
   `;
 
@@ -3336,44 +3342,52 @@ async function continueGenerateReport() {
 
   // 解析接收訊號強度
   const rssiMatch = rssiText.match(/接收訊號強度:\s*([-+]?\d+\.?\d*)\s*dBm/);
-  if (rssiMatch) {
-    centerContent += `
-    <div style="background:${blockStyle.greenBg}; border:${blockStyle.greenBorder}; border-radius:4px; padding:10px; text-align:center; margin-bottom:6px;">
-      <div style="font-size:14px; color:${blockStyle.yellowText}; margin-bottom:3px; font-weight:700;">視距(LoS)訊號預估</div>
-      <div style="font-size:26px; color:${blockStyle.greenText}; font-weight:bold;">${rssiMatch[1]} dBm</div>
-    </div>
-    `;
-  }
 
-  // 判斷路徑是否有遮蔽
+  // 先判斷路徑是否有遮蔽（供訊號標題使用）
+  let hasObstruction = false;
+  let obstructionChecked = false;
   if (elevationData && elevationData.length > 0 && chartInstance && chartInstance.data.datasets[1]) {
     const losLineData = chartInstance.data.datasets[1].data;
-    let hasObstruction = false;
-
-    // 檢查是否有任何遮蔽點
+    obstructionChecked = true;
     for (let i = 1; i < elevationData.length - 1; i++) {
-    const terrainHeight = elevationData[i];
-    const losHeight = losLineData[i];
-    const clearance = losHeight - terrainHeight;
-    if (clearance < 0) {
-      hasObstruction = true;
-      break;
+      const terrainHeight = elevationData[i];
+      const losHeight = losLineData[i];
+      if (losHeight - terrainHeight < 0) {
+        hasObstruction = true;
+        break;
+      }
     }
-    }
+  }
 
-    // 顯示遮蔽判斷
-    if (hasObstruction) {
-    centerContent += `
-      <div style="background:rgba(220, 38, 38, 0.2); border:2px solid ${blockStyle.redText}; border-radius:4px; padding:12px; margin-top:2px; text-align:center;">
-      <div style="font-size:28px; color:${blockStyle.redText}; font-weight:bold;">⚠️ 有遮蔽</div>
-      </div>
-    `;
+  if (rssiMatch) {
+    if (obstructionChecked) {
+      if (hasObstruction) {
+        // 有遮蔽：紅框，顯示遮蔽狀態 + LoS理論值
+        centerContent += `
+        <div style="background:rgba(220,38,38,0.15); border:2px solid ${blockStyle.redText}; border-radius:4px; padding:10px; text-align:center; margin-bottom:4px;">
+          <div style="font-size:22px; color:${blockStyle.redText}; font-weight:bold; margin-bottom:4px;">⚠️ 有遮蔽</div>
+          <div style="font-size:12px; color:${blockStyle.redText}; opacity:0.85; margin-bottom:2px; font-weight:600;">LoS 理論訊號值（實際更差）</div>
+          <div style="font-size:22px; color:${blockStyle.redText}; font-weight:bold;">${rssiMatch[1]} dBm</div>
+        </div>
+        `;
+      } else {
+        // 無遮蔽：綠框，顯示無遮蔽 + 訊號值
+        centerContent += `
+        <div style="background:${blockStyle.greenBg}; border:${blockStyle.greenBorder}; border-radius:4px; padding:10px; text-align:center; margin-bottom:4px;">
+          <div style="font-size:22px; color:${blockStyle.greenText}; font-weight:bold; margin-bottom:4px;">✓ 無遮蔽</div>
+          <div style="font-size:12px; color:${blockStyle.yellowText}; margin-bottom:2px; font-weight:600;">視距(LoS)訊號預估</div>
+          <div style="font-size:22px; color:${blockStyle.greenText}; font-weight:bold;">${rssiMatch[1]} dBm</div>
+        </div>
+        `;
+      }
     } else {
-    centerContent += `
-      <div style="background:rgba(34, 197, 94, 0.2); border:2px solid ${blockStyle.greenText}; border-radius:4px; padding:12px; margin-top:2px; text-align:center;">
-      <div style="font-size:28px; color:${blockStyle.greenText}; font-weight:bold;">✓ 無遮蔽</div>
+      // 無法判斷遮蔽（未載入剖面圖）：原始顯示
+      centerContent += `
+      <div style="background:${blockStyle.greenBg}; border:${blockStyle.greenBorder}; border-radius:4px; padding:10px; text-align:center; margin-bottom:4px;">
+        <div style="font-size:12px; color:${blockStyle.yellowText}; margin-bottom:2px; font-weight:700;">視距(LoS)訊號預估</div>
+        <div style="font-size:22px; color:${blockStyle.greenText}; font-weight:bold;">${rssiMatch[1]} dBm</div>
       </div>
-    `;
+      `;
     }
   }
 
@@ -3384,24 +3398,24 @@ async function continueGenerateReport() {
   rightBlock.style.cssText = `
     flex: 1;
     background: ${blockStyle.background};
-    border: ${themeSetting === 'light' ? '2px solid #059669' : '2px solid #9945ff'};
-    border-radius: 8px;
+    border: 1px solid ${themeSetting === 'light' ? '#1e3a8a' : '#9945ff'};
+    border-radius: 6px;
     padding: 12px;
   `;
 
   let rightContent = `
-    <div style="font-size:22px; color:${blockStyle.orangeTitle}; text-align:center; margin-bottom:8px; font-weight:bold;">
+    <div style="font-size:22px; color:${blockStyle.lrTitle}; text-align:center; margin-bottom:8px; font-weight:bold;">
     📍 ${nameB}
     </div>
   `;
 
   if (!isNaN(latB) && !isNaN(lonB)) {
     rightContent += `
-    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
-      座標: <span style="color:${blockStyle.titleColor}; font-weight:700;">${latB.toFixed(6)}°N, ${lonB.toFixed(6)}°E</span>
+    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      座標: <span style="color:${blockStyle.lrValue}; font-weight:700;">${latB.toFixed(6)}°N, ${lonB.toFixed(6)}°E</span>
     </div>
-    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
-      高度(含建物): <span style="color:${blockStyle.titleColor}; font-weight:700;">${eleB.toFixed(1)} m</span>
+    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      高度(含建物): <span style="color:${blockStyle.lrValue}; font-weight:700;">${eleB.toFixed(1)} m</span>
     </div>
     `;
   }
@@ -3410,8 +3424,8 @@ async function continueGenerateReport() {
   const antennaHeightB = document.getElementById('antennaHeightEnd').value;
   if (antennaHeightB) {
     rightContent += `
-    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:6px;">
-      天線高: <span style="color:${blockStyle.titleColor}; font-weight:700;">${antennaHeightB} m</span>
+    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:6px;">
+      天線高: <span style="color:${blockStyle.lrValue}; font-weight:700;">${antennaHeightB} m</span>
     </div>
     `;
   }
@@ -3419,12 +3433,12 @@ async function continueGenerateReport() {
   if (angles) {
     rightContent += `
     <div style="background:rgba(95,240,213,0.2); padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(95,240,213,0.5);">
-      <div style="font-size:18px; color:${blockStyle.titleColor}; margin-bottom:4px; font-weight:bold;">${nameB} → ${nameA} 方向</div>
-      <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
-      方位角: <span style="color:${blockStyle.titleColor}; font-weight:700;">${angles.azimuthBtoA.toFixed(1)}°</span>
+      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">${nameB} → ${nameA} 方向</div>
+      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      方位角: <span style="color:${blockStyle.lrValue}; font-weight:700;">${angles.azimuthBtoA.toFixed(1)}°</span>
       </div>
-      <div style="font-size:17px; color:${blockStyle.labelColor};">
-      俯仰角: <span style="color:${blockStyle.titleColor}; font-weight:700;">${angles.elevationBtoA >= 0 ? '+' : ''}${angles.elevationBtoA.toFixed(2)}°</span>
+      <div style="font-size:17px; color:${blockStyle.lrTitle};">
+      俯仰角: <span style="color:${blockStyle.lrValue}; font-weight:700;">${angles.elevationBtoA >= 0 ? '+' : ''}${angles.elevationBtoA.toFixed(2)}°</span>
       </div>
     </div>
     `;
@@ -3437,21 +3451,21 @@ async function continueGenerateReport() {
   if (rxGain || rxLoss) {
     rightContent += `
     <div style="background:${blockStyle.yellowBg}; padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(77,171,247,0.5);">
-      <div style="font-size:18px; color:${blockStyle.titleColor}; margin-bottom:4px; font-weight:bold;">接收端 (Rx)</div>
+      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">接收端 (Rx)</div>
     `;
 
     if (rxGain) {
     rightContent += `
-      <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
-      天線增益: <span style="color:${blockStyle.titleColor}; font-weight:700;">${rxGain} dBi</span>
+      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      天線增益: <span style="color:${blockStyle.lrValue}; font-weight:700;">${rxGain} dBi</span>
       </div>
     `;
     }
 
     if (rxLoss) {
     rightContent += `
-      <div style="font-size:17px; color:${blockStyle.labelColor};">
-      線損: <span style="color:${blockStyle.titleColor}; font-weight:700;">${rxLoss} dB</span>
+      <div style="font-size:17px; color:${blockStyle.lrTitle};">
+      線損: <span style="color:${blockStyle.lrValue}; font-weight:700;">${rxLoss} dB</span>
       </div>
     `;
     }
@@ -3470,13 +3484,13 @@ async function continueGenerateReport() {
   document.body.appendChild(threeBlocksDiv);
 
   const blocksCanvas = await html2canvas(threeBlocksDiv, {
-    backgroundColor: null,
-    scale: qualityConfig.blockScale  // 使用動態解析度設定
+    backgroundColor: themeSetting === 'light' ? '#ffffff' : '#0b1526',
+    scale: qualityConfig.blockScale
   });
 
   document.body.removeChild(threeBlocksDiv);
 
-  const blocksImgData = blocksCanvas.toDataURL('image/jpeg', qualityConfig.blockQuality);  // 使用動態品質
+  const blocksImgData = blocksCanvas.toDataURL('image/png');
   const blocksHeight = 72;
   pdf.addImage(blocksImgData, 'PNG', margin, yPos, pdfWidth - 2 * margin, blocksHeight);
 
@@ -9747,7 +9761,7 @@ function showMap(index, height) {
     }
   }
   mapContainer.style.display = 'block';
-  mapDetails.innerHTML = `<strong><span style="color:#ffd43b;">位置資訊:</span> <span style="color:#5ff0d5;">${index + 1}</span></strong><br><span style="color:#ffd43b;">距離${nameA}:</span> <span style="color:#5ff0d5;">${p.dist} km</span><br><span style="color:#ffd43b;">距離${nameB}:</span> <span style="color:#5ff0d5;">${distanceToB} km</span><br><span style="color:#ffd43b;">海拔高度:</span> <span style="color:#5ff0d5;">${displayHeight} m${heightStatus}</span><br><span style="color:#ffd43b;">座標:</span> <span style="color:#5ff0d5;">${p.lat}, ${p.lng}</span>${obstructionInfo}`;
+  mapDetails.innerHTML = `<strong><span style="color:#ffd43b;">位置資訊:</span> <span style="color:#5ff0d5;">${index + 1}</span></strong><br><span style="color:#ffd43b;">距離${nameA}:</span> <span style="color:#5ff0d5;">${p.dist} km</span><br><span style="color:#ffd43b;">距離${nameB}:</span> <span style="color:#5ff0d5;">${distanceToB} km</span><br><span style="color:#ffd43b;">海拔+天線高度:</span> <span style="color:#5ff0d5;">${displayHeight} m${heightStatus}</span><br><span style="color:#ffd43b;">座標:</span> <span style="color:#5ff0d5;">${p.lat}, ${p.lng}</span>${obstructionInfo}`;
   const mapUrl = `https://maps.google.com/maps?q=${p.lat},${p.lng}&t=k&z=17&output=embed`;
   mapFrame.src = mapUrl;
 
