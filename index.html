@@ -181,6 +181,13 @@ function updateAllViews(point, property, value) {
       updateMapMarkerPopup(point);
     }
 
+    // 4. 檢查座標是否與剖面圖不同，提示需重新生成
+    if (property === 'lat' || property === 'lng') {
+      if (typeof checkProfileOutdated === 'function') {
+        checkProfileOutdated();
+      }
+    }
+
   } finally {
     window._isUpdating = false;
   }
@@ -1379,7 +1386,7 @@ div.gps-ig.orange-border-card,
   splash.style.transition = "0.4s";
   setTimeout(() => splash.remove(), 400);
   }, 500);
-</script> <header></header><main><div class="tabs"><button class="tab-button active" data-tab="rftool" onclick="showTab('rftool')">📡 RF工具</button><button class="tab-button" data-tab="rf" onclick="showTab('rf')">〰️ 線損</button><button class="tab-button" data-tab="gps" onclick="showTab('gps')">🌍 GPS</button><button class="tab-button" data-tab="elevation" onclick="showTab('elevation')">📈 高度圖</button><button class="tab-button" data-tab="report" onclick="showTab('report')">📄 報告</button><button class="tab-button" data-tab="compass" onclick="showTab('compass')">🧭 指北針</button><button class="tab-button" data-tab="archive" onclick="showTab('archive')">💾 存檔</button></div><div id="rf-content" class="tab-content"><div class="rf-header"><div class="section-title">TIMES 線損計算</div><div class="unit-selector-row"><label for="unit" class="unit-label">長度單位：</label><select id="unit"><option value="m">公尺 (m)</option><option value="ft">英尺 (ft)</option></select></div></div><section class="card orange-border-card" style="margin-top:6px;"><div class="form-grid"><div><label for="freq">頻率 (MHz)</label><div class="input-with-clear-rf"><input id="freq" type="number" value="900" min="0" step="1" oninput="compute()"><button class="clear-btn-rf" onclick="clearRfInput('freq')">✖</button></div></div><div><label for="lenInput">長度</label><div class="input-with-clear-rf"><input id="lenInput" type="number" value="10" min="0" step="0.01" oninput="compute()"><button class="clear-btn-rf" onclick="clearRfInput('lenInput')">✖</button></div></div></div><div id="liveInputs" class="small-note">即時計算中...</div></section><div class="btn-row" style="margin-top:6px; margin-bottom:6px;"><button id="reset" class="btn ghost" onclick="resetRf()">預設</button><button id="clear" class="btn clear" onclick="clearRf()">清除</button></div><section class="card results-card-border"><span class="section-title">計算結果（由小到大）</span><div id="tableArea"></div></section></div><div id="gps-content" class="tab-content gps-container"><div class="card"><h2 class="section-title" style="margin-top:0;">兩點GPS 距離、方位角與俯仰角計算</h2><p class="gps-tip">考慮地球曲率與高度差 (WGS84)</p><div class="display-mode-container"><span class="display-mode-text">顯示格式</span><select id="displayMode" style="padding:6px; border-radius:6px; font-size:14px;"><option value="decimal">度 — 十進制 (DD)</option><option value="dms">度分秒 (DMS)</option></select></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 A <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameA" placeholder="地名 A" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('A')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('A')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('A')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latA" placeholder="十進制數值" step="0.000001" value="25.0336" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latA_deg" placeholder="度" oninput="dmsToD('latA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latA_min" placeholder="分" oninput="dmsToD('latA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latA_sec" placeholder="秒" step="0.01" oninput="dmsToD('latA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonA" placeholder="十進制數值" step="0.000001" value="121.5648" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonA_deg" placeholder="度" oninput="dmsToD('lonA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonA_min" placeholder="分" oninput="dmsToD('lonA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonA_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div></div><div class="gps-er"><label for="eleA">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleA" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleA-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('A')">✖</button><button class="btn" style="background:linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 6px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getElevationFromSRTM('A')">取得高度</button></div></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 B <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameB" placeholder="地名 B" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('B')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('B')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('B')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latB" placeholder="十進制數值" step="0.000001" value="25.1325" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latB_deg" placeholder="度" oninput="dmsToD('latB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latB_min" placeholder="分" oninput="dmsToD('latB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latB_sec" placeholder="秒" step="0.01" oninput="dmsToD('latB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonB" placeholder="十進制數值" step="0.000001" value="121.5065" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonB_deg" placeholder="度" oninput="dmsToD('lonB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonB_min" placeholder="分" oninput="dmsToD('lonB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonB_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div></div><div class="gps-er"><label for="eleB">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleB" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleB-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('B')">✖</button><button class="btn" style="background:linear-gradient(90deg, #79a8ff, #5ff0d5); border:0; padding:5px 6px; border-radius:4px; font-weight:700; font-size:14px; color:#022; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getElevationFromSRTM('B')">取得高度</button></div></div></div><div id="gps-controls-container"><div class="btn-row" style="margin-top:5px; margin-bottom:5px; gap:12px; display:flex !important; width:100% !important; justify-content:space-between !important;"><button id="gpsSwapBtn" class="btn" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important; background:linear-gradient(90deg, #bb66ff, #9945ff) !important; color:#fff !important;" onclick="swapGpsCoordinates()">互換A↔B</button><button id="gpsResetBtn" class="btn ghost" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="resetGps()">預設</button><button id="gpsClearBtn" class="btn clear" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="clearAllGps()">清除</button></div><div id="gpsRes"> 計算中... </div></div></div><header></header><div class="tab-content active" id="rftool-content"><div class="rf-header"><div class="section-title">🚀 綜合 RF工具</div></div><div class="function-selector-container"><label for="function_selector">選擇顯示功能模組:</label><select id="function_selector" onchange="toggleSections()"><option value="ALL">ALL - 顯示所有計算器</option><option value="power">1. 功率轉換 (dBm / W)</option><option value="matching">2. 匹配度參數換算</option><option value="sensitivity">3. 系統靈敏度 (Sensitivity) 計算</option><option value="los">4. 通視最大距離計算</option><option value="fspl">5. 自由空間損耗 (FSPL)</option><option value="linkbudget">6. 通訊模擬 (Link Budget)</option></select></div><section class="card section-item" id="section-power"><div class="section-header-with-controls"><div class="section-title">1. 功率轉換 (dBm / W)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-power')">預設</button><button class="btn btn-clear" onclick="clearSection('section-power')">清除</button></div></div><div class="input-group-border"><label for="power_unit">選擇輸入單位:</label><select id="power_unit" onchange="swapAndCalculate()"><option value="w">W</option><option value="dbm">dBm</option></select><label for="power_input">輸入數值:</label><div class="input-with-clear"><input id="power_input" oninput="calculateDbmWNew()" placeholder="輸入數值" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('power_input', 'calculateDbmWNew')">×</button></div></div><div class="results-card-border" id="power_output_result">換算結果:</div></section><section class="card section-item" id="section-matching"><div class="section-header-with-controls"><div class="section-title">2. 匹配度參數換算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-matching')">預設</button><button class="btn btn-clear" onclick="clearSection('section-matching')">清除</button></div></div><div class="input-group-border"><label for="matching_unit">選擇輸入參數:</label><select id="matching_unit" onchange="swapAndConvertMatching()"><option value="rl">回波損耗 (Return Loss, RL) [dB]</option><option value="vswr">駐波比 (VSWR)</option><option value="gamma">反射係數 (V, Γ)</option><option value="refl_pct">反射功率 [%]</option><option value="pass_pct">通過功率 [%]</option></select><label for="matching_input_value" style="margin-top:8px;">輸入數值:</label><div class="input-with-clear"><input id="matching_input_value" oninput="calculateMatching()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('matching_input_value', 'calculateMatching')">×</button></div></div><div class="results-card-border" id="matching_output"> 回波損耗 (RL) [dB]: <span class="result-value" id="rl_val"></span><br/> 駐波比 (VSWR): <span class="result-value" id="vswr_val"></span><br/> 反射係數 (V，Γ): <span class="result-value" id="gamma_val"></span><br/> 反射功率 [%]: <span class="result-value" id="refl_percent"></span><br/> 通過功率 [%]: <span class="result-value" id="pass_percent"></span></div></section><section class="card section-item" id="section-sensitivity"><div class="section-header-with-controls"><div class="section-title">3. 系統靈敏度 (Sensitivity) 計算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-sensitivity')">預設</button><button class="btn btn-clear" onclick="clearSection('section-sensitivity')">清除</button></div></div><div class="input-group-border"><label for="sensitivity_bw">訊號頻寬 (BW) [MHz]:</label><div class="input-with-clear"><input id="sensitivity_bw" oninput="calculateSensitivity()" placeholder="例如: 1 (1MHz)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_bw', 'calculateSensitivity')">×</button></div><label for="sensitivity_nf">雜訊指數 (Noise Figure, NF) [dB]:</label><div class="input-with-clear"><input id="sensitivity_nf" oninput="calculateSensitivity()" placeholder="例如: 5" type="number" value="5"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_nf', 'calculateSensitivity')">×</button></div><label for="sensitivity_sn">所需訊雜比 (S/N) [dB]:</label><div class="input-with-clear"><input id="sensitivity_sn" oninput="calculateSensitivity()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_sn', 'calculateSensitivity')">×</button></div></div><div class="results-card-border" id="sensitivity_output">接收器靈敏度 (Sensitivity):</div></section><section class="card section-item" id="section-los"><div class="section-header-with-controls"><div class="section-title">4. 通視最大距離 (地球曲度遮蔽)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-los')">預設</button><button class="btn btn-clear" onclick="clearSection('section-los')">清除</button></div></div><div class="input-group-border"><div class="los-point-title">A 點</div><div class="los-input-container"><div class="input-item"><label for="los_g1">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g1" oninput="calculateMaxLOS()" placeholder="例如: 100" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g1', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h1">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h1" oninput="calculateMaxLOS()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('los_h1', 'calculateMaxLOS')">×</button></div></div></div><div class="los-point-title">B 點</div><div class="los-input-container"><div class="input-item"><label for="los_g2">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g2" oninput="calculateMaxLOS()" placeholder="例如: 150" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g2', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h2">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h2" oninput="calculateMaxLOS()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('los_h2', 'calculateMaxLOS')">×</button></div></div></div></div>
+</script> <header></header><main><div class="tabs"><button class="tab-button active" data-tab="rftool" onclick="showTab('rftool')">📡 RF工具</button><button class="tab-button" data-tab="rf" onclick="showTab('rf')">〰️ 線損</button><button class="tab-button" data-tab="gps" onclick="showTab('gps')">🌍 GPS</button><button class="tab-button" data-tab="elevation" onclick="showTab('elevation')">📈 高度圖</button><button class="tab-button" data-tab="report" onclick="showTab('report')">📄 報告</button><button class="tab-button" data-tab="compass" onclick="showTab('compass')">🧭 指北針</button><button class="tab-button" data-tab="archive" onclick="showTab('archive')">💾 存檔</button></div><div id="rf-content" class="tab-content"><div class="rf-header"><div class="section-title">TIMES 線損計算</div><div class="unit-selector-row"><label for="unit" class="unit-label">長度單位：</label><select id="unit"><option value="m">公尺 (m)</option><option value="ft">英尺 (ft)</option></select></div></div><section class="card orange-border-card" style="margin-top:6px;"><div class="form-grid"><div><label for="freq">頻率 (MHz)</label><div class="input-with-clear-rf"><input id="freq" type="number" value="900" min="0" step="1" oninput="compute()"><button class="clear-btn-rf" onclick="clearRfInput('freq')">✖</button></div></div><div><label for="lenInput">長度</label><div class="input-with-clear-rf"><input id="lenInput" type="number" value="10" min="0" step="0.01" oninput="compute()"><button class="clear-btn-rf" onclick="clearRfInput('lenInput')">✖</button></div></div></div><div id="liveInputs" class="small-note">即時計算中...</div></section><div class="btn-row" style="margin-top:6px; margin-bottom:6px;"><button id="reset" class="btn ghost" onclick="resetRf()">預設</button><button id="clear" class="btn clear" onclick="clearRf()">清除</button></div><section class="card results-card-border"><span class="section-title">計算結果（由小到大）</span><div id="tableArea"></div></section></div><div id="gps-content" class="tab-content gps-container"><div class="card"><h2 class="section-title" style="margin-top:0;">兩點GPS 距離、方位角與俯仰角計算</h2><p class="gps-tip">考慮地球曲率與高度差 (WGS84)</p><div class="display-mode-container"><span class="display-mode-text">顯示格式</span><select id="displayMode" style="padding:6px; border-radius:6px; font-size:14px;"><option value="decimal">度 — 十進制 (DD)</option><option value="dms">度分秒 (DMS)</option></select></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 A <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameA" placeholder="地名 A" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('A')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('A')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('A')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latA" placeholder="十進制數值" step="0.000001" value="25.0336" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latA_deg" placeholder="度" oninput="dmsToD('latA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latA_min" placeholder="分" oninput="dmsToD('latA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latA_sec" placeholder="秒" step="0.01" oninput="dmsToD('latA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonA" placeholder="十進制數值" step="0.000001" value="121.5648" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonA_deg" placeholder="度" oninput="dmsToD('lonA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonA_min" placeholder="分" oninput="dmsToD('lonA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonA_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div></div><div class="gps-er"><label for="eleA">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleA" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleA-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('A')">✖</button></div></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 B <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameB" placeholder="地名 B" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('B')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('B')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('B')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latB" placeholder="十進制數值" step="0.000001" value="25.1325" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latB_deg" placeholder="度" oninput="dmsToD('latB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latB_min" placeholder="分" oninput="dmsToD('latB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latB_sec" placeholder="秒" step="0.01" oninput="dmsToD('latB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonB" placeholder="十進制數值" step="0.000001" value="121.5065" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonB_deg" placeholder="度" oninput="dmsToD('lonB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonB_min" placeholder="分" oninput="dmsToD('lonB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonB_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div></div><div class="gps-er"><label for="eleB">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleB" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleB-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('B')">✖</button></div></div></div><div id="gps-controls-container"><div class="btn-row" style="margin-top:5px; margin-bottom:5px; gap:12px; display:flex !important; width:100% !important; justify-content:space-between !important;"><button id="gpsSwapBtn" class="btn" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important; background:linear-gradient(90deg, #bb66ff, #9945ff) !important; color:#fff !important;" onclick="swapGpsCoordinates()">互換A↔B</button><button id="gpsResetBtn" class="btn ghost" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="resetGps()">預設</button><button id="gpsClearBtn" class="btn clear" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="clearAllGps()">清除</button></div><div id="gpsRes"> 計算中... </div></div></div><header></header><div class="tab-content active" id="rftool-content"><div class="rf-header"><div class="section-title">🚀 綜合 RF工具</div></div><div class="function-selector-container"><label for="function_selector">選擇顯示功能模組:</label><select id="function_selector" onchange="toggleSections()"><option value="ALL">ALL - 顯示所有計算器</option><option value="power">1. 功率轉換 (dBm / W)</option><option value="matching">2. 匹配度參數換算</option><option value="sensitivity">3. 系統靈敏度 (Sensitivity) 計算</option><option value="los">4. 通視最大距離計算</option><option value="fspl">5. 自由空間損耗 (FSPL)</option><option value="linkbudget">6. 通訊模擬 (Link Budget)</option></select></div><section class="card section-item" id="section-power"><div class="section-header-with-controls"><div class="section-title">1. 功率轉換 (dBm / W)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-power')">預設</button><button class="btn btn-clear" onclick="clearSection('section-power')">清除</button></div></div><div class="input-group-border"><label for="power_unit">選擇輸入單位:</label><select id="power_unit" onchange="swapAndCalculate()"><option value="w">W</option><option value="dbm">dBm</option></select><label for="power_input">輸入數值:</label><div class="input-with-clear"><input id="power_input" oninput="calculateDbmWNew()" placeholder="輸入數值" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('power_input', 'calculateDbmWNew')">×</button></div></div><div class="results-card-border" id="power_output_result">換算結果:</div></section><section class="card section-item" id="section-matching"><div class="section-header-with-controls"><div class="section-title">2. 匹配度參數換算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-matching')">預設</button><button class="btn btn-clear" onclick="clearSection('section-matching')">清除</button></div></div><div class="input-group-border"><label for="matching_unit">選擇輸入參數:</label><select id="matching_unit" onchange="swapAndConvertMatching()"><option value="rl">回波損耗 (Return Loss, RL) [dB]</option><option value="vswr">駐波比 (VSWR)</option><option value="gamma">反射係數 (V, Γ)</option><option value="refl_pct">反射功率 [%]</option><option value="pass_pct">通過功率 [%]</option></select><label for="matching_input_value" style="margin-top:8px;">輸入數值:</label><div class="input-with-clear"><input id="matching_input_value" oninput="calculateMatching()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('matching_input_value', 'calculateMatching')">×</button></div></div><div class="results-card-border" id="matching_output"> 回波損耗 (RL) [dB]: <span class="result-value" id="rl_val"></span><br/> 駐波比 (VSWR): <span class="result-value" id="vswr_val"></span><br/> 反射係數 (V，Γ): <span class="result-value" id="gamma_val"></span><br/> 反射功率 [%]: <span class="result-value" id="refl_percent"></span><br/> 通過功率 [%]: <span class="result-value" id="pass_percent"></span></div></section><section class="card section-item" id="section-sensitivity"><div class="section-header-with-controls"><div class="section-title">3. 系統靈敏度 (Sensitivity) 計算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-sensitivity')">預設</button><button class="btn btn-clear" onclick="clearSection('section-sensitivity')">清除</button></div></div><div class="input-group-border"><label for="sensitivity_bw">訊號頻寬 (BW) [MHz]:</label><div class="input-with-clear"><input id="sensitivity_bw" oninput="calculateSensitivity()" placeholder="例如: 1 (1MHz)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_bw', 'calculateSensitivity')">×</button></div><label for="sensitivity_nf">雜訊指數 (Noise Figure, NF) [dB]:</label><div class="input-with-clear"><input id="sensitivity_nf" oninput="calculateSensitivity()" placeholder="例如: 5" type="number" value="5"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_nf', 'calculateSensitivity')">×</button></div><label for="sensitivity_sn">所需訊雜比 (S/N) [dB]:</label><div class="input-with-clear"><input id="sensitivity_sn" oninput="calculateSensitivity()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_sn', 'calculateSensitivity')">×</button></div></div><div class="results-card-border" id="sensitivity_output">接收器靈敏度 (Sensitivity):</div></section><section class="card section-item" id="section-los"><div class="section-header-with-controls"><div class="section-title">4. 通視最大距離 (地球曲度遮蔽)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-los')">預設</button><button class="btn btn-clear" onclick="clearSection('section-los')">清除</button></div></div><div class="input-group-border"><div class="los-point-title">A 點</div><div class="los-input-container"><div class="input-item"><label for="los_g1">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g1" oninput="calculateMaxLOS()" placeholder="例如: 100" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g1', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h1">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h1" oninput="calculateMaxLOS()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('los_h1', 'calculateMaxLOS')">×</button></div></div></div><div class="los-point-title">B 點</div><div class="los-input-container"><div class="input-item"><label for="los_g2">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g2" oninput="calculateMaxLOS()" placeholder="例如: 150" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g2', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h2">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h2" oninput="calculateMaxLOS()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('los_h2', 'calculateMaxLOS')">×</button></div></div></div></div>
 <div style="margin-top:6px;">
   <button class="btn ghost" onclick="toggleRefraction()" id="refBtn" style="color:#bb66ff;">目前：不含大氣折射</button>
 </div>
@@ -1388,12 +1395,12 @@ div.gps-ig.orange-border-card,
 <h2 class="section-title" style="margin-top:0;">地形遮蔽分析 - 路徑高度圖</h2>
 <div class="orange-border-card" style="padding:10px 12px; margin-bottom:6px;">
 <div style="display:grid; grid-template-columns:2fr 2fr 1.2fr; gap:5px; align-items:end; margin-bottom:10px;">
-<div><label id="labelALat" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">A點緯度</label><input type="number" id="sLat" value="25.0336" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"></div>
-<div><label id="labelALng" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">A點經度</label><input type="number" id="sLng" value="121.5648" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"></div>
-<div><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">天線高 (m)</label><input type="number" id="antennaHeightStart" value="3" step="0.1" min="0" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"></div>
-<div><label id="labelBLat" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">B點緯度</label><input type="number" id="eLat" value="25.1325" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"></div>
-<div><label id="labelBLng" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">B點經度</label><input type="number" id="eLng" value="121.5065" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"></div>
-<div><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">天線高 (m)</label><input type="number" id="antennaHeightEnd" value="3" step="0.1" min="0" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);"></div>
+<div><label id="labelALat" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">A點緯度</label><input type="number" id="sLat" value="25.0336" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);" oninput="checkProfileOutdated()"></div>
+<div><label id="labelALng" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">A點經度</label><input type="number" id="sLng" value="121.5648" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);" oninput="checkProfileOutdated()"></div>
+<div><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">天線高 (m)</label><input type="number" id="antennaHeightStart" value="3" step="0.1" min="0" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);" oninput="checkProfileOutdated()"></div>
+<div><label id="labelBLat" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">B點緯度</label><input type="number" id="eLat" value="25.1325" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);" oninput="checkProfileOutdated()"></div>
+<div><label id="labelBLng" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">B點經度</label><input type="number" id="eLng" value="121.5065" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);" oninput="checkProfileOutdated()"></div>
+<div><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block;">天線高 (m)</label><input type="number" id="antennaHeightEnd" value="3" step="0.1" min="0" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);" oninput="checkProfileOutdated()"></div>
 </div>
 <div style="grid-column:span 3; display:flex; gap:10px; align-items:flex-end; margin-bottom:8px;">
 <div style="display:flex; align-items:center; gap:5px; flex:1;">
@@ -1452,7 +1459,7 @@ div.gps-ig.orange-border-card,
 </select>
 <span style="font-size:11px; color:var(--muted); margin-top:4px; display:block;">路徑經過無圖資區域時使用（如樂山雷達站）</span>
 </div>
-<button class="btn" style="background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:18px; color:#022; cursor:pointer; width:100%; margin-bottom:4px;" onclick="runAnalysis()">🌐 生成路徑剖面</button>
+<button id="generateProfileBtn" class="btn" style="background:linear-gradient(90deg,var(--accent1),var(--accent2)); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:18px; color:#022; cursor:pointer; width:100%; margin-bottom:4px;" onclick="runAnalysis()">📈 生成路徑剖面圖</button>
 <div style="display:flex; gap:8px; margin-bottom:4px;">
 <button id="toggleGreenPointsBtn" class="btn" style="background:linear-gradient(90deg,#6c757d,#5a6268); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; width:100%;" onclick="toggleGreenPoints()">👁️ 顯示節點</button>
 </div>
@@ -4990,6 +4997,175 @@ function updateDMSFromDecimal(coordId) {
   if (minInput) minInput.value = minutes;
   if (secInput) secInput.value = seconds.toFixed(2);
 }
+
+// 自動獲取高度（靜默模式，不顯示錯誤提示）
+async function autoFetchElevation(location) {
+  const latId = location === 'A' ? 'latA' : 'latB';
+  const lonId = location === 'A' ? 'lonA' : 'lonB';
+  const eleId = location === 'A' ? 'eleA' : 'eleB';
+  const latVal = document.getElementById(latId).value;
+  const lonVal = document.getElementById(lonId).value;
+  
+  // 如果沒有座標，直接返回
+  if (!latVal || !lonVal) {
+    return;
+  }
+  
+  const lat = parseFloat(latVal);
+  const lon = parseFloat(lonVal);
+  
+  // 如果座標無效，直接返回
+  if (isNaN(lat) || isNaN(lon)) {
+    return;
+  }
+  
+  // 如果座標超出範圍，直接返回
+  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    return;
+  }
+  
+  const eleInput = document.getElementById(eleId);
+  const loadingId = eleId + '-loading';
+  const loadingSpan = document.getElementById(loadingId);
+  
+  // 顯示載入指示器
+  if (loadingSpan) {
+    loadingSpan.innerHTML = '自動取得<span class="loading-dots"></span>';
+    loadingSpan.style.display = 'inline';
+    eleInput.style.opacity = '0.3';
+  }
+  
+  try {
+    // ★ 優先使用高度圖分頁已載入的本地 TIF 檔案
+    if (typeof localTifFileData !== 'undefined' && localTifFileData && localTifFileData.tiff && localTifFileData.image) {
+      const image = localTifFileData.image;
+      const bbox = image.getBoundingBox();
+      const width = image.getWidth();
+      const height = image.getHeight();
+      const pixelX = Math.floor((lon - bbox[0]) / (bbox[2] - bbox[0]) * width);
+      const pixelY = Math.floor((bbox[3] - lat) / (bbox[3] - bbox[1]) * height);
+      
+      if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
+        const rasters = await image.readRasters({ window: [pixelX, pixelY, pixelX + 1, pixelY + 1] });
+        const elevation = rasters[0][0];
+        const commonNoDataValues = [-32768, -32767, -9999, -99999, -12345, 32767, 65535, -3.4028235e+38];
+        const isNoData = commonNoDataValues.some(noData => Math.abs(elevation - noData) < 0.01);
+        
+        if (!isNoData && elevation >= -500 && elevation <= 9000 && !isNaN(elevation)) {
+          eleInput.value = Math.round(parseFloat(elevation));
+          if (loadingSpan) { 
+            loadingSpan.style.display = 'none'; 
+            eleInput.style.opacity = '1'; 
+          }
+          return;
+        }
+      }
+    }
+    
+    // 如果座標不在台灣範圍內，嘗試使用 Open-Elevation
+    if (lat < 21.5 || lat > 25.5 || lon < 119.5 || lon > 122.5) {
+      await autoFetchElevationFromOpenElevation(location);
+      return;
+    }
+    
+    // 載入 GeoTIFF 並獲取高度
+    if (!window.GeoTIFF) {
+      await loadGeoTIFFLibrary();
+    }
+    
+    const cogFilename = 'taiwan_dsm_wgs84_cog.tif';
+    let tiff = null;
+    
+    try {
+      tiff = await GeoTIFF.fromUrl(cogFilename);
+    } catch (err) {
+      const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
+      try {
+        tiff = await GeoTIFF.fromUrl(githubUrl);
+      } catch (err2) {
+        // 靜默失敗
+        return;
+      }
+    }
+    
+    if (!tiff) {
+      return;
+    }
+    
+    const image = await tiff.getImage();
+    const bbox = image.getBoundingBox();
+    const width = image.getWidth();
+    const height = image.getHeight();
+    const pixelX = Math.floor((lon - bbox[0]) / (bbox[2] - bbox[0]) * width);
+    const pixelY = Math.floor((bbox[3] - lat) / (bbox[3] - bbox[1]) * height);
+    
+    if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
+      const rasters = await image.readRasters({
+        window: [pixelX, pixelY, pixelX + 1, pixelY + 1]
+      });
+      const elevation = rasters[0][0];
+      
+      if (elevation === null || elevation === undefined || isNaN(elevation)) {
+        await autoFetchElevationFromOpenElevation(location);
+        return;
+      }
+      
+      const commonNoDataValues = [-32768, -32767, -9999, -99999, -12345, 32767, 65535, -3.4028235e+38];
+      const isNoData = commonNoDataValues.some(noData => Math.abs(elevation - noData) < 0.01);
+      
+      if (isNoData || elevation < -500 || elevation > 9000) {
+        await autoFetchElevationFromOpenElevation(location);
+        return;
+      }
+      
+      eleInput.value = Math.round(parseFloat(elevation));
+    } else {
+      await autoFetchElevationFromOpenElevation(location);
+    }
+  } catch (err) {
+    // 靜默失敗，不顯示錯誤
+  } finally {
+    if (loadingSpan) {
+      loadingSpan.style.display = 'none';
+      eleInput.style.opacity = '1';
+    }
+  }
+}
+
+// 自動從 Open-Elevation 獲取高度（靜默模式）
+async function autoFetchElevationFromOpenElevation(location) {
+  const latId = location === 'A' ? 'latA' : 'latB';
+  const lonId = location === 'A' ? 'lonA' : 'lonB';
+  const eleId = location === 'A' ? 'eleA' : 'eleB';
+  const latVal = document.getElementById(latId).value;
+  const lonVal = document.getElementById(lonId).value;
+  
+  if (!latVal || !lonVal) return;
+  
+  const lat = parseFloat(latVal);
+  const lon = parseFloat(lonVal);
+  
+  if (isNaN(lat) || isNaN(lon)) return;
+  
+  const eleInput = document.getElementById(eleId);
+  
+  try {
+    const response = await fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lon}`);
+    if (!response.ok) {
+      return;
+    }
+    const data = await response.json();
+    if (data && data.results && data.results.length > 0) {
+      const elevation = data.results[0].elevation;
+      if (!isNaN(elevation) && elevation >= -500 && elevation <= 9000) {
+        eleInput.value = Math.round(parseFloat(elevation));
+      }
+    }
+  } catch (err) {
+    // 靜默失敗
+  }
+}
+
 async function getElevationFromSRTM(location) {
   const latId = location === 'A' ? 'latA' : 'latB';
   const lonId = location === 'A' ? 'lonA' : 'lonB';
@@ -5612,6 +5788,32 @@ function calculate() {
     return;
   }
   resDiv.classList.remove('gps-error');
+  
+  // 🔄 自動獲取高度：檢查座標是否變更
+  if (!window._lastGpsCoords) {
+    window._lastGpsCoords = { latA: null, lonA: null, latB: null, lonB: null };
+  }
+  
+  const coordsChanged = {
+    A: window._lastGpsCoords.latA !== latA || window._lastGpsCoords.lonA !== lonA,
+    B: window._lastGpsCoords.latB !== latB || window._lastGpsCoords.lonB !== lonB
+  };
+  
+  // 更新記錄的座標
+  window._lastGpsCoords = { latA, lonA, latB, lonB };
+  
+  // 如果座標變更，自動獲取高度
+  if (coordsChanged.A) {
+    if (typeof autoFetchElevation === 'function') {
+      autoFetchElevation('A');
+    }
+  }
+  if (coordsChanged.B) {
+    if (typeof autoFetchElevation === 'function') {
+      autoFetchElevation('B');
+    }
+  }
+  
   const hD = hDist(latA, lonA, latB, lonB);
   const sD = straightDist(hD, eleA, eleB);
   const bAB = getBearing(latA, lonA, latB, lonB);
@@ -5638,6 +5840,17 @@ function calculate() {
     <p><span class="gps-label-title">⏫ ${nameA} 對 ${nameB} 的俯仰角</span>：<strong class="v-pitch-value">${pitch.pitchAB.toFixed(2)}°</strong></p>
     <p><span class="gps-label-title">⏬ ${nameB} 對 ${nameA} 的俯仰角</span>：<strong class="v-pitch-value">${pitch.pitchBA.toFixed(2)}°</strong></p>
   `;
+  
+  // 同步GPS座標到高度圖分頁
+  if (typeof syncGpsToElevation === 'function') {
+    syncGpsToElevation('A');
+    syncGpsToElevation('B');
+  }
+  
+  // 檢查座標是否與剖面圖不同，提示需重新生成
+  if (typeof checkProfileOutdated === 'function') {
+    checkProfileOutdated();
+  }
   }
   const displayModeSelect = document.getElementById('displayMode');
   function updateDisplayMode(mode){
@@ -6332,6 +6545,40 @@ async function loadGeoTIFFLibrary() {
     '下載網址（有網路時先下載存檔）：\nhttps://cdn.jsdelivr.net/npm/geotiff@2.0.7/dist-browser/geotiff.js'
   );
 }
+// ✅ 偵測座標或天線高度是否和已生成的剖面圖不同，提示需重新生成
+function checkProfileOutdated() {
+  var b = document.getElementById('generateProfileBtn');
+  if (!b) return;
+  // 若從未生成過，不提示
+  if (!window.lastGeneratedSnapshot) return;
+  var s = window.lastGeneratedSnapshot;
+  var cur = {
+    sLat: parseFloat(document.getElementById('sLat').value) || 0,
+    sLng: parseFloat(document.getElementById('sLng').value) || 0,
+    eLat: parseFloat(document.getElementById('eLat').value) || 0,
+    eLng: parseFloat(document.getElementById('eLng').value) || 0,
+    antA: parseFloat(document.getElementById('antennaHeightStart').value) || 0,
+    antB: parseFloat(document.getElementById('antennaHeightEnd').value) || 0
+  };
+  var coordChanged = Math.abs(cur.sLat-s.sLat)>0.000001 || Math.abs(cur.sLng-s.sLng)>0.000001 ||
+                     Math.abs(cur.eLat-s.eLat)>0.000001 || Math.abs(cur.eLng-s.eLng)>0.000001;
+  var antennaChanged = Math.abs(cur.antA-s.antA)>0.01 || Math.abs(cur.antB-s.antB)>0.01;
+  
+  if (coordChanged) {
+    b.textContent = '⚠️ 座標已變，請重新生成剖面圖';
+    b.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
+    b.style.color = '#fff';
+  } else if (antennaChanged) {
+    b.textContent = '⚠️ 天線高度已變，請重新生成剖面圖';
+    b.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
+    b.style.color = '#fff';
+  } else {
+    b.textContent = '📈 生成路徑剖面圖';
+    b.style.background = 'linear-gradient(90deg,var(--accent1),var(--accent2))';
+    b.style.color = '#022';
+  }
+}
+
 function renderChart(elevations) {
   const labelALat = document.getElementById('labelALat');
   const labelBLat = document.getElementById('labelBLat');
@@ -6883,6 +7130,25 @@ function renderChart(elevations) {
     },
     plugins: [pointLabelPlugin, totalDistancePlugin, frequencyDisplayPlugin]
   });
+
+  // ✅ 剖面圖生成完成 → 記錄當前座標快照，還原按鈕狀態
+  window.lastGeneratedSnapshot = {
+    sLat: parseFloat(document.getElementById('sLat').value) || 0,
+    sLng: parseFloat(document.getElementById('sLng').value) || 0,
+    eLat: parseFloat(document.getElementById('eLat').value) || 0,
+    eLng: parseFloat(document.getElementById('eLng').value) || 0,
+    antA: parseFloat(document.getElementById('antennaHeightStart').value) || 0,
+    antB: parseFloat(document.getElementById('antennaHeightEnd').value) || 0
+  };
+  (function(){
+    var b = document.getElementById('generateProfileBtn');
+    if (b) {
+      b.textContent = '📈 生成路徑剖面圖';
+      b.style.background = 'linear-gradient(90deg,var(--accent1),var(--accent2))';
+      b.style.color = '#022';
+    }
+  })();
+
   const canvas = document.getElementById('elevationChart');
   function isPointInLabel(x, y, labelBounds) {
     if (!labelBounds) return false;
@@ -7033,7 +7299,7 @@ function renderChart(elevations) {
 let greenPointsVisible = false;
 function toggleGreenPoints() {
   if (!chartInstance || !chartInstance.data.datasets[0]) {
-    alert('請先生成路徑剖面');
+    alert('請先生成路徑剖面圖');
     return;
   }
   const btn = document.getElementById('toggleGreenPointsBtn');
@@ -7274,7 +7540,7 @@ function openChartFullscreen() {
   fullscreenInfoVisible = true;
   obstructionColorEnabled = false;
   if (!chartInstance || !chartInstance.data) {
-    alert('請先生成路徑剖面');
+    alert('請先生成路徑剖面圖');
     return;
   }
   const overlay = document.getElementById('chartFullscreenOverlay');
@@ -9455,7 +9721,7 @@ function openGoogleMapForYellowPoint() {
     return;
   }
   if (!pathData || pathData.length === 0) {
-    alert('❌ 找不到路徑數據，請先生成路徑剖面');
+    alert('❌ 找不到路徑數據，請先生成路徑剖面圖');
     return;
   }
   const index = window.currentSelectedPointIndex;
@@ -11448,7 +11714,7 @@ function decrementSelectedPoint() {
 function jumpToStartPoint() {
   selectedPointsInCurrentHeight.clear();
   if (!elevationData || elevationData.length === 0) {
-    alert('請先生成路徑剖面');
+    alert('請先生成路徑剖面圖');
     return;
   }
   showMap(0, getElevationForIndex(0));
@@ -11457,7 +11723,7 @@ function jumpToStartPoint() {
 function jumpToEndPoint() {
   selectedPointsInCurrentHeight.clear();
   if (!elevationData || elevationData.length === 0) {
-    alert('請先生成路徑剖面');
+    alert('請先生成路徑剖面圖');
     return;
   }
   const endIndex = elevationData.length - 1;
@@ -11467,7 +11733,7 @@ function jumpToEndPoint() {
 function jumpToMinPoint() {
   selectedPointsInCurrentHeight.clear();
   if (!elevationData || elevationData.length === 0) {
-    alert('請先生成路徑剖面');
+    alert('請先生成路徑剖面圖');
     return;
   }
   let minValue = elevationData[0];
@@ -11484,7 +11750,7 @@ function jumpToMinPoint() {
 function jumpToMaxPoint() {
   selectedPointsInCurrentHeight.clear();
   if (!elevationData || elevationData.length === 0) {
-    alert('請先生成路徑剖面');
+    alert('請先生成路徑剖面圖');
     return;
   }
   let maxValue = elevationData[0];
@@ -11501,7 +11767,7 @@ function jumpToMaxPoint() {
 function jumpToMaxObstruction() {
   selectedPointsInCurrentHeight.clear();
   if (!elevationData || elevationData.length === 0) {
-    alert('請先生成路徑剖面');
+    alert('請先生成路徑剖面圖');
     return;
   }
   if (!chartInstance || !chartInstance.data.datasets[1]) {
@@ -11556,7 +11822,7 @@ function jumpToMaxObstruction() {
 function jumpToFirstObstructionFromStart() {
   selectedPointsInCurrentHeight.clear();
   if (!elevationData || elevationData.length === 0) {
-    alert('請先生成路徑剖面');
+    alert('請先生成路徑剖面圖');
     return;
   }
   if (!chartInstance || !chartInstance.data.datasets[1]) {
@@ -11612,7 +11878,7 @@ function jumpToFirstObstructionFromStart() {
 function jumpToFirstObstructionFromEnd() {
   selectedPointsInCurrentHeight.clear();
   if (!elevationData || elevationData.length === 0) {
-    alert('請先生成路徑剖面');
+    alert('請先生成路徑剖面圖');
     return;
   }
   if (!chartInstance || !chartInstance.data.datasets[1]) {
@@ -11695,7 +11961,7 @@ function getElevationForIndex(index) {
 
 function jumpToHigherPoint() {
   if (!elevationData || elevationData.length === 0) {
-    alert('請先生成路徑剖面');
+    alert('請先生成路徑剖面圖');
     return;
   }
   const selectedPointInput = document.getElementById('selectedPointIndex');
@@ -11764,7 +12030,7 @@ function jumpToHigherPoint() {
 }
 function jumpToLowerPoint() {
   if (!elevationData || elevationData.length === 0) {
-    alert('請先生成路徑剖面');
+    alert('請先生成路徑剖面圖');
     return;
   }
   const selectedPointInput = document.getElementById('selectedPointIndex');
@@ -11987,7 +12253,30 @@ function applyFields(data){
   if (data.lonB !== undefined) coordinateData.B.lng = parseFloat(data.lonB) || 0;
   if (data.eleB !== undefined) coordinateData.B.ele = parseFloat(data.eleB) || null;
   if (data.nameB !== undefined) coordinateData.B.name = data.nameB || '';
-  
+
+  // ✅ 清除舊剖面圖
+  if (typeof chartInstance !== 'undefined' && chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  if (typeof elevationData !== 'undefined') elevationData = [];
+  window.lastGeneratedSnapshot = null;
+  var summaryEl = document.getElementById('summary');
+  if (summaryEl) summaryEl.innerHTML = '⚠️ 座標已更新，請重新生成路徑剖面圖';
+  var chartCanvas = document.getElementById('elevationChart');
+  if (chartCanvas) { var c2d = chartCanvas.getContext('2d'); if (c2d) c2d.clearRect(0,0,chartCanvas.width,chartCanvas.height); }
+  var genBtn = document.getElementById('generateProfileBtn');
+  if (genBtn) { genBtn.textContent = '📈 生成路徑剖面圖'; genBtn.style.background = 'linear-gradient(90deg,var(--accent1),var(--accent2))'; genBtn.style.color = '#022'; }
+
+  // ✅ 直接更新高度圖地名標籤
+  var _nA = (data.nameA || '').trim();
+  var _nB = (data.nameB || '').trim();
+  var _lALat = document.getElementById('labelALat');
+  var _lALng = document.getElementById('labelALng');
+  var _lBLat = document.getElementById('labelBLat');
+  var _lBLng = document.getElementById('labelBLng');
+  if (_lALat) _lALat.innerHTML = _nA ? '<span style="color:#FFD700;font-weight:700;">' + _nA + '</span>緯度' : 'A點緯度';
+  if (_lALng) _lALng.innerHTML = _nA ? '<span style="color:#FFD700;font-weight:700;">' + _nA + '</span>經度' : 'A點經度';
+  if (_lBLat) _lBLat.innerHTML = _nB ? '<span style="color:#FFD700;font-weight:700;">' + _nB + '</span>緯度' : 'B點緯度';
+  if (_lBLng) _lBLng.innerHTML = _nB ? '<span style="color:#FFD700;font-weight:700;">' + _nB + '</span>經度' : 'B點經度';
+
   window.scrollTo({top:0,behavior:"smooth"});
   alert("✓ 參數已成功填入");
   setTimeout(() => {
@@ -12140,6 +12429,40 @@ function loadGpsNamesToArchive() {
   const combinedName = nameA && nameB ? `${nameA}↔${nameB}` : (nameA || nameB);
   inputElement.value = combinedName;
   updateNamePreview();
+
+  // ✅ 自動判斷顏色
+  const btn = document.getElementById('los_toggle_btn');
+  const nameContainer = document.getElementById('ls_name_container');
+  const hasProfile = elevationData && elevationData.length > 0 &&
+                     chartInstance && chartInstance.data && chartInstance.data.datasets[1];
+  if (!hasProfile) {
+    currentLosStatus = '--';
+    btn.innerHTML = 'N/A';
+    btn.style.background = 'linear-gradient(90deg, #95a5a6, #7f8c8d)';
+    nameContainer.style.borderColor = '#ffffff';
+    inputElement.style.color = '#ffffff';
+  } else {
+    const losLineData = chartInstance.data.datasets[1].data;
+    let hasObs = false;
+    for (let i = 1; i < elevationData.length - 1; i++) {
+      if (losLineData[i] !== undefined && (losLineData[i] - elevationData[i]) < 0) {
+        hasObs = true; break;
+      }
+    }
+    if (hasObs) {
+      currentLosStatus = 'NLOS';
+      btn.innerHTML = 'NLOS';
+      btn.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
+      nameContainer.style.borderColor = '#e74c3c';
+      inputElement.style.color = '#e74c3c';
+    } else {
+      currentLosStatus = 'LOS';
+      btn.innerHTML = 'LOS';
+      btn.style.background = 'linear-gradient(90deg, #3498db, #2980b9)';
+      nameContainer.style.borderColor = '#3498db';
+      inputElement.style.color = '#5ff0d5';
+    }
+  }
 }
 function lsSave(){
   const inputElement = document.getElementById("ls_save_name");
