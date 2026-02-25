@@ -11014,9 +11014,12 @@ function mapIncrementPoint() {
 
   if (currentValue < pathData.length) {
     currentValue++;
-    input.value = currentValue;
-    mapJumpToPoint(currentValue - 1);
+  } else {
+    // 當到達最大值時，循環回到 1
+    currentValue = 1;
   }
+  input.value = currentValue;
+  mapJumpToPoint(currentValue - 1);
 }
 
 function mapDecrementPoint() {
@@ -11027,9 +11030,12 @@ function mapDecrementPoint() {
 
   if (currentValue > 1) {
     currentValue--;
-    input.value = currentValue;
-    mapJumpToPoint(currentValue - 1);
+  } else {
+    // 當到達最小值 1 時，循環回到最大值
+    currentValue = pathData.length;
   }
+  input.value = currentValue;
+  mapJumpToPoint(currentValue - 1);
 }
 
 async function mapJumpToPoint(index) {
