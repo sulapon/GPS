@@ -137,15 +137,9 @@ function updateAllViews(point, property, value) {
       }
     } else if (property === 'name') {
       const nameInput = document.getElementById(`name${point}`);
-      if (nameInput && nameInput.value !== String(value)) {
+      // 只在輸入框沒有焦點時才回寫，避免覆蓋使用者正在輸入的內容
+      if (nameInput && document.activeElement !== nameInput && nameInput.value !== String(value)) {
         nameInput.value = value;
-      }
-
-      // 更新全域變數供剖面圖使用
-      if (point === 'A') {
-        window.elevationPointAName = value || 'A點';
-      } else {
-        window.elevationPointBName = value || 'B點';
       }
     }
 
@@ -288,9 +282,7 @@ function getPointName(point) {
 Object.defineProperty(window, 'elevationPointAName', {
   get: () => getPointName('A'),
   set: (value) => {
-    // 當設定時，更新到 GPS 分頁的輸入框和 coordinateData
-    const nameInput = document.getElementById('nameA');
-    if (nameInput) nameInput.value = value;
+    // 只更新 coordinateData，不回寫輸入框（避免覆蓋使用者正在輸入的內容）
     coordinateData.A.name = value;
   }
 });
@@ -298,9 +290,7 @@ Object.defineProperty(window, 'elevationPointAName', {
 Object.defineProperty(window, 'elevationPointBName', {
   get: () => getPointName('B'),
   set: (value) => {
-    // 當設定時，更新到 GPS 分頁的輸入框和 coordinateData
-    const nameInput = document.getElementById('nameB');
-    if (nameInput) nameInput.value = value;
+    // 只更新 coordinateData，不回寫輸入框（避免覆蓋使用者正在輸入的內容）
     coordinateData.B.name = value;
   }
 });
@@ -1386,7 +1376,7 @@ div.gps-ig.orange-border-card,
   splash.style.transition = "0.4s";
   setTimeout(() => splash.remove(), 400);
   }, 500);
-</script> <header></header><main><div class="tabs"><button class="tab-button active" data-tab="rftool" onclick="showTab('rftool')">📡 RF工具</button><button class="tab-button" data-tab="rf" onclick="showTab('rf')">〰️ 線損</button><button class="tab-button" data-tab="gps" onclick="showTab('gps')">🌍 GPS</button><button class="tab-button" data-tab="elevation" onclick="showTab('elevation')">📈 高度圖</button><button class="tab-button" data-tab="report" onclick="showTab('report')">📄 報告</button><button class="tab-button" data-tab="compass" onclick="showTab('compass')">🧭 指北針</button><button class="tab-button" data-tab="archive" onclick="showTab('archive')">💾 存檔</button></div><div id="rf-content" class="tab-content"><div class="rf-header"><div class="section-title">TIMES 線損計算</div><div class="unit-selector-row"><label for="unit" class="unit-label">長度單位：</label><select id="unit"><option value="m">公尺 (m)</option><option value="ft">英尺 (ft)</option></select></div></div><section class="card orange-border-card" style="margin-top:6px;"><div class="form-grid"><div><label for="freq">頻率 (MHz)</label><div class="input-with-clear-rf"><input id="freq" type="number" value="900" min="0" step="1" oninput="compute()"><button class="clear-btn-rf" onclick="clearRfInput('freq')">✖</button></div></div><div><label for="lenInput">長度</label><div class="input-with-clear-rf"><input id="lenInput" type="number" value="10" min="0" step="0.01" oninput="compute()"><button class="clear-btn-rf" onclick="clearRfInput('lenInput')">✖</button></div></div></div><div id="liveInputs" class="small-note">即時計算中...</div></section><div class="btn-row" style="margin-top:6px; margin-bottom:6px;"><button id="reset" class="btn ghost" onclick="resetRf()">預設</button><button id="clear" class="btn clear" onclick="clearRf()">清除</button></div><section class="card results-card-border"><span class="section-title">計算結果（由小到大）</span><div id="tableArea"></div></section></div><div id="gps-content" class="tab-content gps-container"><div class="card"><h2 class="section-title" style="margin-top:0;">兩點GPS 距離、方位角與俯仰角計算</h2><p class="gps-tip">考慮地球曲率與高度差 (WGS84)</p><div class="display-mode-container"><span class="display-mode-text">顯示格式</span><select id="displayMode" style="padding:6px; border-radius:6px; font-size:14px;"><option value="decimal">度 — 十進制 (DD)</option><option value="dms">度分秒 (DMS)</option></select></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 A <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameA" placeholder="地名 A" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('A')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('A')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('A')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latA" placeholder="十進制數值" step="0.000001" value="25.0336" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latA_deg" placeholder="度" oninput="dmsToD('latA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latA_min" placeholder="分" oninput="dmsToD('latA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latA_sec" placeholder="秒" step="0.01" oninput="dmsToD('latA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonA" placeholder="十進制數值" step="0.000001" value="121.5648" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonA_deg" placeholder="度" oninput="dmsToD('lonA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonA_min" placeholder="分" oninput="dmsToD('lonA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonA_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div></div><div class="gps-er"><label for="eleA">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleA" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleA-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('A')">✖</button></div></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 B <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameB" placeholder="地名 B" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('B')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('B')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('B')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latB" placeholder="十進制數值" step="0.000001" value="25.1325" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latB_deg" placeholder="度" oninput="dmsToD('latB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latB_min" placeholder="分" oninput="dmsToD('latB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latB_sec" placeholder="秒" step="0.01" oninput="dmsToD('latB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonB" placeholder="十進制數值" step="0.000001" value="121.5065" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonB_deg" placeholder="度" oninput="dmsToD('lonB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonB_min" placeholder="分" oninput="dmsToD('lonB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonB_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div></div><div class="gps-er"><label for="eleB">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleB" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleB-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('B')">✖</button></div></div></div><div id="gps-controls-container"><div class="btn-row" style="margin-top:5px; margin-bottom:5px; gap:12px; display:flex !important; width:100% !important; justify-content:space-between !important;"><button id="gpsSwapBtn" class="btn" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important; background:linear-gradient(90deg, #bb66ff, #9945ff) !important; color:#fff !important;" onclick="swapGpsCoordinates()">互換A↔B</button><button id="gpsResetBtn" class="btn ghost" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="resetGps()">預設</button><button id="gpsClearBtn" class="btn clear" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="clearAllGps()">清除</button></div><div id="gpsRes"> 計算中... </div></div></div><header></header><div class="tab-content active" id="rftool-content"><div class="rf-header"><div class="section-title">🚀 綜合 RF工具</div></div><div class="function-selector-container"><label for="function_selector">選擇顯示功能模組:</label><select id="function_selector" onchange="toggleSections()"><option value="ALL">ALL - 顯示所有計算器</option><option value="power">1. 功率轉換 (dBm / W)</option><option value="matching">2. 匹配度參數換算</option><option value="sensitivity">3. 系統靈敏度 (Sensitivity) 計算</option><option value="los">4. 通視最大距離計算</option><option value="fspl">5. 自由空間損耗 (FSPL)</option><option value="linkbudget">6. 通訊模擬 (Link Budget)</option></select></div><section class="card section-item" id="section-power"><div class="section-header-with-controls"><div class="section-title">1. 功率轉換 (dBm / W)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-power')">預設</button><button class="btn btn-clear" onclick="clearSection('section-power')">清除</button></div></div><div class="input-group-border"><label for="power_unit">選擇輸入單位:</label><select id="power_unit" onchange="swapAndCalculate()"><option value="w">W</option><option value="dbm">dBm</option></select><label for="power_input">輸入數值:</label><div class="input-with-clear"><input id="power_input" oninput="calculateDbmWNew()" placeholder="輸入數值" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('power_input', 'calculateDbmWNew')">×</button></div></div><div class="results-card-border" id="power_output_result">換算結果:</div></section><section class="card section-item" id="section-matching"><div class="section-header-with-controls"><div class="section-title">2. 匹配度參數換算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-matching')">預設</button><button class="btn btn-clear" onclick="clearSection('section-matching')">清除</button></div></div><div class="input-group-border"><label for="matching_unit">選擇輸入參數:</label><select id="matching_unit" onchange="swapAndConvertMatching()"><option value="rl">回波損耗 (Return Loss, RL) [dB]</option><option value="vswr">駐波比 (VSWR)</option><option value="gamma">反射係數 (V, Γ)</option><option value="refl_pct">反射功率 [%]</option><option value="pass_pct">通過功率 [%]</option></select><label for="matching_input_value" style="margin-top:8px;">輸入數值:</label><div class="input-with-clear"><input id="matching_input_value" oninput="calculateMatching()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('matching_input_value', 'calculateMatching')">×</button></div></div><div class="results-card-border" id="matching_output"> 回波損耗 (RL) [dB]: <span class="result-value" id="rl_val"></span><br/> 駐波比 (VSWR): <span class="result-value" id="vswr_val"></span><br/> 反射係數 (V，Γ): <span class="result-value" id="gamma_val"></span><br/> 反射功率 [%]: <span class="result-value" id="refl_percent"></span><br/> 通過功率 [%]: <span class="result-value" id="pass_percent"></span></div></section><section class="card section-item" id="section-sensitivity"><div class="section-header-with-controls"><div class="section-title">3. 系統靈敏度 (Sensitivity) 計算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-sensitivity')">預設</button><button class="btn btn-clear" onclick="clearSection('section-sensitivity')">清除</button></div></div><div class="input-group-border"><label for="sensitivity_bw">訊號頻寬 (BW) [MHz]:</label><div class="input-with-clear"><input id="sensitivity_bw" oninput="calculateSensitivity()" placeholder="例如: 1 (1MHz)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_bw', 'calculateSensitivity')">×</button></div><label for="sensitivity_nf">雜訊指數 (Noise Figure, NF) [dB]:</label><div class="input-with-clear"><input id="sensitivity_nf" oninput="calculateSensitivity()" placeholder="例如: 5" type="number" value="5"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_nf', 'calculateSensitivity')">×</button></div><label for="sensitivity_sn">所需訊雜比 (S/N) [dB]:</label><div class="input-with-clear"><input id="sensitivity_sn" oninput="calculateSensitivity()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_sn', 'calculateSensitivity')">×</button></div></div><div class="results-card-border" id="sensitivity_output">接收器靈敏度 (Sensitivity):</div></section><section class="card section-item" id="section-los"><div class="section-header-with-controls"><div class="section-title">4. 通視最大距離 (地球曲度遮蔽)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-los')">預設</button><button class="btn btn-clear" onclick="clearSection('section-los')">清除</button></div></div><div class="input-group-border"><div class="los-point-title">A 點</div><div class="los-input-container"><div class="input-item"><label for="los_g1">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g1" oninput="calculateMaxLOS()" placeholder="例如: 100" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g1', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h1">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h1" oninput="calculateMaxLOS()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('los_h1', 'calculateMaxLOS')">×</button></div></div></div><div class="los-point-title">B 點</div><div class="los-input-container"><div class="input-item"><label for="los_g2">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g2" oninput="calculateMaxLOS()" placeholder="例如: 150" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g2', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h2">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h2" oninput="calculateMaxLOS()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('los_h2', 'calculateMaxLOS')">×</button></div></div></div></div>
+</script> <header></header><main><div class="tabs"><button class="tab-button active" data-tab="rftool" onclick="showTab('rftool')">📡 RF工具</button><button class="tab-button" data-tab="rf" onclick="showTab('rf')">〰️ 線損</button><button class="tab-button" data-tab="gps" onclick="showTab('gps')">🌍 GPS</button><button class="tab-button" data-tab="elevation" onclick="showTab('elevation')">📈 高度圖</button><button class="tab-button" data-tab="archive" onclick="showTab('archive')">💾 存檔</button><button class="tab-button" data-tab="report" onclick="showTab('report')">📄 報告</button><button class="tab-button" data-tab="compass" onclick="showTab('compass')">🧭 指北針</button></div><div id="rf-content" class="tab-content"><div class="rf-header"><div class="section-title">TIMES 線損計算</div><div class="unit-selector-row"><label for="unit" class="unit-label">長度單位：</label><select id="unit"><option value="m">公尺 (m)</option><option value="ft">英尺 (ft)</option></select></div></div><section class="card orange-border-card" style="margin-top:6px;"><div class="form-grid"><div><label for="freq">頻率 (MHz)</label><div class="input-with-clear-rf"><input id="freq" type="number" value="900" min="0" step="1" oninput="compute()"><button class="clear-btn-rf" onclick="clearRfInput('freq')">✖</button></div></div><div><label for="lenInput">長度</label><div class="input-with-clear-rf"><input id="lenInput" type="number" value="10" min="0" step="0.01" oninput="compute()"><button class="clear-btn-rf" onclick="clearRfInput('lenInput')">✖</button></div></div></div><div id="liveInputs" class="small-note">即時計算中...</div></section><div class="btn-row" style="margin-top:6px; margin-bottom:6px;"><button id="reset" class="btn ghost" onclick="resetRf()">預設</button><button id="clear" class="btn clear" onclick="clearRf()">清除</button></div><section class="card results-card-border"><span class="section-title">計算結果（由小到大）</span><div id="tableArea"></div></section></div><div id="gps-content" class="tab-content gps-container"><div class="card"><h2 class="section-title" style="margin-top:0;">兩點GPS 距離、方位角與俯仰角計算</h2><p class="gps-tip">考慮地球曲率與高度差 (WGS84)</p><div class="display-mode-container"><span class="display-mode-text">顯示格式</span><select id="displayMode" style="padding:6px; border-radius:6px; font-size:14px;"><option value="decimal">度 — 十進制 (DD)</option><option value="dms">度分秒 (DMS)</option></select></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 A <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameA" placeholder="A點" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('A')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('A')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('A')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latA" placeholder="十進制數值" step="0.000001" value="25.0336" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latA_deg" placeholder="度" oninput="dmsToD('latA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latA_min" placeholder="分" oninput="dmsToD('latA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latA_sec" placeholder="秒" step="0.01" oninput="dmsToD('latA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonA" placeholder="十進制數值" step="0.000001" value="121.5648" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonA_deg" placeholder="度" oninput="dmsToD('lonA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonA_min" placeholder="分" oninput="dmsToD('lonA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonA_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div></div><div class="gps-er"><label for="eleA">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleA" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleA-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('A')">✖</button></div></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 B <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameB" placeholder="B點" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('B')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('B')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('B')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latB" placeholder="十進制數值" step="0.000001" value="25.1325" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latB_deg" placeholder="度" oninput="dmsToD('latB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latB_min" placeholder="分" oninput="dmsToD('latB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latB_sec" placeholder="秒" step="0.01" oninput="dmsToD('latB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonB" placeholder="十進制數值" step="0.000001" value="121.5065" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonB_deg" placeholder="度" oninput="dmsToD('lonB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonB_min" placeholder="分" oninput="dmsToD('lonB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonB_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div></div><div class="gps-er"><label for="eleB">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleB" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleB-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('B')">✖</button></div></div></div><div id="gps-controls-container"><div class="btn-row" style="margin-top:5px; margin-bottom:5px; gap:12px; display:flex !important; width:100% !important; justify-content:space-between !important;"><button id="gpsSwapBtn" class="btn" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important; background:linear-gradient(90deg, #bb66ff, #9945ff) !important; color:#fff !important;" onclick="swapGpsCoordinates()">互換A↔B</button><button id="gpsResetBtn" class="btn ghost" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="resetGps()">預設</button><button id="gpsClearBtn" class="btn clear" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="clearAllGps()">清除</button></div><div id="gpsRes"> 計算中... </div></div></div><header></header><div class="tab-content active" id="rftool-content"><div class="rf-header"><div class="section-title">🚀 綜合 RF工具</div></div><div class="function-selector-container"><label for="function_selector">選擇顯示功能模組:</label><select id="function_selector" onchange="toggleSections()"><option value="ALL">ALL - 顯示所有計算器</option><option value="power">1. 功率轉換 (dBm / W)</option><option value="matching">2. 匹配度參數換算</option><option value="sensitivity">3. 系統靈敏度 (Sensitivity) 計算</option><option value="los">4. 通視最大距離計算</option><option value="fspl">5. 自由空間損耗 (FSPL)</option><option value="linkbudget">6. 通訊模擬 (Link Budget)</option></select></div><section class="card section-item" id="section-power"><div class="section-header-with-controls"><div class="section-title">1. 功率轉換 (dBm / W)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-power')">預設</button><button class="btn btn-clear" onclick="clearSection('section-power')">清除</button></div></div><div class="input-group-border"><label for="power_unit">選擇輸入單位:</label><select id="power_unit" onchange="swapAndCalculate()"><option value="w">W</option><option value="dbm">dBm</option></select><label for="power_input">輸入數值:</label><div class="input-with-clear"><input id="power_input" oninput="calculateDbmWNew()" placeholder="輸入數值" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('power_input', 'calculateDbmWNew')">×</button></div></div><div class="results-card-border" id="power_output_result">換算結果:</div></section><section class="card section-item" id="section-matching"><div class="section-header-with-controls"><div class="section-title">2. 匹配度參數換算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-matching')">預設</button><button class="btn btn-clear" onclick="clearSection('section-matching')">清除</button></div></div><div class="input-group-border"><label for="matching_unit">選擇輸入參數:</label><select id="matching_unit" onchange="swapAndConvertMatching()"><option value="rl">回波損耗 (Return Loss, RL) [dB]</option><option value="vswr">駐波比 (VSWR)</option><option value="gamma">反射係數 (V, Γ)</option><option value="refl_pct">反射功率 [%]</option><option value="pass_pct">通過功率 [%]</option></select><label for="matching_input_value" style="margin-top:8px;">輸入數值:</label><div class="input-with-clear"><input id="matching_input_value" oninput="calculateMatching()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('matching_input_value', 'calculateMatching')">×</button></div></div><div class="results-card-border" id="matching_output"> 回波損耗 (RL) [dB]: <span class="result-value" id="rl_val"></span><br/> 駐波比 (VSWR): <span class="result-value" id="vswr_val"></span><br/> 反射係數 (V，Γ): <span class="result-value" id="gamma_val"></span><br/> 反射功率 [%]: <span class="result-value" id="refl_percent"></span><br/> 通過功率 [%]: <span class="result-value" id="pass_percent"></span></div></section><section class="card section-item" id="section-sensitivity"><div class="section-header-with-controls"><div class="section-title">3. 系統靈敏度 (Sensitivity) 計算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-sensitivity')">預設</button><button class="btn btn-clear" onclick="clearSection('section-sensitivity')">清除</button></div></div><div class="input-group-border"><label for="sensitivity_bw">訊號頻寬 (BW) [MHz]:</label><div class="input-with-clear"><input id="sensitivity_bw" oninput="calculateSensitivity()" placeholder="例如: 1 (1MHz)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_bw', 'calculateSensitivity')">×</button></div><label for="sensitivity_nf">雜訊指數 (Noise Figure, NF) [dB]:</label><div class="input-with-clear"><input id="sensitivity_nf" oninput="calculateSensitivity()" placeholder="例如: 5" type="number" value="5"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_nf', 'calculateSensitivity')">×</button></div><label for="sensitivity_sn">所需訊雜比 (S/N) [dB]:</label><div class="input-with-clear"><input id="sensitivity_sn" oninput="calculateSensitivity()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_sn', 'calculateSensitivity')">×</button></div></div><div class="results-card-border" id="sensitivity_output">接收器靈敏度 (Sensitivity):</div></section><section class="card section-item" id="section-los"><div class="section-header-with-controls"><div class="section-title">4. 通視最大距離 (地球曲度遮蔽)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-los')">預設</button><button class="btn btn-clear" onclick="clearSection('section-los')">清除</button></div></div><div class="input-group-border"><div class="los-point-title">A 點</div><div class="los-input-container"><div class="input-item"><label for="los_g1">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g1" oninput="calculateMaxLOS()" placeholder="例如: 100" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g1', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h1">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h1" oninput="calculateMaxLOS()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('los_h1', 'calculateMaxLOS')">×</button></div></div></div><div class="los-point-title">B 點</div><div class="los-input-container"><div class="input-item"><label for="los_g2">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g2" oninput="calculateMaxLOS()" placeholder="例如: 150" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g2', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h2">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h2" oninput="calculateMaxLOS()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('los_h2', 'calculateMaxLOS')">×</button></div></div></div></div>
 <div style="margin-top:6px;">
   <button class="btn ghost" onclick="toggleRefraction()" id="refBtn" style="color:#bb66ff;">目前：不含大氣折射</button>
 </div>
@@ -4182,6 +4172,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearNameOnly = (suffix) => {
   // 🎯 更新響應式數據
   coordinateData[suffix].name = '';
+  // 清除後重新聚焦輸入框，讓使用者可繼續輸入，不觸發 onblur 自動填值
+  setTimeout(() => {
+    const input = document.getElementById('name' + suffix);
+    if (input) input.focus();
+  }, 0);
   };
   const clearAllCoord = (suffix) => {
   // 🎯 更新響應式數據（會自動同步到所有視圖）
@@ -4978,6 +4973,13 @@ function updateDialogLocationName(locationName) {
     if (span) {
       span.textContent = locationName;
     }
+    // 地名取回後再次判斷新舊是否一致，一致則隱藏開關
+    const oldName = currentUpdateDialog.dataset.oldName || '';
+    const toggleRow = currentUpdateDialog.querySelector('#dialog-toggle-row');
+    if (toggleRow) {
+      const isSame = oldName.trim() === locationName.trim() && locationName !== '取得中...' && !locationName.includes('未取得地名');
+      toggleRow.style.display = isSame ? 'none' : '';
+    }
   }
 }
 function updateDMSFromDecimal(coordId) {
@@ -5470,7 +5472,7 @@ function showLocationUpdateDialog(location, lat, lng, locationName, eleId) {
       座標: <span style="color:#60a5fa;">${lat.toFixed(6)}, ${lng.toFixed(6)}</span>
     </div>
     <div style="margin-bottom:12px;">
-      地名: <span id="dialog-location-name" style="color:#fbbf24;">${locationName}</span>
+      <span>地名: <span id="dialog-location-name" style="color:#fbbf24;">${locationName}</span></span><span id="dialog-toggle-row" onclick="toggleUpdateNameOption()" style="float:right; display:inline-flex; align-items:center; gap:4px; cursor:pointer; user-select:none; white-space:nowrap; line-height:1.4;"><span style="color:#cbd5e1; font-size:15px; vertical-align:middle;">更新</span><span style="display:inline-block; width:0.5em;"></span><span style="display:inline-block; width:40px; height:22px; border-radius:11px; background:#22c55e; position:relative; transition:background 0.2s; vertical-align:middle; flex-shrink:0;" id="dialog-toggle-track"><span id="dialog-toggle-thumb" style="position:absolute; top:3px; left:19px; width:16px; height:16px; border-radius:50%; background:#fff; transition:left 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.4); display:block;"></span></span><span id="dialog-toggle-label" style="color:#22c55e; font-size:15px; font-weight:bold; vertical-align:middle;">是</span></span>
     </div>
     <div id="elevation-status-${eleId}" style="color:#94a3b8;">
       正在取得高度...
@@ -5487,6 +5489,15 @@ function showLocationUpdateDialog(location, lat, lng, locationName, eleId) {
   dialog.dataset.location = location;
   dialog.dataset.lat = lat;
   dialog.dataset.lng = lng;
+  // 記錄舊地名，供切換「否」時還原
+  const oldNameInput = document.getElementById(location === 'A' ? 'nameA' : 'nameB');
+  const oldNameVal = oldNameInput ? (oldNameInput.value || '') : '';
+  dialog.dataset.oldName = oldNameVal;
+  // 新舊地名一致時隱藏開關
+  const toggleRow = dialog.querySelector('#dialog-toggle-row');
+  if (toggleRow && oldNameVal && locationName && oldNameVal.trim() === locationName.trim()) {
+    toggleRow.style.display = 'none';
+  }
 }
 function updateDialogElevationStatus(eleId, status, success = true) {
   const statusDiv = document.getElementById(`elevation-status-${eleId}`);
@@ -5500,23 +5511,73 @@ function updateDialogElevationStatus(eleId, status, success = true) {
     }
   }
 }
+// 切換「是否更新地名」開關，並即時套用新/舊地名到 GPS、高度圖及訊息框
+function toggleUpdateNameOption() {
+  if (!currentUpdateDialog) return;
+  const track = document.getElementById('dialog-toggle-track');
+  const thumb = document.getElementById('dialog-toggle-thumb');
+  const label = document.getElementById('dialog-toggle-label');
+  if (!track || !thumb || !label) return;
+
+  const isOn = thumb.style.left === '19px';
+  const location = currentUpdateDialog.dataset.location;
+  const nameSpan = currentUpdateDialog.querySelector('#dialog-location-name');
+  const oldName = currentUpdateDialog.dataset.oldName || '';
+  // 新地名存在 dataset.newName，確保來回切換都能取到
+  if (!currentUpdateDialog.dataset.newName) {
+    currentUpdateDialog.dataset.newName = nameSpan ? nameSpan.textContent.trim() : '';
+  }
+  const newName = currentUpdateDialog.dataset.newName;
+  const nameId = location === 'A' ? 'nameA' : 'nameB';
+  const nameInput = document.getElementById(nameId);
+
+  if (isOn) {
+    // 切換到「否」→ 即時恢復舊地名
+    thumb.style.left = '3px';
+    track.style.background = '#64748b';
+    label.textContent = '否';
+    label.style.color = '#94a3b8';
+    if (nameSpan) nameSpan.textContent = oldName || '（保留舊地名）';
+    if (nameInput) nameInput.value = oldName;
+    coordinateData[location].name = oldName;
+  } else {
+    // 切換到「是」→ 即時套用新地名
+    thumb.style.left = '19px';
+    track.style.background = '#22c55e';
+    label.textContent = '是';
+    label.style.color = '#22c55e';
+    if (nameSpan) nameSpan.textContent = newName;
+    if (nameInput && newName && newName !== '取得中...' && !newName.includes('未取得地名')) {
+      nameInput.value = newName;
+      coordinateData[location].name = newName;
+    }
+  }
+  // 同步更新高度圖地名標籤
+  if (typeof updateAllViews === 'function') {
+    updateAllViews(location, 'name', coordinateData[location].name);
+  }
+  calculate();
+}
+
 async function confirmLocationUpdate() {
   if (!currentUpdateDialog) return;
 
   const location = currentUpdateDialog.dataset.location;
   const nameSpan = currentUpdateDialog.querySelector('#dialog-location-name');
   const currentName = nameSpan ? nameSpan.textContent.trim() : '';
-  const needRetry = !currentName || currentName === '取得中...' || currentName.includes('未取得地名');
+
+  // 讀取「更新地名」開關狀態（用 label 文字判斷最穩定）
+  const toggleLabel = currentUpdateDialog.querySelector('#dialog-toggle-label');
+  const shouldUpdateName = !toggleLabel || toggleLabel.textContent.trim() === '是';
+
+  // 地名尚未取得且開關為「是」→ 重新嘗試一次
+  const needRetry = shouldUpdateName && (!currentName || currentName === '取得中...' || currentName.includes('未取得地名'));
 
   if (needRetry && location) {
-    // 地名還沒取得成功，重新嘗試一次
     const lat = parseFloat(currentUpdateDialog.dataset.lat);
     const lng = parseFloat(currentUpdateDialog.dataset.lng);
     const confirmBtn = currentUpdateDialog.querySelector('button');
-    if (confirmBtn) {
-      confirmBtn.disabled = true;
-      confirmBtn.textContent = '取得中...';
-    }
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = '取得中...'; }
     if (nameSpan) nameSpan.textContent = '重新取得中...';
 
     try {
@@ -5531,10 +5592,8 @@ async function confirmLocationUpdate() {
           locationName = data.name;
         } else if (data.address.building && !data.address.building.match(/^(yes|house|residential|commercial|retail|apartments|office)$/i)) {
           locationName = data.address.building;
-        } else if (data.address.amenity) {
-          locationName = data.address.amenity;
-        } else if (data.address.road) {
-          locationName = data.address.road;
+        } else if (data.address.amenity) { locationName = data.address.amenity;
+        } else if (data.address.road) { locationName = data.address.road;
         } else if (data.address.village || data.address.hamlet || data.address.suburb) {
           locationName = data.address.village || data.address.hamlet || data.address.suburb;
         } else if (data.address.town || data.address.city_district) {
@@ -5546,41 +5605,35 @@ async function confirmLocationUpdate() {
         }
         if (locationName.length > 5) locationName = locationName.substring(0, 5);
       }
-      if (locationName) {
-        if (nameSpan) nameSpan.textContent = locationName;
-        const nameId = location === 'A' ? 'nameA' : 'nameB';
-        const nameInput = document.getElementById(nameId);
-        if (nameInput) nameInput.value = locationName;
-        coordinateData[location].name = locationName;
-      } else {
-        // API 回應了但沒有有用地名，用簡名
-        const simpleName = `點${location}`;
-        if (nameSpan) nameSpan.textContent = simpleName;
-        const nameId = location === 'A' ? 'nameA' : 'nameB';
-        const nameInput = document.getElementById(nameId);
-        if (nameInput) nameInput.value = simpleName;
-        coordinateData[location].name = simpleName;
-      }
+      const resolvedName = locationName || `點${location}`;
+      if (nameSpan) nameSpan.textContent = resolvedName;
+      // 取回後立刻依開關狀態決定是否套用
+      const nameId2 = location === 'A' ? 'nameA' : 'nameB';
+      const nameInput2 = document.getElementById(nameId2);
+      if (nameInput2) nameInput2.value = resolvedName;
+      coordinateData[location].name = resolvedName;
     } catch (e) {
-      // 重試也失敗，用簡名
       const simpleName = `點${location}`;
       if (nameSpan) nameSpan.textContent = simpleName;
-      const nameId = location === 'A' ? 'nameA' : 'nameB';
-      const nameInput = document.getElementById(nameId);
-      if (nameInput) nameInput.value = simpleName;
+      const nameId2 = location === 'A' ? 'nameA' : 'nameB';
+      const nameInput2 = document.getElementById(nameId2);
+      if (nameInput2) nameInput2.value = simpleName;
       coordinateData[location].name = simpleName;
     }
   }
 
-  // 最終同步地名到輸入框，確保萬無一失
-  if (location) {
+  // 開關為「否」→ 確保舊地名已套用（切換時已套用，這裡再確保一次）
+  if (!shouldUpdateName && location) {
+    const oldName = currentUpdateDialog.dataset.oldName || '';
     const nameId = location === 'A' ? 'nameA' : 'nameB';
     const nameInput = document.getElementById(nameId);
-    const finalName = nameSpan ? nameSpan.textContent.trim() : '';
-    if (nameInput && finalName && finalName !== '取得中...' && finalName !== '重新取得中...') {
-      nameInput.value = finalName;
-      coordinateData[location].name = finalName;
-    }
+    if (nameInput) nameInput.value = oldName;
+    coordinateData[location].name = oldName;
+  }
+
+  // 同步高度圖地名標籤
+  if (typeof updateAllViews === 'function') {
+    updateAllViews(location, 'name', coordinateData[location].name);
   }
 
   closeLocationUpdateDialog();
@@ -12282,6 +12335,11 @@ function applyFields(data){
   if (_lALng) _lALng.innerHTML = _nA ? '<span style="color:#FFD700;font-weight:700;">' + _nA + '</span>經度' : 'A點經度';
   if (_lBLat) _lBLat.innerHTML = _nB ? '<span style="color:#FFD700;font-weight:700;">' + _nB + '</span>緯度' : 'B點緯度';
   if (_lBLng) _lBLng.innerHTML = _nB ? '<span style="color:#FFD700;font-weight:700;">' + _nB + '</span>經度' : 'B點經度';
+
+  // ✅ 讀取存檔後，根據已還原的 function_selector 值更新 RF 工具顯示模組
+  if (typeof toggleSections === 'function') {
+  toggleSections();
+  }
 
   window.scrollTo({top:0,behavior:"smooth"});
   alert("✓ 參數已成功填入");
