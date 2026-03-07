@@ -1454,6 +1454,13 @@ div.gps-ig.orange-border-card,
 <button id="toggleGreenPointsBtn" class="btn" style="background:linear-gradient(90deg,#6c757d,#5a6268); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; width:100%;" onclick="toggleGreenPoints()">👁️ 顯示節點</button>
 </div>
 <div id="summary" style="margin:4px 0; padding:6px; text-align:center; font-weight:bold; color:#79a8ff; font-size:14px;">請輸入座標並執行</div>
+<div id="elevation-rss-panel" style="display:none; margin:6px 0; padding:10px 12px; background:rgba(95,240,213,0.06); border:2px solid #5ff0d5; border-radius:8px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+    <span style="color:#5ff0d5; font-weight:700; font-size:15px;">📡 接收訊號強度估算 (Link Budget)</span>
+    <span style="color:var(--muted); font-size:12px;">參數來自 RF工具 &gt; 6. 通訊模擬</span>
+  </div>
+  <div id="elevation-rss-output" style="font-size:14px; color:#e8eef5; line-height:1.6;"></div>
+</div>
 <div style="position:relative; height:300px; width:100%; margin-bottom:20px; border:3px solid #4dabf7; border-radius:8px; padding:8px; background:rgba(77, 171, 247, 0.05);">
 <canvas id="elevationChart"></canvas>
 <button class="chart-zoom-btn" onclick="openChartFullscreen()" title="放大圖表">
@@ -3304,85 +3311,112 @@ async function continueGenerateReport() {
   `;
 
   let centerContent = `
-    <div style="font-size:21px; color:${blockStyle.titleColor}; text-align:center; margin-bottom:8px; font-weight:bold;">
-    📡 RF鏈路計算
+    <div style="font-size:22px; color:${blockStyle.lrTitle}; text-align:center; margin-bottom:8px; font-weight:bold;">
+      📡 RF鏈路計算
     </div>
   `;
 
-  if (freq) {
+  const rss = window.elevationRSSResult;
+
+  if (rss) {
+    // ── 基本參數：頻率、距離 ──
     centerContent += `
-    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:3px;">
-      頻率: <span style="color:${blockStyle.titleColor}; font-weight:700;">${freq} MHz</span>
+    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      頻率: <span style="color:${blockStyle.lrValue}; font-weight:700;">${rss.freqDisplay}</span>
+    </div>
+    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:6px;">
+      距離 (3D): <span style="color:${blockStyle.lrValue}; font-weight:700;">${rss.dist_km.toFixed(3)} km</span>
     </div>
     `;
-  }
 
-  // 讀取剖面圖距離數據（使用 window.currentPathData）
-  let profileDistance = null;
-  if (typeof window.currentPathData !== 'undefined' && window.currentPathData && window.currentPathData.length > 0) {
-    const lastPoint = window.currentPathData[window.currentPathData.length - 1];
-    if (lastPoint && lastPoint.dist !== undefined) {
-    profileDistance = parseFloat(lastPoint.dist);
-    }
-  }
+    // ── 繞射損耗 + 遮蔽狀態 ──
+    const fresnelValColor = rss.fresnelLoss_db > 0
+      ? (themeSetting === 'light' ? '#dc2626' : '#ff8c00')
+      : blockStyle.lrValue;
 
-  // 優先使用剖面圖距離，否則使用RF工具的距離
-  const displayDistance = profileDistance !== null ? profileDistance.toFixed(2) : dist;
-
-  if (displayDistance) {
     centerContent += `
-    <div style="font-size:17px; color:${blockStyle.labelColor}; margin-bottom:6px;">
-      距離: <span style="color:${blockStyle.titleColor}; font-weight:700;">${displayDistance} km</span>
+    <div style="background:${blockStyle.highlightBg}; padding:8px; border-radius:4px; margin-top:6px; border:${blockStyle.highlightBorder};">
+      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">路徑遮蔽 (含菲涅爾區)</div>
+      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+        繞射損耗: <span style="color:${fresnelValColor}; font-weight:700;">−${rss.fresnelLoss_db.toFixed(2)} dB</span>
+      </div>
+      <div style="font-size:17px; color:${blockStyle.lrTitle};">
+        ${rss.hasObstruction
+          ? `⚠️ 穿透 <span style="color:${fresnelValColor}; font-weight:700;">${rss.maxPenetration_m.toFixed(1)} m</span>`
+          : `<span style="color:${blockStyle.lrValue}; font-weight:700;">✅ 視線暢通</span>`
+        }
+      </div>
     </div>
     `;
-  }
 
-  // 解析接收訊號強度
-  const rssiMatch = rssiText.match(/接收訊號強度:\s*([-+]?\d+\.?\d*)\s*dBm/);
+    // ── 訊號強度 ──
+    const rssActualColor = rss.hasObstruction
+      ? (themeSetting === 'light' ? '#dc2626' : '#ff8c00')
+      : blockStyle.lrValue;
 
-  // 先判斷路徑是否有遮蔽（供訊號標題使用）
-  let hasObstruction = false;
-  let obstructionChecked = false;
-  if (elevationData && elevationData.length > 0 && chartInstance && chartInstance.data.datasets[1]) {
-    const losLineData = chartInstance.data.datasets[1].data;
-    obstructionChecked = true;
-    for (let i = 1; i < elevationData.length - 1; i++) {
-      const terrainHeight = elevationData[i];
-      const losHeight = losLineData[i];
-      if (losHeight - terrainHeight < 0) {
-        hasObstruction = true;
-        break;
-      }
-    }
-  }
-
-  if (rssiMatch) {
-    if (obstructionChecked) {
-      if (hasObstruction) {
-        // 有遮蔽：紅框，顯示遮蔽狀態 + LoS理論值
-        centerContent += `
-        <div style="background:rgba(220,38,38,0.15); border:2px solid ${blockStyle.redText}; border-radius:4px; padding:10px; text-align:center; margin-bottom:4px;">
-          <div style="font-size:22px; color:${blockStyle.redText}; font-weight:bold; margin-bottom:4px;">⚠️ 有遮蔽</div>
-          <div style="font-size:12px; color:${blockStyle.redText}; opacity:0.85; margin-bottom:2px; font-weight:600;">LoS 理論訊號值（實際更差）</div>
-          <div style="font-size:22px; color:${blockStyle.redText}; font-weight:bold;">${rssiMatch[1]} dBm</div>
+    centerContent += `
+    <div style="background:${blockStyle.yellowBg}; padding:8px; border-radius:4px; margin-top:6px; border:${blockStyle.highlightBorder};">
+      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold; text-align:center;">接收訊號強度</div>
+      ${rss.hasObstruction ? `
+      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:6px; text-align:center;">
+        無遮蔽理論值 (LOS): <span style="color:${blockStyle.lrValue}; font-weight:700;">${rss.rx_power_los_dbm.toFixed(2)} dBm</span>
+      </div>
+      ` : ``}
+      <div style="
+        background:${rss.hasObstruction
+          ? (themeSetting === 'light' ? 'rgba(220,38,38,0.15)' : 'rgba(200,30,30,0.35)')
+          : (themeSetting === 'light' ? 'rgba(22,163,74,0.15)' : 'rgba(20,150,70,0.35)')};
+        border:2px solid ${rss.hasObstruction
+          ? (themeSetting === 'light' ? '#dc2626' : '#ff6b6b')
+          : (themeSetting === 'light' ? '#16a34a' : '#4ade80')};
+        border-radius:6px;
+        padding:10px 8px;
+        text-align:center;
+      ">
+        <div style="font-size:17px; font-weight:700; color:${rss.hasObstruction
+          ? (themeSetting === 'light' ? '#dc2626' : '#ff9999')
+          : (themeSetting === 'light' ? '#15803d' : '#86efac')}; margin-bottom:4px;">
+          接收強度估算
         </div>
-        `;
-      } else {
-        // 無遮蔽：綠框，顯示無遮蔽 + 訊號值
-        centerContent += `
-        <div style="background:${blockStyle.greenBg}; border:${blockStyle.greenBorder}; border-radius:4px; padding:10px; text-align:center; margin-bottom:4px;">
-          <div style="font-size:22px; color:${blockStyle.greenText}; font-weight:bold; margin-bottom:4px;">✓ 無遮蔽</div>
-          <div style="font-size:12px; color:${blockStyle.yellowText}; margin-bottom:2px; font-weight:600;">視距(LoS)訊號預估</div>
-          <div style="font-size:22px; color:${blockStyle.greenText}; font-weight:bold;">${rssiMatch[1]} dBm</div>
+        <div style="font-size:28px; font-weight:900; letter-spacing:1px; color:${rss.hasObstruction
+          ? (themeSetting === 'light' ? '#b91c1c' : '#ff4444')
+          : (themeSetting === 'light' ? '#15803d' : '#4ade80')};">
+          ${(rss.hasObstruction ? rss.rx_power_dbm : rss.rx_power_los_dbm).toFixed(2)} dBm
         </div>
-        `;
-      }
-    } else {
-      // 無法判斷遮蔽（未載入剖面圖）：原始顯示
+      </div>
+    </div>
+    `;
+
+  } else {
+    // fallback：無高度圖資料
+    if (freq) {
       centerContent += `
-      <div style="background:${blockStyle.greenBg}; border:${blockStyle.greenBorder}; border-radius:4px; padding:10px; text-align:center; margin-bottom:4px;">
-        <div style="font-size:12px; color:${blockStyle.yellowText}; margin-bottom:2px; font-weight:700;">視距(LoS)訊號預估</div>
-        <div style="font-size:22px; color:${blockStyle.greenText}; font-weight:bold;">${rssiMatch[1]} dBm</div>
+      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+        頻率: <span style="color:${blockStyle.lrValue}; font-weight:700;">${freq} MHz</span>
+      </div>
+      `;
+    }
+    let profileDistance = null;
+    if (typeof window.currentPathData !== 'undefined' && window.currentPathData && window.currentPathData.length > 0) {
+      const lastPoint = window.currentPathData[window.currentPathData.length - 1];
+      if (lastPoint && lastPoint.dist !== undefined) profileDistance = parseFloat(lastPoint.dist);
+    }
+    const displayDistance = profileDistance !== null ? profileDistance.toFixed(2) : dist;
+    if (displayDistance) {
+      centerContent += `
+      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:6px;">
+        距離: <span style="color:${blockStyle.lrValue}; font-weight:700;">${displayDistance} km</span>
+      </div>
+      `;
+    }
+    const rssiMatch = rssiText.match(/接收訊號強度:\s*([-+]?\d+\.?\d*)\s*dBm/);
+    if (rssiMatch) {
+      centerContent += `
+      <div style="background:${blockStyle.greenBg}; border:${blockStyle.greenBorder}; border-radius:4px; padding:8px; margin-top:6px;">
+        <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">接收訊號強度</div>
+        <div style="font-size:17px; color:${blockStyle.lrTitle};">
+          視距估算: <span style="color:${blockStyle.lrValue}; font-weight:700;">${rssiMatch[1]} dBm</span>
+        </div>
       </div>
       `;
     }
@@ -3990,7 +4024,240 @@ document.addEventListener('DOMContentLoaded', () => {
   window.elevationPointBName = 'B點';
   toggleSections();
 });
-</script>  <script>
+
+// ============================================================
+// 📡 高度圖分頁：接收訊號強度估算（考慮菲涅爾區遮蔽）
+// ============================================================
+function calculateElevationRSS() {
+  const panel = document.getElementById('elevation-rss-panel');
+  const output = document.getElementById('elevation-rss-output');
+  if (!panel || !output) return;
+
+  // 1. 讀取 RF工具 第6節 通訊模擬 的參數
+  const freq_mhz    = parseFloat(document.getElementById('link_freq_mhz')?.value);
+  const tx_power_input = parseFloat(document.getElementById('link_tx_power_input')?.value);
+  const tx_power_unit  = document.getElementById('link_tx_power_unit')?.value || 'w';
+  const tx_loss_db  = parseFloat(document.getElementById('link_tx_loss_db')?.value) || 0;
+  const tx_gain_dbi = parseFloat(document.getElementById('link_tx_gain_dbi')?.value) || 0;
+  const rx_gain_dbi = parseFloat(document.getElementById('link_rx_gain_dbi')?.value) || 0;
+  const rx_loss_db  = parseFloat(document.getElementById('link_rx_loss_db')?.value) || 0;
+
+  const redColor = 'var(--red-clear)';
+
+  // 驗證 RF 參數
+  if (isNaN(freq_mhz) || freq_mhz <= 0) {
+    panel.style.display = 'block';
+    output.innerHTML = `<span style="color:${redColor};">⚠️ 請先在 RF工具 &gt; 6. 通訊模擬 輸入有效的頻率</span>`;
+    return;
+  }
+  if (isNaN(tx_power_input)) {
+    panel.style.display = 'block';
+    output.innerHTML = `<span style="color:${redColor};">⚠️ 請先在 RF工具 &gt; 6. 通訊模擬 輸入有效的發射功率</span>`;
+    return;
+  }
+
+  // 2. 從剖面圖取得路徑距離
+  if (!chartInstance || !chartInstance.data || !pathData || pathData.length < 2) {
+    panel.style.display = 'block';
+    output.innerHTML = `<span style="color:${redColor};">⚠️ 尚無剖面圖資料，請先生成路徑剖面圖</span>`;
+    return;
+  }
+
+  const sLat = parseFloat(document.getElementById('sLat').value);
+  const sLng = parseFloat(document.getElementById('sLng').value);
+  const eLat = parseFloat(document.getElementById('eLat').value);
+  const eLng = parseFloat(document.getElementById('eLng').value);
+  const antennaHeightStart = parseFloat(document.getElementById('antennaHeightStart').value) || 0;
+  const antennaHeightEnd   = parseFloat(document.getElementById('antennaHeightEnd').value) || 0;
+
+  // 使用 3D 距離（含天線高度差）
+  const dist_km = (typeof getDistance3D === 'function')
+    ? getDistance3D(sLat, sLng, eLat, eLng, antennaHeightStart, antennaHeightEnd)
+    : getDistance(sLat, sLng, eLat, eLng);
+
+  if (isNaN(dist_km) || dist_km <= 0) {
+    panel.style.display = 'block';
+    output.innerHTML = `<span style="color:${redColor};">⚠️ 無法計算路徑距離</span>`;
+    return;
+  }
+
+  // 3. 轉換發射功率至 dBm
+  const tx_power_dbm = convertPower(tx_power_input, tx_power_unit, 'dbm');
+  if (isNaN(tx_power_dbm)) {
+    panel.style.display = 'block';
+    output.innerHTML = `<span style="color:${redColor};">⚠️ 發射功率 (W) 必須 &gt; 0</span>`;
+    return;
+  }
+
+  // 4. 自由空間路徑損耗 (FSPL)
+  const fspl_db = 32.44 + 20 * Math.log10(freq_mhz) + 20 * Math.log10(dist_km);
+
+  // 5. 菲涅爾區遮蔽附加損耗
+  //    對每個剖面圖採樣點計算 60% 菲涅爾半徑，
+  //    找出最嚴重的穿透深度（地形超出菲涅爾區的量），
+  //    用 6 dB/菲涅爾半徑 的近似換算為繞射損耗。
+  let fresnelLoss_db = 0;
+  let obstructionStatus = '✅ 無遮蔽（視線暢通）';
+  let maxPenetration_m = 0;  // 最嚴重穿透深度 (m)，正值=地形高於菲涅爾60%邊界
+
+  const losDataset = chartInstance.data.datasets.find(d =>
+    d.label && (d.label.includes('視距連線') || d.label.includes('視距'))
+  );
+  const terrainDataset = chartInstance.data.datasets[0];
+
+  if (losDataset && terrainDataset) {
+    const n = terrainDataset.data.length;
+    const D = dist_km; // km
+    const freqGHz = freq_mhz / 1000;
+
+    for (let i = 1; i < n - 1; i++) {
+      const f   = i / (n - 1);
+      const d1  = D * f;          // km
+      const d2  = D * (1 - f);    // km
+
+      if (d1 < 0.05 || d2 < 0.05) continue; // 忽略端點附近
+
+      // 第一菲涅爾區半徑 (m)，使用工程公式
+      const fresnelR = 17.3 * Math.sqrt((d1 * d2) / (freqGHz * D)); // m
+
+      // 60% 菲涅爾區下邊界
+      const losHeight    = losDataset.data[i];
+      const fresnelBound = losHeight - fresnelR * 0.6;
+      const terrainH     = terrainDataset.data[i];
+
+      // 穿透深度：地形超出菲涅爾 60% 下界的量（正值=有穿透）
+      const penetration = terrainH - fresnelBound;
+      if (penetration > maxPenetration_m) {
+        maxPenetration_m = penetration;
+      }
+    }
+
+    if (maxPenetration_m > 0) {
+      // 近似計算繞射損耗：
+      // 菲涅爾-基爾霍夫繞射，ν (刃邊繞射參數) ≈ penetration / (fresnelR_at_worst)
+      // 使用簡化公式：L_diffraction ≈ 6 + 20*log10(ν+0.1) dB  (for ν > -0.7)
+      // 此處用最嚴重穿透點附近的菲涅爾半徑為代表（取全段平均）
+      const mid_d1  = dist_km / 2;
+      const mid_d2  = dist_km / 2;
+      const fresnelR_mid = 17.3 * Math.sqrt((mid_d1 * mid_d2) / (freqGHz * dist_km));
+      const nu = maxPenetration_m / (fresnelR_mid > 0 ? fresnelR_mid : 1);
+
+      // Knife-edge 繞射損耗近似公式 (ITU-R P.526)
+      let J_nu = 0;
+      if (nu <= -0.7) {
+        J_nu = 0;
+      } else if (nu <= 0) {
+        J_nu = 20 * Math.log10(0.5 - 0.62 * nu);
+      } else if (nu <= 1) {
+        J_nu = 20 * Math.log10(0.5 * Math.exp(-0.95 * nu));
+      } else if (nu <= 2.4) {
+        J_nu = 20 * Math.log10(0.4 - Math.sqrt(0.1184 - Math.pow(0.38 - 0.1 * nu, 2)));
+      } else {
+        J_nu = 20 * Math.log10(0.225 / nu);
+      }
+      fresnelLoss_db = Math.max(0, -J_nu); // 損耗為正值
+
+      if (maxPenetration_m > 0) {
+        obstructionStatus = `⚠️ 地形遮蔽菲涅爾區（穿透 ${maxPenetration_m.toFixed(1)} m，ν=${nu.toFixed(2)}）`;
+      }
+    }
+  }
+
+  // 6. 完全 LOS（無繞射損耗）的接收功率
+  const rx_power_los_dbm = tx_power_dbm - tx_loss_db + tx_gain_dbi - fspl_db + rx_gain_dbi - rx_loss_db;
+
+  // 7. 最終接收功率（含繞射損耗）
+  const rx_power_dbm = rx_power_los_dbm - fresnelLoss_db;
+
+  // 8. 顯示結果
+  panel.style.display = 'block';
+
+  const freqDisplay = freq_mhz >= 1000
+    ? `${(freq_mhz/1000).toFixed(3)} GHz (${freq_mhz} MHz)`
+    : `${freq_mhz} MHz`;
+
+  const txPowerDisplay = tx_power_unit === 'w'
+    ? `${tx_power_input} W (${tx_power_dbm.toFixed(1)} dBm)`
+    : `${tx_power_input} dBm`;
+
+  // 實際 vs LOS 差值（繞射損耗）
+  const diffLabel = fresnelLoss_db > 0
+    ? `<span style="color:#ff8c00;">−${fresnelLoss_db.toFixed(2)} dB 繞射損耗</span>`
+    : `<span style="color:#5ff0d5;">無繞射損耗</span>`;
+
+  // 儲存計算結果供 PDF 報告使用
+  window.elevationRSSResult = {
+    freq_mhz,
+    freqDisplay,
+    dist_km,
+    tx_power_input,
+    tx_power_unit,
+    tx_power_dbm,
+    txPowerDisplay,
+    tx_gain_dbi,
+    tx_loss_db,
+    rx_gain_dbi,
+    rx_loss_db,
+    fspl_db,
+    fresnelLoss_db,
+    obstructionStatus,
+    maxPenetration_m,
+    rx_power_los_dbm,
+    rx_power_dbm,
+    eirp_dbm: tx_power_dbm - tx_loss_db + tx_gain_dbi,
+    totalLoss_db: fspl_db + tx_loss_db + rx_loss_db + fresnelLoss_db,
+    hasObstruction: fresnelLoss_db > 0
+  };
+
+  output.innerHTML = `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin-bottom:8px;">
+      <div style="color:var(--muted); font-size:13px;">📶 頻率</div>
+      <div style="color:#e8eef5;">${freqDisplay}</div>
+      <div style="color:var(--muted); font-size:13px;">📏 路徑距離 (3D)</div>
+      <div style="color:#e8eef5;">${dist_km.toFixed(3)} km</div>
+      <div style="color:var(--muted); font-size:13px;">📤 發射功率</div>
+      <div style="color:#e8eef5;">${txPowerDisplay}</div>
+      <div style="color:var(--muted); font-size:13px;">📡 TX 天線增益</div>
+      <div style="color:#e8eef5;">${tx_gain_dbi} dBi</div>
+      <div style="color:var(--muted); font-size:13px;">📡 RX 天線增益</div>
+      <div style="color:#e8eef5;">${rx_gain_dbi} dBi</div>
+    </div>
+    <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:6px 0;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin-bottom:8px;">
+      <div style="color:var(--muted); font-size:13px;">空間損耗 (FSPL)</div>
+      <div style="color:#e8eef5;">−${fspl_db.toFixed(2)} dB</div>
+      <div style="color:var(--muted); font-size:13px;">TX 線損</div>
+      <div style="color:#e8eef5;">−${tx_loss_db.toFixed(2)} dB</div>
+      <div style="color:var(--muted); font-size:13px;">RX 線損</div>
+      <div style="color:#e8eef5;">−${rx_loss_db.toFixed(2)} dB</div>
+      <div style="color:var(--muted); font-size:13px;">繞射損耗 (菲涅爾)</div>
+      <div style="color:${fresnelLoss_db > 0 ? '#ff8c00' : '#5ff0d5'};">−${fresnelLoss_db.toFixed(2)} dB</div>
+    </div>
+    <div style="color:var(--muted); font-size:13px; margin-bottom:6px;">${obstructionStatus}</div>
+    <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:6px 0;">
+
+    <!-- 完全 LOS 參考值 -->
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:6px 8px; margin-bottom:6px; background:rgba(121,168,255,0.07); border:1px solid rgba(121,168,255,0.25); border-radius:6px;">
+      <span style="color:#79a8ff; font-weight:700; font-size:14px; flex-shrink:0;">🔵 完全 LOS（無遮蔽）:</span>
+      <span style="color:#79a8ff; font-weight:900; font-size:19px;">${rx_power_los_dbm.toFixed(2)} dBm</span>
+    </div>
+
+    <!-- 實際估算值（含繞射） -->
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:6px 8px; background:rgba(95,240,213,0.07); border:1px solid rgba(95,240,213,0.3); border-radius:6px;">
+      <span style="color:#5ff0d5; font-weight:700; font-size:14px; flex-shrink:0;">📡 實際估算 (含遮蔽):</span>
+      <span style="color:#ffe58f; font-weight:900; font-size:22px;">${rx_power_dbm.toFixed(2)} dBm</span>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px; margin-top:5px;">
+      <div style="color:var(--muted); font-size:12px;">
+        發射 EIRP: ${(tx_power_dbm - tx_loss_db + tx_gain_dbi).toFixed(2)} dBm
+        &nbsp;|&nbsp; 總路徑損耗: ${(fspl_db + tx_loss_db + rx_loss_db + fresnelLoss_db).toFixed(2)} dB
+      </div>
+      <div style="font-size:12px;">${diffLabel}</div>
+    </div>
+  `;
+}
+</script>
+<script>
   function showTab(tabId) {
   document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -7201,6 +7468,11 @@ function renderChart(elevations) {
       b.style.color = '#022';
     }
   })();
+
+  // 📡 自動計算接收訊號強度（使用剖面圖資料 + RF工具第6節參數）
+  if (typeof calculateElevationRSS === 'function') {
+    setTimeout(calculateElevationRSS, 100);
+  }
 
   const canvas = document.getElementById('elevationChart');
   function isPointInLabel(x, y, labelBounds) {
