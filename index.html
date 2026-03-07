@@ -1454,12 +1454,21 @@ div.gps-ig.orange-border-card,
 <button id="toggleGreenPointsBtn" class="btn" style="background:linear-gradient(90deg,#6c757d,#5a6268); border:0; padding:6px 12px; border-radius:6px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; width:100%;" onclick="toggleGreenPoints()">👁️ 顯示節點</button>
 </div>
 <div id="summary" style="margin:4px 0; padding:6px; text-align:center; font-weight:bold; color:#79a8ff; font-size:14px;">請輸入座標並執行</div>
-<div id="elevation-rss-panel" style="display:none; margin:6px 0; padding:10px 12px; background:rgba(95,240,213,0.06); border:2px solid #5ff0d5; border-radius:8px;">
-  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
-    <span style="color:#5ff0d5; font-weight:700; font-size:15px;">📡 接收訊號強度估算 (Link Budget)</span>
-    <span style="color:var(--muted); font-size:12px;">參數來自 RF工具 &gt; 6. 通訊模擬</span>
+<div id="elevation-rss-panel" style="display:block; margin:6px 0; background:rgba(95,240,213,0.06); border:2px solid #5ff0d5; border-radius:8px; overflow:hidden;">
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:9px 12px; gap:8px;">
+    <span onclick="showTab('rftool'); setTimeout(function(){ var sel=document.getElementById('function_selector'); if(sel){ sel.value='linkbudget'; if(typeof toggleSections==='function') toggleSections(); } var el=document.getElementById('section-linkbudget'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 200);"
+      style="color:#5ff0d5; font-weight:700; font-size:15px; cursor:pointer; flex:1; user-select:none;"
+      title="點擊跳轉至 RF工具 > 6. 通訊模擬">
+      📡 接收訊號強度估算 (Link Budget)
+    </span>
+    <button id="elevation-rss-toggle"
+      onclick="var b=document.getElementById('elevation-rss-body'); var t=document.getElementById('elevation-rss-toggle'); if(b.style.display==='none'){b.style.display='block';t.textContent='▲';}else{b.style.display='none';t.textContent='▼';}"
+      style="background:rgba(95,240,213,0.15); border:1px solid #5ff0d5; border-radius:5px; color:#5ff0d5; font-size:13px; padding:4px 10px; cursor:pointer; flex-shrink:0; font-weight:700;">▼</button>
   </div>
-  <div id="elevation-rss-output" style="font-size:14px; color:#e8eef5; line-height:1.6;"></div>
+  <div id="elevation-rss-body" style="display:none; border-top:1px solid rgba(95,240,213,0.2); padding:8px 12px 10px 12px;">
+    <div style="color:var(--muted); font-size:12px; margin-bottom:6px;">參數來自 RF工具 &gt; 6. 通訊模擬</div>
+    <div id="elevation-rss-output" style="font-size:14px; color:#e8eef5; line-height:1.6;"></div>
+  </div>
 </div>
 <div style="position:relative; height:300px; width:100%; margin-bottom:20px; border:3px solid #4dabf7; border-radius:8px; padding:8px; background:rgba(77, 171, 247, 0.05);">
 <canvas id="elevationChart"></canvas>
@@ -2594,7 +2603,7 @@ div.gps-ig.orange-border-card,
         <select id="pdf_theme_setting" 
                 style="width:100%; padding:8px; font-size:14px; color:var(--value); background:rgba(255,255,255,0.05); border-radius:6px; border:1px solid rgba(255,255,255,0.2); cursor:pointer;">
           <option value="dark">🌙 深色風格（黑色背景）- 原始設計</option>
-          <option value="light">☀️ 淺色風格（白色背景）- 適合列印</option>
+          <option value="light" selected>☀️ 淺色風格（白色背景）- 適合列印</option>
         </select>
         <div style="margin-top:6px; font-size:12px; color:#a8b3c3; line-height:1.4;">
           💡 淺色風格更適合列印，深色風格適合螢幕閱讀
@@ -3215,21 +3224,21 @@ async function continueGenerateReport() {
     background: ${blockStyle.background};
     border: 1px solid ${themeSetting === 'light' ? '#1e3a8a' : blockStyle.orangeBorder};
     border-radius: 6px;
-    padding: 12px;
+    padding: 7px;
   `;
 
   let leftContent = `
-    <div style="font-size:22px; color:${blockStyle.lrTitle}; text-align:center; margin-bottom:8px; font-weight:bold;">
-    📍 ${nameA}
+    <div style="font-size:16px; color:${blockStyle.lrTitle}; text-align:center; margin-bottom:2px; font-weight:bold;">
+    📍 ${nameA} <span style="font-size:16px; font-weight:700; opacity:0.85;">(TX)</span>
     </div>
   `;
 
   if (!isNaN(latA) && !isNaN(lonA)) {
     leftContent += `
-    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+    <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       座標: <span style="color:${blockStyle.lrValue}; font-weight:700;">${latA.toFixed(6)}°N, ${lonA.toFixed(6)}°E</span>
     </div>
-    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+    <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       高度(含建物): <span style="color:${blockStyle.lrValue}; font-weight:700;">${eleA.toFixed(1)} m</span>
     </div>
     `;
@@ -3239,7 +3248,7 @@ async function continueGenerateReport() {
   const antennaHeightA = document.getElementById('antennaHeightStart').value;
   if (antennaHeightA) {
     leftContent += `
-    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:6px;">
+    <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       天線高: <span style="color:${blockStyle.lrValue}; font-weight:700;">${antennaHeightA} m</span>
     </div>
     `;
@@ -3247,12 +3256,12 @@ async function continueGenerateReport() {
 
   if (angles) {
     leftContent += `
-    <div style="background:${blockStyle.highlightBg}; padding:8px; border-radius:4px; margin-top:6px; border:${blockStyle.highlightBorder};">
-      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">${nameA} → ${nameB} 方向</div>
-      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+    <div style="background:${blockStyle.highlightBg}; padding:5px; border-radius:4px; margin-top:3px; border:${blockStyle.highlightBorder};">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px; font-weight:bold;">${nameA} → ${nameB} 方向</div>
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       方位角: <span style="color:${blockStyle.lrValue}; font-weight:700;">${angles.azimuthAtoB.toFixed(1)}°</span>
       </div>
-      <div style="font-size:17px; color:${blockStyle.lrTitle};">
+      <div style="font-size:13px; color:${blockStyle.lrTitle};">
       俯仰角: <span style="color:${blockStyle.lrValue}; font-weight:700;">${angles.elevationAtoB >= 0 ? '+' : ''}${angles.elevationAtoB.toFixed(2)}°</span>
       </div>
     </div>
@@ -3267,13 +3276,13 @@ async function continueGenerateReport() {
 
   if (txPower || txGain || txLoss) {
     leftContent += `
-    <div style="background:${blockStyle.yellowBg}; padding:8px; border-radius:4px; margin-top:6px; border:${blockStyle.highlightBorder};">
-      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">發射端 (Tx)</div>
+    <div style="background:${blockStyle.yellowBg}; padding:5px; border-radius:4px; margin-top:3px; border:${blockStyle.highlightBorder};">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px; font-weight:bold;">發射端 (Tx)</div>
     `;
 
     if (txPower) {
     leftContent += `
-      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       發射功率: <span style="color:${blockStyle.lrValue}; font-weight:700;">${txPower} ${txPowerUnit}</span>
       </div>
     `;
@@ -3281,7 +3290,7 @@ async function continueGenerateReport() {
 
     if (txGain) {
     leftContent += `
-      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       天線增益: <span style="color:${blockStyle.lrValue}; font-weight:700;">${txGain} dBi</span>
       </div>
     `;
@@ -3289,7 +3298,7 @@ async function continueGenerateReport() {
 
     if (txLoss) {
     leftContent += `
-      <div style="font-size:17px; color:${blockStyle.lrTitle};">
+      <div style="font-size:13px; color:${blockStyle.lrTitle};">
       線損: <span style="color:${blockStyle.lrValue}; font-weight:700;">${txLoss} dB</span>
       </div>
     `;
@@ -3307,11 +3316,11 @@ async function continueGenerateReport() {
     background: ${blockStyle.background};
     border: 1px solid ${themeSetting === 'light' ? '#1e3a8a' : '#5ff0d5'};
     border-radius: 6px;
-    padding: 12px;
+    padding: 7px;
   `;
 
   let centerContent = `
-    <div style="font-size:22px; color:${blockStyle.lrTitle}; text-align:center; margin-bottom:8px; font-weight:bold;">
+    <div style="font-size:16px; color:${blockStyle.lrTitle}; text-align:center; margin-bottom:2px; font-weight:bold;">
       📡 RF鏈路計算
     </div>
   `;
@@ -3321,10 +3330,10 @@ async function continueGenerateReport() {
   if (rss) {
     // ── 基本參數：頻率、距離 ──
     centerContent += `
-    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+    <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       頻率: <span style="color:${blockStyle.lrValue}; font-weight:700;">${rss.freqDisplay}</span>
     </div>
-    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:6px;">
+    <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       距離 (3D): <span style="color:${blockStyle.lrValue}; font-weight:700;">${rss.dist_km.toFixed(3)} km</span>
     </div>
     `;
@@ -3335,14 +3344,14 @@ async function continueGenerateReport() {
       : blockStyle.lrValue;
 
     centerContent += `
-    <div style="background:${blockStyle.highlightBg}; padding:8px; border-radius:4px; margin-top:6px; border:${blockStyle.highlightBorder};">
-      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">路徑遮蔽 (含菲涅爾區)</div>
-      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+    <div style="background:${blockStyle.highlightBg}; padding:5px; border-radius:4px; margin-top:3px; border:${blockStyle.highlightBorder};">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px; font-weight:bold;">路徑遮蔽 (含60%菲涅爾區)</div>
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
         繞射損耗: <span style="color:${fresnelValColor}; font-weight:700;">−${rss.fresnelLoss_db.toFixed(2)} dB</span>
       </div>
-      <div style="font-size:17px; color:${blockStyle.lrTitle};">
+      <div style="font-size:13px; color:${blockStyle.lrTitle};">
         ${rss.hasObstruction
-          ? `⚠️ 穿透 <span style="color:${fresnelValColor}; font-weight:700;">${rss.maxPenetration_m.toFixed(1)} m</span>`
+          ? `⚠️ 60%菲涅爾淨空不足：<span style="color:${fresnelValColor}; font-weight:700;">${rss.maxPenetration_m.toFixed(1)} m</span>`
           : `<span style="color:${blockStyle.lrValue}; font-weight:700;">✅ 視線暢通</span>`
         }
       </div>
@@ -3355,10 +3364,10 @@ async function continueGenerateReport() {
       : blockStyle.lrValue;
 
     centerContent += `
-    <div style="background:${blockStyle.yellowBg}; padding:8px; border-radius:4px; margin-top:6px; border:${blockStyle.highlightBorder};">
-      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold; text-align:center;">接收訊號強度</div>
+    <div style="background:${blockStyle.yellowBg}; padding:5px; border-radius:4px; margin-top:3px; border:${blockStyle.highlightBorder};">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px; font-weight:bold; text-align:center;">接收訊號強度</div>
       ${rss.hasObstruction ? `
-      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:6px; text-align:center;">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px; text-align:center;">
         無遮蔽理論值 (LOS): <span style="color:${blockStyle.lrValue}; font-weight:700;">${rss.rx_power_los_dbm.toFixed(2)} dBm</span>
       </div>
       ` : ``}
@@ -3370,15 +3379,15 @@ async function continueGenerateReport() {
           ? (themeSetting === 'light' ? '#dc2626' : '#ff6b6b')
           : (themeSetting === 'light' ? '#16a34a' : '#4ade80')};
         border-radius:6px;
-        padding:10px 8px;
+        padding:6px 6px;
         text-align:center;
       ">
-        <div style="font-size:17px; font-weight:700; color:${rss.hasObstruction
+        <div style="font-size:16px; font-weight:700; color:${rss.hasObstruction
           ? (themeSetting === 'light' ? '#dc2626' : '#ff9999')
-          : (themeSetting === 'light' ? '#15803d' : '#86efac')}; margin-bottom:4px;">
+          : (themeSetting === 'light' ? '#15803d' : '#86efac')}; margin-bottom:2px;">
           接收強度估算
         </div>
-        <div style="font-size:28px; font-weight:900; letter-spacing:1px; color:${rss.hasObstruction
+        <div style="font-size:26px; font-weight:900; letter-spacing:1px; color:${rss.hasObstruction
           ? (themeSetting === 'light' ? '#b91c1c' : '#ff4444')
           : (themeSetting === 'light' ? '#15803d' : '#4ade80')};">
           ${(rss.hasObstruction ? rss.rx_power_dbm : rss.rx_power_los_dbm).toFixed(2)} dBm
@@ -3391,7 +3400,7 @@ async function continueGenerateReport() {
     // fallback：無高度圖資料
     if (freq) {
       centerContent += `
-      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
         頻率: <span style="color:${blockStyle.lrValue}; font-weight:700;">${freq} MHz</span>
       </div>
       `;
@@ -3404,7 +3413,7 @@ async function continueGenerateReport() {
     const displayDistance = profileDistance !== null ? profileDistance.toFixed(2) : dist;
     if (displayDistance) {
       centerContent += `
-      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:6px;">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
         距離: <span style="color:${blockStyle.lrValue}; font-weight:700;">${displayDistance} km</span>
       </div>
       `;
@@ -3412,9 +3421,9 @@ async function continueGenerateReport() {
     const rssiMatch = rssiText.match(/接收訊號強度:\s*([-+]?\d+\.?\d*)\s*dBm/);
     if (rssiMatch) {
       centerContent += `
-      <div style="background:${blockStyle.greenBg}; border:${blockStyle.greenBorder}; border-radius:4px; padding:8px; margin-top:6px;">
-        <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">接收訊號強度</div>
-        <div style="font-size:17px; color:${blockStyle.lrTitle};">
+      <div style="background:${blockStyle.greenBg}; border:${blockStyle.greenBorder}; border-radius:4px; padding:5px; margin-top:3px;">
+        <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px; font-weight:bold;">接收訊號強度</div>
+        <div style="font-size:13px; color:${blockStyle.lrTitle};">
           視距估算: <span style="color:${blockStyle.lrValue}; font-weight:700;">${rssiMatch[1]} dBm</span>
         </div>
       </div>
@@ -3431,21 +3440,21 @@ async function continueGenerateReport() {
     background: ${blockStyle.background};
     border: 1px solid ${themeSetting === 'light' ? '#1e3a8a' : '#9945ff'};
     border-radius: 6px;
-    padding: 12px;
+    padding: 7px;
   `;
 
   let rightContent = `
-    <div style="font-size:22px; color:${blockStyle.lrTitle}; text-align:center; margin-bottom:8px; font-weight:bold;">
-    📍 ${nameB}
+    <div style="font-size:16px; color:${blockStyle.lrTitle}; text-align:center; margin-bottom:2px; font-weight:bold;">
+    📍 ${nameB} <span style="font-size:16px; font-weight:700; opacity:0.85;">(RX)</span>
     </div>
   `;
 
   if (!isNaN(latB) && !isNaN(lonB)) {
     rightContent += `
-    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+    <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       座標: <span style="color:${blockStyle.lrValue}; font-weight:700;">${latB.toFixed(6)}°N, ${lonB.toFixed(6)}°E</span>
     </div>
-    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+    <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       高度(含建物): <span style="color:${blockStyle.lrValue}; font-weight:700;">${eleB.toFixed(1)} m</span>
     </div>
     `;
@@ -3455,7 +3464,7 @@ async function continueGenerateReport() {
   const antennaHeightB = document.getElementById('antennaHeightEnd').value;
   if (antennaHeightB) {
     rightContent += `
-    <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:6px;">
+    <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       天線高: <span style="color:${blockStyle.lrValue}; font-weight:700;">${antennaHeightB} m</span>
     </div>
     `;
@@ -3463,12 +3472,12 @@ async function continueGenerateReport() {
 
   if (angles) {
     rightContent += `
-    <div style="background:rgba(95,240,213,0.2); padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(95,240,213,0.5);">
-      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">${nameB} → ${nameA} 方向</div>
-      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+    <div style="background:rgba(95,240,213,0.2); padding:5px; border-radius:4px; margin-top:3px; border:2px solid rgba(95,240,213,0.5);">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px; font-weight:bold;">${nameB} → ${nameA} 方向</div>
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       方位角: <span style="color:${blockStyle.lrValue}; font-weight:700;">${angles.azimuthBtoA.toFixed(1)}°</span>
       </div>
-      <div style="font-size:17px; color:${blockStyle.lrTitle};">
+      <div style="font-size:13px; color:${blockStyle.lrTitle};">
       俯仰角: <span style="color:${blockStyle.lrValue}; font-weight:700;">${angles.elevationBtoA >= 0 ? '+' : ''}${angles.elevationBtoA.toFixed(2)}°</span>
       </div>
     </div>
@@ -3481,13 +3490,13 @@ async function continueGenerateReport() {
 
   if (rxGain || rxLoss) {
     rightContent += `
-    <div style="background:${blockStyle.yellowBg}; padding:8px; border-radius:4px; margin-top:6px; border:2px solid rgba(77,171,247,0.5);">
-      <div style="font-size:18px; color:${blockStyle.lrTitle}; margin-bottom:4px; font-weight:bold;">接收端 (Rx)</div>
+    <div style="background:${blockStyle.yellowBg}; padding:5px; border-radius:4px; margin-top:3px; border:2px solid rgba(77,171,247,0.5);">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px; font-weight:bold;">接收端 (Rx)</div>
     `;
 
     if (rxGain) {
     rightContent += `
-      <div style="font-size:17px; color:${blockStyle.lrTitle}; margin-bottom:3px;">
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
       天線增益: <span style="color:${blockStyle.lrValue}; font-weight:700;">${rxGain} dBi</span>
       </div>
     `;
@@ -3495,7 +3504,7 @@ async function continueGenerateReport() {
 
     if (rxLoss) {
     rightContent += `
-      <div style="font-size:17px; color:${blockStyle.lrTitle};">
+      <div style="font-size:13px; color:${blockStyle.lrTitle};">
       線損: <span style="color:${blockStyle.lrValue}; font-weight:700;">${rxLoss} dB</span>
       </div>
     `;
@@ -3526,7 +3535,14 @@ async function continueGenerateReport() {
   pdf.addImage(blocksImgData, 'PNG', margin, yPos, pdfWidth - 2 * margin, blocksHeight);
 
   // 儲存PDF
-  const fileName = `RF分析報告_${new Date().getTime()}.pdf`;
+  const _d = new Date();
+  const _roc = (_d.getFullYear() - 1911).toString();
+  const _mm = String(_d.getMonth() + 1).padStart(2, '0');
+  const _dd = String(_d.getDate()).padStart(2, '0');
+  const _dateStr = _roc + _mm + _dd;
+  const _nameA = (document.getElementById('nameA')?.value || 'A點').trim();
+  const _nameB = (document.getElementById('nameB')?.value || 'B點').trim();
+  const fileName = `通訊鏈路分析－${_nameA}↔${_nameB}_${_dateStr}.pdf`;
   pdf.save(fileName);
   showExportStatus('✅ 單頁PDF報告已成功下載！', 'success');
 
@@ -4046,19 +4062,19 @@ function calculateElevationRSS() {
 
   // 驗證 RF 參數
   if (isNaN(freq_mhz) || freq_mhz <= 0) {
-    panel.style.display = 'block';
+    
     output.innerHTML = `<span style="color:${redColor};">⚠️ 請先在 RF工具 &gt; 6. 通訊模擬 輸入有效的頻率</span>`;
     return;
   }
   if (isNaN(tx_power_input)) {
-    panel.style.display = 'block';
+    
     output.innerHTML = `<span style="color:${redColor};">⚠️ 請先在 RF工具 &gt; 6. 通訊模擬 輸入有效的發射功率</span>`;
     return;
   }
 
   // 2. 從剖面圖取得路徑距離
   if (!chartInstance || !chartInstance.data || !pathData || pathData.length < 2) {
-    panel.style.display = 'block';
+    
     output.innerHTML = `<span style="color:${redColor};">⚠️ 尚無剖面圖資料，請先生成路徑剖面圖</span>`;
     return;
   }
@@ -4076,7 +4092,7 @@ function calculateElevationRSS() {
     : getDistance(sLat, sLng, eLat, eLng);
 
   if (isNaN(dist_km) || dist_km <= 0) {
-    panel.style.display = 'block';
+    
     output.innerHTML = `<span style="color:${redColor};">⚠️ 無法計算路徑距離</span>`;
     return;
   }
@@ -4084,7 +4100,7 @@ function calculateElevationRSS() {
   // 3. 轉換發射功率至 dBm
   const tx_power_dbm = convertPower(tx_power_input, tx_power_unit, 'dbm');
   if (isNaN(tx_power_dbm)) {
-    panel.style.display = 'block';
+    
     output.innerHTML = `<span style="color:${redColor};">⚠️ 發射功率 (W) 必須 &gt; 0</span>`;
     return;
   }
@@ -4158,7 +4174,7 @@ function calculateElevationRSS() {
       fresnelLoss_db = Math.max(0, -J_nu); // 損耗為正值
 
       if (maxPenetration_m > 0) {
-        obstructionStatus = `⚠️ 地形遮蔽菲涅爾區（穿透 ${maxPenetration_m.toFixed(1)} m，ν=${nu.toFixed(2)}）`;
+        obstructionStatus = `⚠️ 地形遮蔽菲涅爾區（60%菲涅爾淨空不足：${maxPenetration_m.toFixed(1)} m，ν=${nu.toFixed(2)}）`;
       }
     }
   }
@@ -4170,7 +4186,7 @@ function calculateElevationRSS() {
   const rx_power_dbm = rx_power_los_dbm - fresnelLoss_db;
 
   // 8. 顯示結果
-  panel.style.display = 'block';
+  
 
   const freqDisplay = freq_mhz >= 1000
     ? `${(freq_mhz/1000).toFixed(3)} GHz (${freq_mhz} MHz)`
@@ -4232,6 +4248,8 @@ function calculateElevationRSS() {
       <div style="color:#e8eef5;">−${rx_loss_db.toFixed(2)} dB</div>
       <div style="color:var(--muted); font-size:13px;">繞射損耗 (菲涅爾)</div>
       <div style="color:${fresnelLoss_db > 0 ? '#ff8c00' : '#5ff0d5'};">−${fresnelLoss_db.toFixed(2)} dB</div>
+      <div style="color:var(--muted); font-size:13px;">總路徑損耗</div>
+      <div style="color:#e8eef5;">−${(fspl_db + tx_loss_db + rx_loss_db + fresnelLoss_db).toFixed(2)} dB</div>
     </div>
     <div style="color:var(--muted); font-size:13px; margin-bottom:6px;">${obstructionStatus}</div>
     <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:6px 0;">
@@ -4246,13 +4264,6 @@ function calculateElevationRSS() {
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:6px 8px; background:rgba(95,240,213,0.07); border:1px solid rgba(95,240,213,0.3); border-radius:6px;">
       <span style="color:#5ff0d5; font-weight:700; font-size:14px; flex-shrink:0;">📡 實際估算 (含遮蔽):</span>
       <span style="color:#ffe58f; font-weight:900; font-size:22px;">${rx_power_dbm.toFixed(2)} dBm</span>
-    </div>
-    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px; margin-top:5px;">
-      <div style="color:var(--muted); font-size:12px;">
-        發射 EIRP: ${(tx_power_dbm - tx_loss_db + tx_gain_dbi).toFixed(2)} dBm
-        &nbsp;|&nbsp; 總路徑損耗: ${(fspl_db + tx_loss_db + rx_loss_db + fresnelLoss_db).toFixed(2)} dB
-      </div>
-      <div style="font-size:12px;">${diffLabel}</div>
     </div>
   `;
 }
