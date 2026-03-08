@@ -1420,7 +1420,7 @@ div.gps-ig.orange-border-card,
 <div class="card">
 <h2 class="section-title" style="margin-top:0;">地形遮蔽分析 - 路徑高度圖</h2>
 <div class="orange-border-card" style="padding:10px 12px; margin-bottom:6px;">
-<div style="display:grid; grid-template-columns:2fr 2fr 1.2fr; gap:5px; align-items:end; margin-bottom:10px;">
+<div style="display:grid; grid-template-columns:1.6fr 1.6fr 1.3fr; gap:5px; align-items:end; margin-bottom:6px;">
 <div><label id="labelALat" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block; text-align:center;">A點緯度</label><input type="number" id="sLat" value="25.0336" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;" oninput="checkProfileOutdated()"></div>
 <div><label id="labelALng" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block; text-align:center;">A點經度</label><input type="number" id="sLng" value="121.5648" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;" oninput="checkProfileOutdated()"></div>
 <div><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block; text-align:center;">天線高 (m)</label><input type="number" id="antennaHeightStart" value="3" step="0.1" min="0" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;" oninput="checkProfileOutdated()"></div>
@@ -1428,7 +1428,15 @@ div.gps-ig.orange-border-card,
 <div><label id="labelBLng" style="color:var(--label); font-size:15px; margin-bottom:1px; display:block; text-align:center;">B點經度</label><input type="number" id="eLng" value="121.5065" step="0.0001" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;" oninput="checkProfileOutdated()"></div>
 <div><label style="color:var(--label); font-size:15px; margin-bottom:1px; display:block; text-align:center;">天線高 (m)</label><input type="number" id="antennaHeightEnd" value="3" step="0.1" min="0" style="width:100%; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;" oninput="checkProfileOutdated()"></div>
 </div>
-<div style="grid-column:span 3; display:flex; gap:10px; align-items:flex-end; margin-bottom:8px;">
+<!-- 大氣折射K 獨立一行（緊湊） -->
+<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; padding:4px 8px; background:rgba(177,151,252,0.07); border-radius:6px; border:1px solid rgba(177,151,252,0.25);">
+  <label style="color:#b197fc; font-size:15px; margin-bottom:0; flex-shrink:0; white-space:nowrap;" title="ITU-R P.530 標準大氣=1.33，超折射(海面/熱帶)≈1.5，低折射(乾熱)&lt;1.33">大氣折射 K</label>
+  <input type="number" id="profile-k-factor" value="1.33" min="0.5" max="5" step="0.01"
+    style="width:80px; padding:2px 8px; font-size:15px; color:#b197fc; background:transparent; border-radius:6px; border:2px solid rgba(177,151,252,0.45); text-align:center; height:28px;"
+    oninput="checkProfileOutdated()">
+  <div style="color:#94a3b8; font-size:15px;">標準大氣 = 1.33</div>
+</div>
+<div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:8px;">
 <div style="display:flex; align-items:center; gap:5px; flex:1;">
 <label style="color:var(--label); font-size:15px; margin-bottom:0; display:block; flex-shrink:0;">採樣點數</label>
 <input type="number" id="samples" value="500" min="2" max="2000" style="flex:1; padding:5px 8px; font-size:17px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15);">
@@ -1560,8 +1568,1608 @@ div.gps-ig.orange-border-card,
 </button>
 <div id="route-map" style="width:100%; height:450px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:2px solid #5ff0d5;"></div>
 </div>
+
+<!-- ===== 掃圓遮蔽分析區塊 ===== -->
+<div class="card" style="margin-top:12px;">
+  <h2 class="section-title" style="margin-top:0;">🔭 掃圓遮蔽分析（Canvas 高效版）</h2>
+
+  <div class="orange-border-card" style="padding:10px 12px; margin-bottom:8px;">
+
+    <!-- 第一排：發射端座標 + 發射天線高 -->
+    <div style="font-size:12px; color:#5ff0d5; font-weight:bold; margin-bottom:4px;">📡 發射端（中心點）</div>
+    <div style="display:grid; grid-template-columns:2fr 2fr 1fr; gap:8px; align-items:end; margin-bottom:8px;">
+      <div>
+        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">中心緯度</label>
+        <input type="number" id="vs-lat" step="0.000001" placeholder="例如 24.164547"
+          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
+          oninput="if(vsMap) vsUpdateScanOverlay()">
+      </div>
+      <div>
+        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">中心經度</label>
+        <input type="number" id="vs-lng" step="0.000001" placeholder="例如 120.641258"
+          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
+          oninput="if(vsMap) vsUpdateScanOverlay()">
+      </div>
+      <div>
+        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">發射天線高 (m)</label>
+        <input type="number" id="vs-ant-height" value="10" min="0" step="0.5"
+          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;">
+      </div>
+    </div>
+
+    <!-- 第二排：掃圓參數 + 接收天線高 -->
+    <div style="font-size:12px; color:#ffd43b; font-weight:bold; margin-bottom:4px;">📻 接收端 / 掃圓參數</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; align-items:end; margin-bottom:8px;">
+      <div>
+        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">接收天線高 (m)</label>
+        <input type="number" id="vs-rx-height" value="3" min="0" step="0.5"
+          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,200,0,0.4); text-align:center;">
+      </div>
+      <div>
+        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">掃圓半徑 (km)</label>
+        <input type="number" id="vs-radius" value="5" min="0.5" max="50" step="0.5"
+          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
+          oninput="vsUpdateCellCount(); vsUpdateScanOverlay()">
+      </div>
+      <div>
+        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">格距解析度 (m)</label>
+        <input type="number" id="vs-resolution" value="20" min="5" max="200" step="5"
+          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
+          oninput="vsUpdateCellCount()">
+        <div id="vs-cell-hint" style="color:#94a3b8; font-size:11px; text-align:center; margin-top:2px;">約 7,845 格</div>
+      </div>
+    </div>
+
+    <!-- 第二排b：大氣折射K -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+      <label style="color:#b197fc; font-size:14px; flex-shrink:0; white-space:nowrap;" title="ITU-R P.530 標準大氣=1.33，超折射(海面/熱帶)≈1.5，低折射(乾熱)&lt;1.33">🌐 大氣折射修正 K</label>
+      <input type="number" id="vs-k-factor" value="1.33" min="0.5" max="5" step="0.01"
+        style="width:88px; padding:5px 8px; font-size:15px; color:#b197fc; background:rgba(177,151,252,0.07); border-radius:6px; border:2px solid rgba(177,151,252,0.45); text-align:center;">
+      <span style="color:#94a3b8; font-size:11px; line-height:1.4;">標準大氣 1.33｜超折射(海面) ≈1.5｜低折射(乾熱) &lt;1.33</span>
+    </div>
+
+    <!-- 第三排：掃描角度 -->
+    <div style="font-size:12px; color:#ffd43b; font-weight:bold; margin-bottom:4px;">🧭 掃描角度（0° = 正北，順時針）</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; align-items:end; margin-bottom:10px;">
+      <div>
+        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">起始角度 (°)</label>
+        <input type="number" id="vs-angle-start" value="0" min="0" max="359" step="1"
+          style="width:100%; padding:5px 8px; font-size:15px; color:#ffd43b; background:transparent; border-radius:6px; border:1px solid rgba(255,215,0,0.5); text-align:center;"
+          oninput="vsUpdateCellCount(); vsUpdateScanOverlay()">
+      </div>
+      <div>
+        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">結束角度 (°)</label>
+        <input type="number" id="vs-angle-end" value="359" min="0" max="359" step="1"
+          style="width:100%; padding:5px 8px; font-size:15px; color:#ffd43b; background:transparent; border-radius:6px; border:1px solid rgba(255,215,0,0.5); text-align:center;"
+          oninput="vsUpdateCellCount(); vsUpdateScanOverlay()">
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">快速設定</label>
+        <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:center;">
+          <button onclick="vsSetAngle(0,359)" style="padding:3px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">全圓</button>
+          <button onclick="vsSetAngle(315,45)" style="padding:3px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">北 ±45°</button>
+          <button onclick="vsSetAngle(45,135)" style="padding:3px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">東 90°</button>
+          <button onclick="vsSetAngle(135,225)" style="padding:3px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">南 90°</button>
+          <button onclick="vsSetAngle(225,315)" style="padding:3px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">西 90°</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <button onclick="vsUseCoordA()" style="padding:5px 12px; background:rgba(95,240,213,0.15); border:1px solid #5ff0d5; color:#5ff0d5; border-radius:6px; cursor:pointer; font-size:13px;">
+        📍 使用A點座標
+      </button>
+      <button onclick="vsUseCoordB()" style="padding:5px 12px; background:rgba(255,100,100,0.15); border:1px solid #ff6464; color:#ff6464; border-radius:6px; cursor:pointer; font-size:13px;">
+        📍 使用B點座標
+      </button>
+      <button onclick="startViewshed()" id="vs-run-btn"
+        style="padding:6px 18px; background:rgba(95,240,213,0.2); border:1px solid #5ff0d5; color:#5ff0d5; border-radius:6px; cursor:pointer; font-size:14px; font-weight:bold;">
+        🔍 開始掃圓分析
+      </button>
+      <button onclick="clearViewshed()" style="padding:6px 14px; background:rgba(255,100,100,0.15); border:1px solid #ff6464; color:#ff6464; border-radius:6px; cursor:pointer; font-size:13px;">
+        🗑 清除結果
+      </button>
+      <button onclick="vsFindHighestPoint()" id="vs-peak-btn" style="padding:6px 14px; background:rgba(255,180,0,0.15); border:1px solid #ffb400; color:#ffb400; border-radius:6px; cursor:pointer; font-size:13px; white-space:nowrap;">
+        🏔 搜尋最高點
+      </button>
+      <span id="vs-status" style="color:#94a3b8; font-size:13px; flex:1; min-width:150px;"></span>
+    </div>
+
+    <!-- 圖例 -->
+    <div style="display:flex; gap:16px; margin-top:8px; font-size:12px; align-items:center; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:4px;">
+        <div id="vs-legend-visible" style="width:16px; height:16px; background:#00cc88; border-radius:2px;"></div>
+        <span style="color:#94a3b8;">無遮蔽（可視）</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <div id="vs-legend-blocked" style="width:16px; height:16px; background:#cc2200; border-radius:2px;"></div>
+        <span style="color:#94a3b8;">有遮蔽</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <div style="width:16px; height:16px; background:rgba(255,200,0,0.25); border:1px solid #ffc800; border-radius:2px;"></div>
+        <span style="color:#94a3b8;">掃圓範圍</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <div style="width:24px; height:3px; background:rgba(0,0,0,0); border-top:2px dashed #ffd43b;"></div>
+        <span style="color:#94a3b8;">掃描角度範圍</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 進度條 -->
+  <div id="vs-progress-wrap" style="display:none; margin-bottom:8px;">
+    <div style="background:rgba(255,255,255,0.08); border-radius:4px; height:8px; overflow:hidden;">
+      <div id="vs-progress-bar" style="height:100%; width:0%; background:#5ff0d5; transition:width 0.2s; border-radius:4px;"></div>
+    </div>
+    <div id="vs-progress-text" style="color:#94a3b8; font-size:12px; margin-top:3px; text-align:center;"></div>
+  </div>
+
+  <!-- 地圖容器 -->
+  <div id="vs-map-container" style="text-align:center; padding:0; position:relative;">
+    <button id="vs-maximize-btn" onclick="vsMaximizeMap()" style="background:linear-gradient(90deg, #4dabf7, #339af0); border:0; padding:5px 10px; border-radius:6px; font-weight:700; font-size:13px; color:#fff; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.3); display:inline-flex; align-items:center; gap:6px; margin-bottom:3px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+      </svg>
+      🔍 最大化地圖
+    </button>
+    <!-- 座標 + 距離顯示框（可折疊，位於透明度/顏色上方） -->
+    <div id="vs-click-info" style="position:absolute; bottom:30px; right:8px; z-index:1001; background:rgba(10,20,30,0.93); border:1px solid rgba(95,240,213,0.5); border-radius:8px; font-size:14px; color:#e8eef5; display:none; min-width:0; overflow:hidden; max-width:calc(100% - 16px); box-sizing:border-box;">
+      <!-- 標題列（點擊折疊，與透明度/顏色一致） -->
+      <div id="vs-click-info-header" onclick="vsToggleClickInfo()" style="display:flex; align-items:center; gap:5px; padding:6px 11px; cursor:pointer; user-select:none; white-space:nowrap;">
+        <span style="font-size:14px;">📍</span>
+        <span id="vs-click-coord" style="font-weight:700; color:#5ff0d5; font-size:13px; user-select:text; -webkit-user-select:text; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;"></span>
+        <button onclick="event.stopPropagation(); vsCopyCoord()" style="padding:2px 8px; background:rgba(95,240,213,0.2); border:1px solid #5ff0d5; color:#5ff0d5; border-radius:3px; cursor:pointer; font-size:12px; flex-shrink:0;">複製</button>
+        <span id="vs-copy-ok" style="color:#5ff0d5; font-size:12px; display:none; flex-shrink:0;">✓</span>
+        <span id="vs-click-info-arrow" style="color:#94a3b8; font-size:12px; margin-left:2px;">▲</span>
+      </div>
+      <!-- 詳細內容（可折疊） -->
+      <div id="vs-click-info-body" style="padding:0 11px 10px 11px; border-top:1px solid rgba(255,255,255,0.08);">
+        <!-- 距中心 -->
+        <div id="vs-click-dist" style="margin-top:5px; color:#ffd43b; font-size:13px; display:none;">
+          📏 距中心：<span id="vs-click-dist-val" style="font-weight:700; color:#ffd43b;"></span>
+        </div>
+        <!-- 點擊點高度 -->
+        <div id="vs-click-ele" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
+          🏔️ 點位地表：<span id="vs-click-ele-val" style="font-weight:700; color:#85c9ff;"></span>
+          　天線高：<span id="vs-click-rx-ant-val" style="font-weight:700; color:#85c9ff;"></span>
+          　= <span id="vs-click-rx-total" style="font-weight:700; color:#5ff0d5;"></span>
+        </div>
+        <!-- 發射點高度 -->
+        <div id="vs-click-tx" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
+          📡 發射地表：<span id="vs-click-tx-ele-val" style="font-weight:700; color:#ffa94d;"></span>
+          　天線高：<span id="vs-click-tx-ant-val" style="font-weight:700; color:#ffa94d;"></span>
+          　= <span id="vs-click-tx-total" style="font-weight:700; color:#ffd43b;"></span>
+        </div>
+        <!-- 地球曲率修正 -->
+        <div id="vs-click-curv" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
+          🌍 曲率修正：<span id="vs-click-curv-val" style="font-weight:700; color:#b197fc;"></span>
+        </div>
+        <!-- 分隔線 -->
+        <div id="vs-click-sep" style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); display:none;"></div>
+        <!-- 淨空差值 + 遮蔽狀態 -->
+        <div id="vs-click-los" style="margin-top:5px; font-size:14px; display:none;">
+          <span id="vs-click-los-val"></span>
+        </div>
+        <!-- 最嚴苛遮蔽點（僅有遮蔽時顯示） -->
+        <div id="vs-click-worst" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
+          🚧 遮蔽點：<span id="vs-click-worst-coord" style="font-weight:700; color:#ff8787; user-select:text; -webkit-user-select:text;"></span><br>
+          　地表高：<span id="vs-click-worst-ele" style="color:#ffb3b3;"></span>
+          　視線高：<span id="vs-click-worst-los" style="color:#ffb3b3;"></span>
+          　穿透：<span id="vs-click-worst-pen" style="font-weight:700; color:#ff6b6b;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 透明度拉桿（右下，可折疊） -->
+    <div id="vs-opacity-ctrl" style="position:absolute; bottom:30px; right:8px; z-index:1000; background:rgba(10,20,30,0.90); border:1px solid rgba(255,255,255,0.18); border-radius:8px; font-size:13px; color:#e8eef5; display:none; min-width:0; overflow:hidden;">
+      <!-- 標題列（點擊折疊） -->
+      <div id="vs-opacity-header" onclick="vsToggleOpacity()" style="display:flex; align-items:center; gap:5px; padding:6px 11px; cursor:pointer; user-select:none; white-space:nowrap;">
+        <span style="font-size:14px;">🎨</span>
+        <span style="font-weight:700; color:#5ff0d5; font-size:13px;">透明度 / 顏色</span>
+        <span id="vs-opacity-arrow" style="color:#94a3b8; font-size:12px; margin-left:2px;">▲</span>
+      </div>
+      <!-- 拉桿+顏色內容（可折疊） -->
+      <div id="vs-opacity-body" style="padding:0 11px 10px 11px; border-top:1px solid rgba(255,255,255,0.08);">
+        <!-- 可視 -->
+        <div style="display:flex; align-items:center; gap:6px; margin-top:7px;">
+          <input type="color" id="vs-color-visible" value="#00cc88"
+            title="可視顏色"
+            style="width:20px; height:20px; border:none; border-radius:3px; padding:0; cursor:pointer; flex-shrink:0; background:none;"
+            oninput="vsApplyOpacity()">
+          <span style="color:#94a3b8; flex-shrink:0; font-size:13px; width:36px;">可視</span>
+          <input type="range" id="vs-opacity-visible" min="0" max="100" value="78"
+            style="width:90px; accent-color:#00cc88; cursor:pointer;"
+            oninput="vsApplyOpacity()">
+          <span id="vs-opacity-visible-val" style="color:#00cc88; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">78%</span>
+          <button id="vs-toggle-visible-btn" onclick="vsToggleLayerVisible()"
+            title="顯示/隱藏可視圖層"
+            style="padding:2px 7px; font-size:12px; font-weight:700; border-radius:4px; border:1px solid #00cc88; background:rgba(0,204,136,0.2); color:#00cc88; cursor:pointer; flex-shrink:0; line-height:1.4;">👁</button>
+        </div>
+        <!-- 遮蔽 -->
+        <div style="display:flex; align-items:center; gap:6px; margin-top:5px;">
+          <input type="color" id="vs-color-blocked" value="#cc2200"
+            title="遮蔽顏色"
+            style="width:20px; height:20px; border:none; border-radius:3px; padding:0; cursor:pointer; flex-shrink:0; background:none;"
+            oninput="vsApplyOpacity()">
+          <span style="color:#94a3b8; flex-shrink:0; font-size:13px; width:36px;">遮蔽</span>
+          <input type="range" id="vs-opacity-blocked" min="0" max="100" value="82"
+            style="width:90px; accent-color:#cc2200; cursor:pointer;"
+            oninput="vsApplyOpacity()">
+          <span id="vs-opacity-blocked-val" style="color:#cc2200; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">82%</span>
+          <button id="vs-toggle-blocked-btn" onclick="vsToggleLayerBlocked()"
+            title="顯示/隱藏遮蔽圖層"
+            style="padding:2px 7px; font-size:12px; font-weight:700; border-radius:4px; border:1px solid #cc2200; background:rgba(204,34,0,0.2); color:#cc2200; cursor:pointer; flex-shrink:0; line-height:1.4;">👁</button>
+        </div>
+      </div>
+    </div>
+    <div id="viewshed-map" style="width:100%; height:500px; border-radius:8px; border:2px solid #5ff0d5; box-shadow:0 4px 12px rgba(0,0,0,0.3);"></div>
+  </div>
+</div>
+
+<script>
+// ===================================================
+// 掃圓遮蔽分析 - Canvas ImageOverlay 高效版
+// ===================================================
+let vsMap = null;
+let vsOverlay = null;
+let vsCircle = null;
+let vsCenterMarker = null;
+let vsRunning = false;
+let vsAbort = false;
+let vsScanOverlay = null;
+let vsCanvas = null;        // 保存canvas引用供透明度調整使用
+let vsRawImageData = null;  // 保存原始像素資料（不含透明度）
+let vsWorstMarker = null;   // 最嚴苛遮蔽點柵欄標記
+
+// 透明度預設值（0~255）
+let vsOpacityVisible = 200; // 約 78%
+let vsOpacityBlocked = 210; // 約 82%
+
+// 折疊/展開透明度控制面板
+let vsOpacityExpanded = true;
+function vsToggleOpacity() {
+  const body  = document.getElementById('vs-opacity-body');
+  const arrow = document.getElementById('vs-opacity-arrow');
+  if (!body) return;
+  vsOpacityExpanded = !vsOpacityExpanded;
+  body.style.display  = vsOpacityExpanded ? 'block' : 'none';
+  arrow.textContent   = vsOpacityExpanded ? '▲' : '▼';
+  vsPositionClickInfo();
+}
+
+let vsClickInfoExpanded = true;
+
+function vsToggleClickInfo() {
+  const body  = document.getElementById('vs-click-info-body');
+  const arrow = document.getElementById('vs-click-info-arrow');
+  if (!body) return;
+  vsClickInfoExpanded = !vsClickInfoExpanded;
+  body.style.display  = vsClickInfoExpanded ? 'block' : 'none';
+  arrow.textContent   = vsClickInfoExpanded ? '▲' : '▼';
+}
+
+function vsPositionClickInfo() {
+  const info    = document.getElementById('vs-click-info');
+  const opacity = document.getElementById('vs-opacity-ctrl');
+  if (!info || info.style.display === 'none') return;
+  if (opacity && opacity.style.display !== 'none') {
+    const opH = opacity.offsetHeight || 60;
+    info.style.bottom = (30 + opH + 6) + 'px';
+  } else {
+    info.style.bottom = '30px';
+  }
+}
+
+let vsLayerVisibleOn = true;
+let vsLayerBlockedOn = true;
+
+function vsToggleLayerVisible() {
+  vsLayerVisibleOn = !vsLayerVisibleOn;
+  const btn = document.getElementById('vs-toggle-visible-btn');
+  const cv = document.getElementById('vs-color-visible')?.value || '#00cc88';
+  if (btn) {
+    btn.textContent   = vsLayerVisibleOn ? '👁' : '🚫';
+    btn.style.opacity = vsLayerVisibleOn ? '1' : '0.45';
+    btn.style.border  = vsLayerVisibleOn ? `1px solid ${cv}` : '1px solid #555';
+    btn.style.color   = vsLayerVisibleOn ? cv : '#555';
+    btn.style.background = vsLayerVisibleOn ? `rgba(0,204,136,0.2)` : 'rgba(80,80,80,0.2)';
+  }
+  vsApplyOpacity();
+}
+
+function vsToggleLayerBlocked() {
+  vsLayerBlockedOn = !vsLayerBlockedOn;
+  const btn = document.getElementById('vs-toggle-blocked-btn');
+  const cb = document.getElementById('vs-color-blocked')?.value || '#cc2200';
+  if (btn) {
+    btn.textContent   = vsLayerBlockedOn ? '👁' : '🚫';
+    btn.style.opacity = vsLayerBlockedOn ? '1' : '0.45';
+    btn.style.border  = vsLayerBlockedOn ? `1px solid ${cb}` : '1px solid #555';
+    btn.style.color   = vsLayerBlockedOn ? cb : '#555';
+    btn.style.background = vsLayerBlockedOn ? `rgba(204,34,0,0.2)` : 'rgba(80,80,80,0.2)';
+  }
+  vsApplyOpacity();
+}
+
+
+function vsHexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return [r,g,b];
+}
+
+// 套用透明度與顏色（重繪canvas並更新overlay）
+function vsApplyOpacity() {
+  const sliderVis = document.getElementById('vs-opacity-visible');
+  const sliderBlk = document.getElementById('vs-opacity-blocked');
+  const valVis    = document.getElementById('vs-opacity-visible-val');
+  const valBlk    = document.getElementById('vs-opacity-blocked-val');
+  const colorVis  = document.getElementById('vs-color-visible');
+  const colorBlk  = document.getElementById('vs-color-blocked');
+
+  if (sliderVis) {
+    vsOpacityVisible = Math.round(parseInt(sliderVis.value) / 100 * 255);
+    if (valVis) {
+      valVis.textContent = sliderVis.value + '%';
+      const cv = colorVis ? colorVis.value : '#00cc88';
+      valVis.style.color = cv;
+      sliderVis.style.accentColor = cv;
+      // 同步圖例顏色
+      const legendVis = document.getElementById('vs-legend-visible');
+      if (legendVis) legendVis.style.background = cv;
+      // 同步開關按鈕顏色
+      const btnVis = document.getElementById('vs-toggle-visible-btn');
+      if (btnVis && vsLayerVisibleOn) { btnVis.style.border=`1px solid ${cv}`; btnVis.style.color=cv; }
+    }
+  }
+  if (sliderBlk) {
+    vsOpacityBlocked = Math.round(parseInt(sliderBlk.value) / 100 * 255);
+    if (valBlk) {
+      valBlk.textContent = sliderBlk.value + '%';
+      const cb = colorBlk ? colorBlk.value : '#cc2200';
+      valBlk.style.color = cb;
+      sliderBlk.style.accentColor = cb;
+      // 同步圖例顏色
+      const legendBlk = document.getElementById('vs-legend-blocked');
+      if (legendBlk) legendBlk.style.background = cb;
+      // 同步開關按鈕顏色
+      const btnBlk = document.getElementById('vs-toggle-blocked-btn');
+      if (btnBlk && vsLayerBlockedOn) { btnBlk.style.border=`1px solid ${cb}`; btnBlk.style.color=cb; }
+    }
+  }
+
+  if (!vsCanvas || !vsRawImageData) return;
+
+  // 取得自訂顏色 RGB
+  const [vr,vg,vb] = vsHexToRgb(colorVis ? colorVis.value : '#00cc88');
+  const [br,bg,bb] = vsHexToRgb(colorBlk ? colorBlk.value : '#cc2200');
+
+  const ctx = vsCanvas.getContext('2d');
+  const size = vsCanvas.width;
+  const newImg = ctx.createImageData(size, size);
+  const src = vsRawImageData.data;
+  const dst = newImg.data;
+
+  for (let i = 0; i < src.length; i += 4) {
+    // 原始像素類型判斷（固定用原始綠/紅判斷）
+    const isGreen = src[i+1] > 150 && src[i] < 50;
+    const isRed   = src[i] > 150   && src[i+1] < 80;
+
+    if (isGreen) {
+      dst[i]=vr; dst[i+1]=vg; dst[i+2]=vb;
+      dst[i+3] = (src[i+3] > 0 && vsLayerVisibleOn) ? vsOpacityVisible : 0;
+    } else if (isRed) {
+      dst[i]=br; dst[i+1]=bg; dst[i+2]=bb;
+      dst[i+3] = (src[i+3] > 0 && vsLayerBlockedOn) ? vsOpacityBlocked : 0;
+    } else {
+      dst[i]=src[i]; dst[i+1]=src[i+1]; dst[i+2]=src[i+2];
+      dst[i+3] = src[i+3];
+    }
+  }
+
+  ctx.putImageData(newImg, 0, 0);
+  if (vsOverlay) vsOverlay.setUrl(vsCanvas.toDataURL());
+}
+
+// 設定掃描角度快速按鈕
+function vsSetAngle(start, end) {
+  document.getElementById('vs-angle-start').value = start;
+  document.getElementById('vs-angle-end').value = end;
+  vsUpdateCellCount();
+  vsUpdateScanOverlay();
+}
+
+// 更新掃描角度虛線顯示（在地圖上畫扇形/圓）
+function vsUpdateScanOverlay() {
+  if (!vsMap) return;
+
+  const cLat = parseFloat(document.getElementById('vs-lat').value);
+  const cLng = parseFloat(document.getElementById('vs-lng').value);
+  const radiusKm = parseFloat(document.getElementById('vs-radius').value) || 5;
+  const angleStart = parseFloat(document.getElementById('vs-angle-start').value);
+  const angleEnd   = parseFloat(document.getElementById('vs-angle-end').value);
+
+  if (isNaN(cLat) || isNaN(cLng)) return;
+
+  // 移除舊的掃描覆蓋層
+  if (vsScanOverlay) { vsMap.removeLayer(vsScanOverlay); vsScanOverlay = null; }
+  if (window.vsScanLines) {
+    window.vsScanLines.forEach(l => vsMap.removeLayer(l));
+    window.vsScanLines = [];
+  }
+
+  const radiusM = radiusKm * 1000;
+  const mPerDegLat = 111320;
+  const mPerDegLng = 111320 * Math.cos(cLat * Math.PI / 180);
+
+  // 判斷是否為全圓（起始=0, 結束=359 或相差359）
+  const isFullCircle = (Math.abs(angleEnd - angleStart) >= 359) ||
+                       (angleStart === 0 && angleEnd >= 359);
+
+  if (isFullCircle) {
+    // 全圓：只畫一個黃色虛線圓（已有vsCircle，這裡疊加一條明顯虛線）
+    vsScanOverlay = L.circle([cLat, cLng], {
+      radius: radiusM,
+      color: '#ffd43b',
+      fillColor: 'transparent',
+      fillOpacity: 0,
+      weight: 2.5,
+      dashArray: '10,7',
+      opacity: 0.95
+    }).addTo(vsMap);
+  } else {
+    // 扇形：畫兩條邊線 + 弧線
+    window.vsScanLines = [];
+
+    // 將角度轉為弧度（0°=正北，順時針）
+    // Leaflet的LatLng計算：北=+lat, 東=+lng
+    function angleToDxDy(angleDeg, distM) {
+      const rad = angleDeg * Math.PI / 180;
+      const dLat = (distM * Math.cos(rad)) / mPerDegLat;
+      const dLng = (distM * Math.sin(rad)) / mPerDegLng;
+      return [cLat + dLat, cLng + dLng];
+    }
+
+    // 邊線1（起始角）
+    const p1 = angleToDxDy(angleStart, radiusM);
+    const line1 = L.polyline([[cLat, cLng], p1], {
+      color: '#ffd43b', weight: 2, dashArray: '10,6', opacity: 0.95
+    }).addTo(vsMap);
+    window.vsScanLines.push(line1);
+
+    // 邊線2（結束角）
+    const p2 = angleToDxDy(angleEnd, radiusM);
+    const line2 = L.polyline([[cLat, cLng], p2], {
+      color: '#ffd43b', weight: 2, dashArray: '10,6', opacity: 0.95
+    }).addTo(vsMap);
+    window.vsScanLines.push(line2);
+
+    // 弧線（多邊形近似）
+    let arcPoints = [[cLat, cLng]];
+    let startA = angleStart;
+    let endA = angleEnd;
+    if (endA < startA) endA += 360; // 跨越0度（如315~45）
+    const steps = Math.max(36, Math.round((endA - startA) / 2));
+    for (let i = 0; i <= steps; i++) {
+      const a = startA + (endA - startA) * i / steps;
+      arcPoints.push(angleToDxDy(a % 360, radiusM));
+    }
+    arcPoints.push([cLat, cLng]);
+
+    const arc = L.polygon(arcPoints, {
+      color: '#ffd43b',
+      weight: 2.5,
+      dashArray: '10,6',
+      fillColor: '#ffd43b',
+      fillOpacity: 0.06,
+      opacity: 0.95
+    }).addTo(vsMap);
+    window.vsScanLines.push(arc);
+  }
+}
+
+// 初始化地圖（在分頁顯示時才初始化，避免 Leaflet 尺寸問題）
+function initViewshedMap() {
+  if (vsMap) return;
+  vsMap = L.map('viewshed-map', {
+    center: [23.9, 120.9],
+    zoom: 10,
+    preferCanvas: true
+  });
+
+  // 五種圖層（與AB圖一致）
+  const vsSatLayer = L.tileLayer('http://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+    attribution: '© Google Maps', maxZoom: 20, subdomains: ['0','1','2','3']
+  });
+  const vsEarthLayer = L.tileLayer('http://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+    attribution: '© Google Earth', maxZoom: 20, subdomains: ['0','1','2','3']
+  });
+  const vsHybridLayer = L.layerGroup([
+    L.tileLayer('http://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+      maxZoom: 20, subdomains: ['0','1','2','3']
+    }),
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      opacity: 0.3, maxZoom: 19
+    })
+  ]);
+  const vsNlscLayer = L.tileLayer('https://wmts.nlsc.gov.tw/wmts/PHOTO2/default/GoogleMapsCompatible/{z}/{y}/{x}', {
+    attribution: '© 內政部國土測繪中心', maxZoom: 19
+  });
+  const vsStreetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap', maxZoom: 19
+  });
+
+  vsSatLayer.addTo(vsMap);
+  let vsCurrentLayer = 'satellite';
+
+  // 圖層切換按鈕（正常時右上，全螢幕時置中）
+  const layerCtrlDiv = document.createElement('div');
+  layerCtrlDiv.id = 'vs-layer-ctrl';
+  layerCtrlDiv.style.cssText = 'position:absolute; top:10px; left:50%; transform:translateX(-50%); z-index:1000;';
+  layerCtrlDiv.innerHTML = `
+    <div style="background:rgba(0,0,0,0.7); border-radius:8px; padding:8px;">
+      <button id="vs-layer-toggle" style="background:linear-gradient(90deg,#9b59b6,#8e44ad); border:none; padding:8px 12px; border-radius:6px; font-weight:bold; color:#fff; cursor:pointer; font-size:13px; white-space:nowrap;">🛰️ 衛星圖</button>
+    </div>`;
+  document.getElementById('viewshed-map').appendChild(layerCtrlDiv);
+
+  document.getElementById('vs-layer-toggle').onclick = function() {
+    if (vsCurrentLayer === 'satellite') {
+      vsMap.removeLayer(vsSatLayer); vsEarthLayer.addTo(vsMap);
+      vsCurrentLayer = 'earth'; this.innerHTML = '🌍 地形圖';
+    } else if (vsCurrentLayer === 'earth') {
+      vsMap.removeLayer(vsEarthLayer); vsHybridLayer.addTo(vsMap);
+      vsCurrentLayer = 'hybrid'; this.innerHTML = '🔀 混合圖';
+    } else if (vsCurrentLayer === 'hybrid') {
+      vsMap.removeLayer(vsHybridLayer); vsNlscLayer.addTo(vsMap);
+      vsCurrentLayer = 'nlsc'; this.innerHTML = '🛩️ 航照圖';
+    } else if (vsCurrentLayer === 'nlsc') {
+      vsMap.removeLayer(vsNlscLayer); vsStreetLayer.addTo(vsMap);
+      vsCurrentLayer = 'street'; this.innerHTML = '🗺️ 街道圖';
+    } else {
+      vsMap.removeLayer(vsStreetLayer); vsSatLayer.addTo(vsMap);
+      vsCurrentLayer = 'satellite'; this.innerHTML = '🛰️ 衛星圖';
+    }
+  };
+
+  // 點擊地圖：左下顯示座標 + 距離 + 地圖上放定位標記
+  let vsClickMarker = null;
+  vsMap.on('click', function(e) {
+    const lat = e.latlng.lat.toFixed(6);
+    const lng = e.latlng.lng.toFixed(6);
+    const coordText = `${lat}, ${lng}`;
+
+    // 左下角座標資訊
+    const info = document.getElementById('vs-click-info');
+    const coord = document.getElementById('vs-click-coord');
+    const copyOk = document.getElementById('vs-copy-ok');
+    const distDiv = document.getElementById('vs-click-dist');
+    const distVal = document.getElementById('vs-click-dist-val');
+
+    if (info && coord) {
+      coord.textContent = coordText;
+      info._coordText = coordText;
+      copyOk.style.display = 'none';
+
+      // ── 共用參數 ──
+      const cLat = parseFloat(document.getElementById('vs-lat').value);
+      const cLng = parseFloat(document.getElementById('vs-lng').value);
+      const txAntH = parseFloat(document.getElementById('vs-ant-height').value) || 10;
+      const rxAntH = parseFloat(document.getElementById('vs-rx-height').value)  || 3;
+      const R_earth = 6371000;
+      const k_refract = 1.33; // 標準大氣折射係數
+
+      // ── 距中心距離（Haversine）──
+      if (!isNaN(cLat) && !isNaN(cLng) && distDiv && distVal) {
+        const dLat = (e.latlng.lat - cLat) * Math.PI / 180;
+        const dLng = (e.latlng.lng - cLng) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(cLat*Math.PI/180)*Math.cos(e.latlng.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+        const dist = R_earth * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        distVal.textContent = dist < 1000 ? `${dist.toFixed(0)} m` : `${(dist/1000).toFixed(3)} km`;
+        distDiv.style.display = 'block';
+
+        // ── 點擊點高度（DSM） ──
+        const eleDiv    = document.getElementById('vs-click-ele');
+        const txDiv     = document.getElementById('vs-click-tx');
+        const curvDiv   = document.getElementById('vs-click-curv');
+        const sepDiv    = document.getElementById('vs-click-sep');
+
+        const clickEle = vsGetElevationFast(e.latlng.lat, e.latlng.lng);
+        const txEle    = vsGetElevationFast(cLat, cLng);
+
+        if (clickEle !== null && eleDiv) {
+          const rxTotal = clickEle + rxAntH;
+          document.getElementById('vs-click-ele-val').textContent    = `${clickEle.toFixed(1)} m`;
+          document.getElementById('vs-click-rx-ant-val').textContent = `${rxAntH.toFixed(1)} m`;
+          document.getElementById('vs-click-rx-total').textContent   = `${rxTotal.toFixed(1)} m`;
+          eleDiv.style.display = 'block';
+        } else if (eleDiv) { eleDiv.style.display = 'none'; }
+
+        // ── 發射點高度 ──
+        if (txEle !== null && txDiv) {
+          const txTotal = txEle + txAntH;
+          document.getElementById('vs-click-tx-ele-val').textContent = `${txEle.toFixed(1)} m`;
+          document.getElementById('vs-click-tx-ant-val').textContent = `${txAntH.toFixed(1)} m`;
+          document.getElementById('vs-click-tx-total').textContent   = `${txTotal.toFixed(1)} m`;
+          txDiv.style.display = 'block';
+        } else if (txDiv) { txDiv.style.display = 'none'; }
+
+        // ── 地球曲率修正量（此距離） ──
+        // 修正公式：h_curv = d²/(2kR)，在接收端完整距離d處的曲率下沉
+        const hCurv = (dist * dist) / (2 * k_refract * R_earth);
+        if (curvDiv) {
+          document.getElementById('vs-click-curv-val').textContent =
+            `${hCurv.toFixed(2)} m（距離${dist < 1000 ? dist.toFixed(0)+'m' : (dist/1000).toFixed(2)+'km'}，k=${k_refract}）`;
+          curvDiv.style.display = 'block';
+        }
+
+        // ── 淨空差值計算：直接呼叫 vsCheckLOSFast 取得詳細結果 ──
+        const losDiv   = document.getElementById('vs-click-los');
+        const losVal   = document.getElementById('vs-click-los-val');
+        const worstDiv = document.getElementById('vs-click-worst');
+
+        // 清除上一次的柵欄標記
+        if (vsWorstMarker) { vsMap.removeLayer(vsWorstMarker); vsWorstMarker = null; }
+
+        if (losDiv && losVal && txEle !== null && clickEle !== null) {
+          // 使用與掃圓分析完全相同的函數（含地球曲率+大氣折射）
+          const resolution = Math.max(5, parseFloat(document.getElementById('vs-resolution').value) || 20);
+          const losResult = vsCheckLOSFast(cLat, cLng, txEle, txAntH, rxAntH, e.latlng.lat, e.latlng.lng, resolution);
+
+          if (sepDiv) sepDiv.style.display = 'block';
+
+          if (!losResult || losResult.visible === null) {
+            losVal.innerHTML = `❓ <span style="color:#94a3b8;">無法計算（DSM無資料）</span>`;
+            if (worstDiv) worstDiv.style.display = 'none';
+          } else {
+            const clr = losResult.clearance;
+            const clrStr = clr === Infinity ? '∞' : (clr >= 0 ? `+${clr.toFixed(1)}` : clr.toFixed(1));
+
+            if (losResult.visible) {
+              losVal.innerHTML =
+                `✅ <span style="font-weight:700; color:#00cc88;">無遮蔽</span>` +
+                `　最小淨空：<span style="font-weight:700; color:#51cf66; font-size:13px;">${clrStr} m</span>`;
+              if (worstDiv) worstDiv.style.display = 'none';
+            } else {
+              losVal.innerHTML =
+                `🚧 <span style="font-weight:700; color:#ff6b6b;">有遮蔽</span>` +
+                `　最大穿透：<span style="font-weight:700; color:#ff6b6b; font-size:13px;">${clrStr} m</span>`;
+
+              // 顯示最嚴苛遮蔽點詳細資訊
+              if (worstDiv && losResult.worstLat !== null) {
+                document.getElementById('vs-click-worst-coord').textContent =
+                  `${losResult.worstLat.toFixed(6)}, ${losResult.worstLng.toFixed(6)}`;
+                document.getElementById('vs-click-worst-ele').textContent =
+                  `${losResult.worstEle.toFixed(1)} m`;
+                document.getElementById('vs-click-worst-los').textContent =
+                  `${losResult.worstLosH.toFixed(1)} m`;
+                document.getElementById('vs-click-worst-pen').textContent =
+                  `${clrStr} m`;
+                worstDiv.style.display = 'block';
+
+                // 在地圖最嚴苛點放柵欄圖示
+                vsWorstMarker = L.marker([losResult.worstLat, losResult.worstLng], {
+                  icon: L.divIcon({
+                    className: '',
+                    html: `<div style="font-size:22px; line-height:1; filter:drop-shadow(0 0 3px #ff4444);" title="最嚴苛遮蔽點\n穿透: ${clrStr} m\n地表高: ${losResult.worstEle.toFixed(1)} m\n視線高: ${losResult.worstLosH.toFixed(1)} m">🚧</div>`,
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 13]
+                  }),
+                  zIndexOffset: 500
+                }).addTo(vsMap)
+                  .bindPopup(
+                    `<b>🚧 最嚴苛遮蔽點</b><br>` +
+                    `座標：${losResult.worstLat.toFixed(6)}, ${losResult.worstLng.toFixed(6)}<br>` +
+                    `地表高：${losResult.worstEle.toFixed(1)} m<br>` +
+                    `視線高：${losResult.worstLosH.toFixed(1)} m<br>` +
+                    `穿透量：<b style="color:#ff4444;">${clrStr} m</b>`
+                  );
+              }
+            }
+          }
+          losDiv.style.display = 'block';
+        } else if (losDiv) {
+          // 無DSM精確資料，但若有DSM快取仍可計算LOS（不限圓內）
+          if (vsDsmCache && txEle !== null && clickEle !== null) {
+            const resolution2 = Math.max(5, parseFloat(document.getElementById('vs-resolution').value) || 20);
+            const losResult2 = vsCheckLOSFast(cLat, cLng, txEle, txAntH, rxAntH, e.latlng.lat, e.latlng.lng, resolution2);
+            if (sepDiv) sepDiv.style.display = 'block';
+            if (!losResult2 || losResult2.visible === null) {
+              losVal.innerHTML = `❓ <span style="color:#94a3b8;">無法計算（DSM無資料）</span>`;
+              if (worstDiv) worstDiv.style.display = 'none';
+            } else {
+              const clr2 = losResult2.clearance;
+              const clrStr2 = clr2 === Infinity ? '∞' : (clr2 >= 0 ? `+${clr2.toFixed(1)}` : clr2.toFixed(1));
+              if (losResult2.visible) {
+                losVal.innerHTML = `✅ <span style="font-weight:700; color:#00cc88;">無遮蔽</span>　最小淨空：<span style="font-weight:700; color:#51cf66; font-size:13px;">${clrStr2} m</span>`;
+                if (worstDiv) worstDiv.style.display = 'none';
+              } else {
+                losVal.innerHTML = `🚧 <span style="font-weight:700; color:#ff6b6b;">有遮蔽</span>　最大穿透：<span style="font-weight:700; color:#ff6b6b; font-size:13px;">${clrStr2} m</span>`;
+                if (worstDiv && losResult2.worstLat !== null) {
+                  document.getElementById('vs-click-worst-coord').textContent = `${losResult2.worstLat.toFixed(6)}, ${losResult2.worstLng.toFixed(6)}`;
+                  document.getElementById('vs-click-worst-ele').textContent  = `${losResult2.worstEle.toFixed(1)} m`;
+                  document.getElementById('vs-click-worst-los').textContent  = `${losResult2.worstLosH.toFixed(1)} m`;
+                  document.getElementById('vs-click-worst-pen').textContent  = `${clrStr2} m`;
+                  worstDiv.style.display = 'block';
+                  if (vsWorstMarker) { vsMap.removeLayer(vsWorstMarker); vsWorstMarker = null; }
+                  vsWorstMarker = L.marker([losResult2.worstLat, losResult2.worstLng], {
+                    icon: L.divIcon({
+                      className: '',
+                      html: `<div style="font-size:22px; line-height:1; filter:drop-shadow(0 0 3px #ff4444);" title="最嚴苛遮蔽點">🚧</div>`,
+                      iconSize: [26, 26], iconAnchor: [13, 13]
+                    }), zIndexOffset: 500
+                  }).addTo(vsMap).bindPopup(
+                    `<b>🚧 最嚴苛遮蔽點</b><br>座標：${losResult2.worstLat.toFixed(6)}, ${losResult2.worstLng.toFixed(6)}<br>` +
+                    `地表高：${losResult2.worstEle.toFixed(1)} m<br>視線高：${losResult2.worstLosH.toFixed(1)} m<br>` +
+                    `穿透量：<b style="color:#ff4444;">${clrStr2} m</b>`
+                  );
+                }
+              }
+            }
+            losDiv.style.display = 'block';
+          } else if (vsCanvas && vsRawImageData) {
+            try {
+              const radiusKm  = parseFloat(document.getElementById('vs-radius').value) || 5;
+              const resolution = Math.max(5, parseFloat(document.getElementById('vs-resolution').value) || 20);
+              const gridN = Math.ceil(radiusKm * 1000 / resolution);
+              const size  = vsCanvas.width;
+              const mPerDegLat = 111320;
+              const mPerDegLng = 111320 * Math.cos(cLat * Math.PI / 180);
+              const col = Math.round((e.latlng.lng - cLng) / (resolution / mPerDegLng) + gridN);
+              const row = Math.round((cLat - e.latlng.lat) / (resolution / mPerDegLat) + gridN);
+              if (col >= 0 && col < size && row >= 0 && row < size) {
+                const idx = (row * size + col) * 4;
+                const src = vsRawImageData.data;
+                const isGreen = src[idx+1] > 150 && src[idx] < 50;
+                const isRed   = src[idx] > 150 && src[idx+1] < 80;
+                if (src[idx+3] === 0) {
+                  losVal.innerHTML = `🔘 <span style="color:#94a3b8;">掃描範圍外</span>`;
+                } else if (isGreen) {
+                  losVal.innerHTML = `✅ <span style="color:#00cc88; font-weight:700;">無遮蔽（可視）</span>`;
+                } else if (isRed) {
+                  losVal.innerHTML = `🚧 <span style="color:#ff6b6b; font-weight:700;">有遮蔽</span>`;
+                } else {
+                  losVal.innerHTML = `❓ <span style="color:#94a3b8;">無高程資料</span>`;
+                }
+                if (sepDiv) sepDiv.style.display = 'block';
+                losDiv.style.display = 'block';
+              } else { losDiv.style.display = 'none'; }
+            } catch(err) { losDiv.style.display = 'none'; }
+          } else { losDiv.style.display = 'none'; }
+        }
+
+      } else {
+        if (distDiv) distDiv.style.display = 'none';
+      }
+
+      // 展開顯示座標資訊框，並定位在透明度/顏色上方
+      info.style.display = 'block';
+      vsClickInfoExpanded = true;
+      const infoBody = document.getElementById('vs-click-info-body');
+      const infoArrow = document.getElementById('vs-click-info-arrow');
+      if (infoBody) infoBody.style.display = 'block';
+      if (infoArrow) infoArrow.textContent = '▲';
+      vsPositionClickInfo();
+      clearTimeout(vsClickTimer);
+    }
+
+    // 地圖上定位圖示（移除舊的，放新的）
+    if (vsClickMarker) { vsMap.removeLayer(vsClickMarker); vsClickMarker = null; }
+    vsClickMarker = L.marker(e.latlng, {
+      icon: L.divIcon({
+        className: '',
+        html: `<div style="
+          width:28px; height:28px;
+          background:rgba(95,240,213,0.9);
+          border:3px solid #fff;
+          border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);
+          box-shadow:0 2px 8px rgba(0,0,0,0.5);
+        "></div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 28]
+      })
+    }).addTo(vsMap);
+  });
+}
+
+let vsClickTimer = null;
+
+function vsCopyCoord() {
+  const info = document.getElementById('vs-click-info');
+  const text = info ? info._coordText : '';
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const ok = document.getElementById('vs-copy-ok');
+    if (ok) { ok.style.display = 'inline'; setTimeout(() => { ok.style.display = 'none'; }, 2000); }
+  }).catch(() => {
+    const coord = document.getElementById('vs-click-coord');
+    if (coord) {
+      const range = document.createRange();
+      range.selectNode(coord);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    }
+  });
+}
+
+let vsIsMapMaximized = false;
+let vsOriginalMapStyles = {};
+let vsExitBtn = null;
+
+function vsMaximizeMap() {
+  const container = document.getElementById('vs-map-container');
+  const mapDiv = document.getElementById('viewshed-map');
+  const btn = document.getElementById('vs-maximize-btn');
+  if (!container || !mapDiv || !btn) return;
+
+  if (!vsIsMapMaximized) {
+    // 進入全螢幕
+    const reqFS = container.requestFullscreen || container.webkitRequestFullscreen ||
+                  container.mozRequestFullScreen || container.msRequestFullscreen;
+    if (reqFS) reqFS.call(container);
+
+    vsOriginalMapStyles = {
+      containerBg: container.style.background,
+      containerPadding: container.style.padding,
+      containerDisplay: container.style.display,
+      containerFlexDir: container.style.flexDirection,
+      mapHeight: mapDiv.style.height,
+      mapFlex: mapDiv.style.flex,
+      mapBorderRadius: mapDiv.style.borderRadius
+    };
+
+    container.style.background = '#000';
+    container.style.padding = '0';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    btn.style.display = 'none';
+
+    // 地圖填滿剩餘空間
+    mapDiv.style.flex = '1';
+    mapDiv.style.width = '100%';
+    mapDiv.style.height = '100%';
+    mapDiv.style.minHeight = '0';
+    mapDiv.style.borderRadius = '0';
+    mapDiv.style.boxSizing = 'border-box';
+
+    // 建立退出按鈕
+    vsExitBtn = document.createElement('button');
+    vsExitBtn.innerHTML = '✕';
+    vsExitBtn.style.cssText = `
+      position:fixed; top:10px; right:10px;
+      width:40px; height:40px;
+      background:rgba(220,38,38,0.95); color:white;
+      border:2px solid rgba(255,255,255,0.3); border-radius:50%;
+      font-size:24px; font-weight:bold; cursor:pointer;
+      z-index:999999; box-shadow:0 4px 12px rgba(0,0,0,0.5);
+      display:flex; align-items:center; justify-content:center;
+      padding:0; line-height:1;
+    `;
+    vsExitBtn.onmouseover = function(){ this.style.background='rgba(185,28,28,0.95)'; this.style.transform='scale(1.1)'; };
+    vsExitBtn.onmouseout  = function(){ this.style.background='rgba(220,38,38,0.95)'; this.style.transform='scale(1)'; };
+    vsExitBtn.onclick = function() {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+      else if (document.msExitFullscreen) document.msExitFullscreen();
+    };
+    container.appendChild(vsExitBtn);
+
+    vsIsMapMaximized = true;
+    // 等全螢幕動畫結束後 invalidateSize
+    setTimeout(() => vsMap && vsMap.invalidateSize(), 300);
+  }
+}
+
+// 監聽全螢幕變化（按 Esc 退出時恢復）
+function vsHandleFullscreenChange() {
+  // 只處理掃圓地圖的全螢幕事件
+  if (!vsIsMapMaximized) return;
+  const container = document.getElementById('vs-map-container');
+  const mapDiv = document.getElementById('viewshed-map');
+  const btn = document.getElementById('vs-maximize-btn');
+  const isInFS = document.fullscreenElement || document.webkitFullscreenElement ||
+                 document.mozFullScreenElement || document.msFullscreenElement;
+  if (!isInFS && vsIsMapMaximized) {
+    // 恢復原樣
+    if (container) {
+      container.style.background = vsOriginalMapStyles.containerBg || '';
+      container.style.padding = vsOriginalMapStyles.containerPadding || '0';
+      container.style.display = '';
+      container.style.flexDirection = '';
+      container.style.justifyContent = '';
+      container.style.alignItems = '';
+    }
+    if (mapDiv) {
+      mapDiv.style.width = '100%';
+      mapDiv.style.height = '500px';
+      mapDiv.style.flex = '';
+      mapDiv.style.minHeight = '';
+      mapDiv.style.borderRadius = '8px';
+      mapDiv.style.boxSizing = '';
+    }
+    if (btn) btn.style.display = '';
+    if (vsExitBtn && vsExitBtn.parentNode) vsExitBtn.parentNode.removeChild(vsExitBtn);
+    vsExitBtn = null;
+    vsIsMapMaximized = false;
+    setTimeout(() => vsMap && vsMap.invalidateSize(), 150);
+  }
+}
+document.addEventListener('fullscreenchange', vsHandleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', vsHandleFullscreenChange);
+document.addEventListener('mozfullscreenchange', vsHandleFullscreenChange);
+document.addEventListener('MSFullscreenChange', vsHandleFullscreenChange);
+
+// 使用A點座標填入
+function vsUseCoordA() {
+  const latA = document.getElementById('sLat') || document.getElementById('latA');
+  const lngA = document.getElementById('sLng') || document.getElementById('lonA');
+  if (latA && latA.value) document.getElementById('vs-lat').value = latA.value;
+  if (lngA && lngA.value) document.getElementById('vs-lng').value = lngA.value;
+  if (vsMap) vsUpdateScanOverlay();
+}
+
+// 使用B點座標填入
+function vsUseCoordB() {
+  const latB = document.getElementById('eLat') || document.getElementById('latB');
+  const lngB = document.getElementById('eLng') || document.getElementById('lonB');
+  if (latB && latB.value) document.getElementById('vs-lat').value = latB.value;
+  if (lngB && lngB.value) document.getElementById('vs-lng').value = lngB.value;
+  if (vsMap) vsUpdateScanOverlay();
+}
+
+// 設定狀態文字
+function vsSetStatus(msg, color) {
+  const el = document.getElementById('vs-status');
+  if (el) { el.textContent = msg; el.style.color = color || '#94a3b8'; }
+}
+
+// 清除結果
+function clearViewshed() {
+  if (vsOverlay) { vsMap.removeLayer(vsOverlay); vsOverlay = null; }
+  if (vsCircle)  { vsMap.removeLayer(vsCircle);  vsCircle  = null; }
+  if (vsCenterMarker) { vsMap.removeLayer(vsCenterMarker); vsCenterMarker = null; }
+  if (vsScanOverlay) { vsMap.removeLayer(vsScanOverlay); vsScanOverlay = null; }
+  if (window.vsScanLines) {
+    window.vsScanLines.forEach(l => vsMap.removeLayer(l));
+    window.vsScanLines = [];
+  }
+  vsCanvas = null;
+  vsRawImageData = null;
+  if (vsWorstMarker) { vsMap.removeLayer(vsWorstMarker); vsWorstMarker = null; }
+  if (window.vsPeakMarker) { vsMap.removeLayer(window.vsPeakMarker); window.vsPeakMarker = null; }
+  const opCtrl = document.getElementById('vs-opacity-ctrl');
+  if (opCtrl) { opCtrl.style.display = 'none'; vsPositionClickInfo(); }
+  vsSetStatus('已清除', '#94a3b8');
+  document.getElementById('vs-progress-wrap').style.display = 'none';
+}
+
+// ── 搜尋掃描區域最高點，並將座標中心移過去 ──
+function vsFindHighestPoint() {
+  if (!vsDsmCache) {
+    alert('⚠️ 請先執行掃圓分析以載入高程資料，再搜尋最高點。');
+    return;
+  }
+
+  const cLat    = parseFloat(document.getElementById('vs-lat').value);
+  const cLng    = parseFloat(document.getElementById('vs-lng').value);
+  const radiusKm = parseFloat(document.getElementById('vs-radius').value) || 5;
+  const radiusM  = radiusKm * 1000;
+
+  if (isNaN(cLat) || isNaN(cLng)) {
+    alert('⚠️ 請先設定掃圓中心座標。');
+    return;
+  }
+
+  const btn = document.getElementById('vs-peak-btn');
+  if (btn) { btn.textContent = '⏳ 搜尋中…'; btn.disabled = true; }
+
+  // 使用 setTimeout 避免凍結 UI
+  setTimeout(() => {
+    const c = vsDsmCache;
+    const R = 6371000;
+    const mPerDegLat = 111320;
+    const mPerDegLng = 111320 * Math.cos(cLat * Math.PI / 180);
+
+    // 計算搜尋邊界（轉換成 DSM 像素範圍）
+    const latDelta = radiusM / mPerDegLat;
+    const lngDelta = radiusM / mPerDegLng;
+    const south = cLat - latDelta;
+    const north = cLat + latDelta;
+    const west  = cLng - lngDelta;
+    const east  = cLng + lngDelta;
+
+    // 轉換成像素索引範圍
+    const pxWest  = Math.max(0, Math.floor((west  - c.west)  / (c.east  - c.west)  * c.width));
+    const pxEast  = Math.min(c.width  - 1, Math.ceil( (east  - c.west)  / (c.east  - c.west)  * c.width));
+    const pyNorth = Math.max(0, Math.floor((c.north - north) / (c.north - c.south) * c.height));
+    const pySouth = Math.min(c.height - 1, Math.ceil( (c.north - south) / (c.north - c.south) * c.height));
+
+    const noData = [-32768,-32767,-9999,-99999,32767,65535];
+    let maxEle = -Infinity;
+    let bestPx = -1, bestPy = -1;
+
+    for (let py = pyNorth; py <= pySouth; py++) {
+      for (let px = pxWest; px <= pxEast; px++) {
+        const v = c.data[py * c.width + px];
+        if (v === null || v === undefined || isNaN(v)) continue;
+        if (noData.some(n => Math.abs(v - n) < 0.01)) continue;
+        if (v < -500 || v > 9000) continue;
+
+        // 計算此像素對應的地理座標（使用完整影像坐標系）
+        let pixLng, pixLat;
+        if (c.fullW) {
+          const absPx2 = px + c.blockPx0;
+          const absPy2 = py + c.blockPy0;
+          pixLng = c.fullBboxW + (absPx2 + 0.5) / c.fullW * (c.fullBboxE - c.fullBboxW);
+          pixLat = c.fullBboxN - (absPy2 + 0.5) / c.fullH * (c.fullBboxN - c.fullBboxS);
+        } else {
+          pixLng = c.west  + (px + 0.5) / c.width  * (c.east  - c.west);
+          pixLat = c.north - (py + 0.5) / c.height * (c.north - c.south);
+        }
+
+        // Haversine 距離：確認在圓半徑內
+        const dLat = (pixLat - cLat) * Math.PI / 180;
+        const dLng = (pixLng - cLng) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(cLat*Math.PI/180)*Math.cos(pixLat*Math.PI/180)*Math.sin(dLng/2)**2;
+        const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        if (dist > radiusM) continue;
+
+        if (v > maxEle) {
+          maxEle = v;
+          bestPx = px;
+          bestPy = py;
+        }
+      }
+    }
+
+    if (bestPx < 0) {
+      vsSetStatus('⚠️ 搜尋範圍內無有效高程資料', '#fbbf24');
+      if (btn) { btn.textContent = '🏔 搜尋最高點'; btn.disabled = false; }
+      return;
+    }
+
+    // 計算最高點地理座標（使用完整影像坐標系，與剖面圖一致）
+    let peakLng, peakLat;
+    if (c.fullW) {
+      const absPx = bestPx + c.blockPx0;
+      const absPy = bestPy + c.blockPy0;
+      peakLng = c.fullBboxW + (absPx + 0.5) / c.fullW * (c.fullBboxE - c.fullBboxW);
+      peakLat = c.fullBboxN - (absPy + 0.5) / c.fullH * (c.fullBboxN - c.fullBboxS);
+    } else {
+      peakLng = c.west  + (bestPx + 0.5) / c.width  * (c.east  - c.west);
+      peakLat = c.north - (bestPy + 0.5) / c.height * (c.north - c.south);
+    }
+    const peakEle = maxEle;
+
+    // 更新中心座標輸入框
+    document.getElementById('vs-lat').value = peakLat.toFixed(6);
+    document.getElementById('vs-lng').value = peakLng.toFixed(6);
+
+    // 同步更新響應式座標數據（A點）
+    if (window.coordinateData && coordinateData.A) {
+      coordinateData.A.lat = peakLat;
+      coordinateData.A.lng = peakLng;
+    }
+
+    // 移動地圖視圖到最高點
+    if (vsMap) vsMap.panTo([peakLat, peakLng]);
+
+    // 在地圖上放最高點標記
+    if (window.vsPeakMarker) { vsMap.removeLayer(window.vsPeakMarker); }
+    window.vsPeakMarker = L.marker([peakLat, peakLng], {
+      icon: L.divIcon({
+        className: '',
+        html: `<div style="font-size:26px; line-height:1; filter:drop-shadow(0 0 4px #ffb400);" title="最高點 ${peakEle.toFixed(1)} m">🏔</div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      }),
+      zIndexOffset: 600
+    }).addTo(vsMap)
+      .bindPopup(
+        `<b>🏔 掃描區域最高點</b><br>` +
+        `座標：${peakLat.toFixed(6)}, ${peakLng.toFixed(6)}<br>` +
+        `海拔高度：<b style="color:#ffb400;">${peakEle.toFixed(1)} m</b>`
+      ).openPopup();
+
+    const distToPeak = (() => {
+      const dL = (peakLat - cLat) * Math.PI / 180;
+      const dG = (peakLng - cLng) * Math.PI / 180;
+      const aa = Math.sin(dL/2)**2 + Math.cos(cLat*Math.PI/180)*Math.cos(peakLat*Math.PI/180)*Math.sin(dG/2)**2;
+      const dd = R * 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1-aa));
+      return dd < 1000 ? `${dd.toFixed(0)} m` : `${(dd/1000).toFixed(3)} km`;
+    })();
+
+    vsSetStatus(
+      `🏔 最高點：${peakLat.toFixed(6)}, ${peakLng.toFixed(6)}　海拔 ${peakEle.toFixed(1)} m　距中心 ${distToPeak}`,
+      '#ffb400'
+    );
+
+    if (btn) { btn.textContent = '🏔 搜尋最高點'; btn.disabled = false; }
+  }, 20);
+}
+
+
+// 取得目前高度資料來源（對應高度圖分頁選擇）
+// =====================================================
+// 高速掃圓核心：預載整塊 DSM 像素到記憶體
+// 所有查詢改為查陣列，速度提升 100~1000x
+// =====================================================
+let vsDsmCache = null; // { data: Float32Array, width, height, bbox }
+
+async function vsPreloadDSM(south, west, north, east) {
+  // 只支援 DSM TIF 預載（其他API無法一次取矩形）
+  if (!window.GeoTIFF) await loadGeoTIFFLibrary();
+
+  let image = null;
+
+  // 優先本地 TIF
+  if (localTifFileData && localTifFileData.tiff) {
+    image = localTifFileData.image;
+  } else {
+    // 嘗試本地 COG 或 GitHub
+    let tiff = null;
+    try { tiff = await GeoTIFF.fromUrl('libs/taiwan_dsm_wgs84_cog.tif'); }
+    catch(e) {
+      try { tiff = await GeoTIFF.fromUrl('taiwan_dsm_wgs84_cog.tif'); }
+      catch(e2) { tiff = await GeoTIFF.fromUrl('https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif'); }
+    }
+    image = await tiff.getImage();
+  }
+
+  const bbox  = image.getBoundingBox(); // [west, south, east, north]
+  const W     = image.getWidth();
+  const H     = image.getHeight();
+
+  // 計算要讀取的像素範圍（稍微擴大一點避免邊界誤差）
+  const margin = 5;
+  const px0 = Math.max(0, Math.floor((west  - bbox[0]) / (bbox[2] - bbox[0]) * W) - margin);
+  const py0 = Math.max(0, Math.floor((bbox[3] - north) / (bbox[3] - bbox[1]) * H) - margin);
+  const px1 = Math.min(W, Math.ceil( (east  - bbox[0]) / (bbox[2] - bbox[0]) * W) + margin);
+  const py1 = Math.min(H, Math.ceil( (bbox[3] - south) / (bbox[3] - bbox[1]) * H) + margin);
+
+  vsSetStatus('📥 預載高程資料中（只需一次）…', '#fbbf24');
+
+  // 一次讀取整個矩形區塊
+  const rasters = await image.readRasters({ window: [px0, py0, px1, py1] });
+  const blockW = px1 - px0;
+  const blockH = py1 - py0;
+
+  // 記錄這個區塊對應的地理範圍
+  const blockWest  = bbox[0] + px0 / W * (bbox[2] - bbox[0]);
+  const blockNorth = bbox[3] - py0 / H * (bbox[3] - bbox[1]);
+  const blockEast  = bbox[0] + px1 / W * (bbox[2] - bbox[0]);
+  const blockSouth = bbox[3] - py1 / H * (bbox[3] - bbox[1]);
+
+  vsDsmCache = {
+    data: rasters[0],
+    width: blockW,
+    height: blockH,
+    west: blockWest, east: blockEast,
+    north: blockNorth, south: blockSouth,
+    // 儲存完整影像資訊，讓 vsGetElevationFast 使用與剖面圖完全相同的像素映射公式
+    fullBboxW: bbox[0],   // full image west
+    fullBboxE: bbox[2],   // full image east
+    fullBboxN: bbox[3],   // full image north
+    fullBboxS: bbox[1],   // full image south
+    fullW: W,             // full image pixel width
+    fullH: H,             // full image pixel height
+    blockPx0: px0,        // block pixel offset X
+    blockPy0: py0         // block pixel offset Y
+  };
+
+  return true;
+}
+
+// 從記憶體陣列查詢高程（純同步，速度極快）
+// 使用與剖面圖完全相同的像素映射公式：pixelX = floor((lng - bbox[0]) / (bbox[2]-bbox[0]) * W)
+function vsGetElevationFast(lat, lng) {
+  if (!vsDsmCache) return null;
+  const c = vsDsmCache;
+
+  let px, py;
+  if (c.fullW) {
+    // 使用完整影像的 bbox + 像素尺寸（與剖面圖 runAnalysisWithTaiwanDSM 完全一致）
+    px = Math.floor((lng  - c.fullBboxW) / (c.fullBboxE - c.fullBboxW) * c.fullW) - c.blockPx0;
+    py = Math.floor((c.fullBboxN - lat)  / (c.fullBboxN - c.fullBboxS) * c.fullH) - c.blockPy0;
+  } else {
+    // 舊快取格式相容
+    px = Math.floor((lng - c.west)  / (c.east  - c.west)  * c.width);
+    py = Math.floor((c.north - lat) / (c.north - c.south) * c.height);
+  }
+
+  if (px < 0 || px >= c.width || py < 0 || py >= c.height) return null;
+  const v = c.data[py * c.width + px];
+  const noData = [-32768,-32767,-9999,-99999,32767,65535];
+  if (v === null || v === undefined || isNaN(v)) return null;
+  if (noData.some(n => Math.abs(v - n) < 0.01)) return null;
+  if (v < -500 || v > 9000) return null;
+  return v;
+}
+
+// LOS 通視判斷（純同步版，用記憶體陣列）
+// 回傳 { visible: bool|null, clearance: number, worstLat, worstLng, worstEle, worstLosH, dist }
+function vsCheckLOSFast(cLat, cLng, cEle, txH, rxH, tLat, tLng, resolution) {
+  const R = 6371000;
+  // 讀取使用者設定的大氣折射係數 K（預設1.33，標準大氣）
+  const k = Math.max(0.5, parseFloat(document.getElementById('vs-k-factor')?.value) || 1.33);
+  // Haversine 計算球面距離
+  const dLat0 = (tLat - cLat) * Math.PI / 180;
+  const dLng0 = (tLng - cLng) * Math.PI / 180;
+  const a0 = Math.sin(dLat0/2)**2 + Math.cos(cLat*Math.PI/180)*Math.cos(tLat*Math.PI/180)*Math.sin(dLng0/2)**2;
+  const dist = R * 2 * Math.atan2(Math.sqrt(a0), Math.sqrt(1-a0));
+
+  if (dist < resolution) return { visible: true, clearance: Infinity, dist };
+
+  const tEle = vsGetElevationFast(tLat, tLng);
+  if (tEle === null) return { visible: null, clearance: null, dist };
+
+  const steps = Math.max(2, Math.ceil(dist / resolution));
+  const srcH = cEle + txH;   // 發射端絕對高程（地表 + 天線）
+  const dstH = tEle + rxH;   // 接收端絕對高程（地表 + 天線）
+
+  let minClearance = Infinity;
+  let worstLat = null, worstLng = null, worstEle = null, worstLosH = null;
+
+  for (let i = 1; i < steps - 1; i++) {
+    const f = i / (steps - 1);
+    const lat = cLat + (tLat - cLat) * f;
+    const lng = cLng + (tLng - cLng) * f;
+    const ele = vsGetElevationFast(lat, lng);
+    if (ele === null) continue;
+
+    // 視線高度（線性插值）
+    const losH = srcH + (dstH - srcH) * f;
+    // 地球曲率+大氣折射修正（ITU-R P.530，d1×d2/(2kR)，與剖面圖一致）
+    const d1_vs = f * dist;
+    const d2_vs = (1 - f) * dist;
+    const hCurv = (d1_vs * d2_vs) / (2 * k * R);
+    const eleEffective = ele - hCurv; // 等效地形高（扣除曲率下沉）
+    const clearance = losH - eleEffective; // 正=淨空，負=穿透
+
+    if (clearance < minClearance) {
+      minClearance = clearance;
+      worstLat = lat; worstLng = lng;
+      worstEle = ele; worstLosH = losH;
+    }
+  }
+
+  const visible = minClearance === Infinity ? true : minClearance >= 0;
+  return { visible, clearance: minClearance === Infinity ? Infinity : minClearance,
+           worstLat, worstLng, worstEle, worstLosH, dist };
+}
+
+// 備用：非DSM來源仍用舊的async方式
+async function vsGetElevationAsync(lat, lng) {
+  const apiSel = document.getElementById('elevationApiSelector');
+  const api = apiSel ? apiSel.value : 'taiwan-dsm';
+  if (api === 'google-maps') return await getElevationFromGoogleAPI(lat, lng);
+  return await getElevationFromOpenElevationSimple(lat, lng);
+}
+
+// 預估格數提示（保留）
+
+// 預估格數提示
+function vsUpdateCellCount() {
+  const r = parseFloat(document.getElementById('vs-radius').value) || 5;
+  const res = Math.max(5, parseFloat(document.getElementById('vs-resolution').value) || 20);
+  const gridN = Math.ceil(r * 1000 / res);
+  const approx = Math.round(Math.PI * gridN * gridN);
+  const hint = document.getElementById('vs-cell-hint');
+  if (hint) {
+    let warn = '';
+    if (approx > 200000) warn = ' ⚠️慢';
+    else if (approx > 50000) warn = ' 需數分鐘';
+    hint.textContent = `約 ${approx.toLocaleString()} 格${warn}`;
+    hint.style.color = approx > 200000 ? '#ff6464' : approx > 50000 ? '#fbbf24' : '#94a3b8';
+  }
+}
+
+// 主函數：掃圓分析
+async function startViewshed() {
+  if (vsRunning) {
+    vsAbort = true;
+    vsRunning = false;
+    document.getElementById('vs-run-btn').textContent = '🔍 開始掃圓分析';
+    vsSetStatus('已中止', '#fbbf24');
+    return;
+  }
+
+  const cLat = parseFloat(document.getElementById('vs-lat').value);
+  const cLng = parseFloat(document.getElementById('vs-lng').value);
+  const antH = parseFloat(document.getElementById('vs-ant-height').value) || 10;
+  const rxH  = parseFloat(document.getElementById('vs-rx-height').value)  || 3;
+  const radiusKm = parseFloat(document.getElementById('vs-radius').value) || 5;
+  const resolution = Math.max(5, parseFloat(document.getElementById('vs-resolution').value) || 20);
+
+  // 讀取掃描角度（0°=正北，順時針）
+  const angleStart = parseFloat(document.getElementById('vs-angle-start').value) || 0;
+  const angleEnd   = parseFloat(document.getElementById('vs-angle-end').value);
+  const angleEndVal = isNaN(angleEnd) ? 359 : angleEnd;
+  const isFullCircle = (Math.abs(angleEndVal - angleStart) >= 359) ||
+                       (angleStart === 0 && angleEndVal >= 359);
+
+  if (isNaN(cLat) || isNaN(cLng)) {
+    vsSetStatus('❌ 請輸入中心座標', '#ff6464');
+    return;
+  }
+
+  initViewshedMap();
+  clearViewshed();
+
+  // 更新掃描角度虛線覆蓋層
+  vsUpdateScanOverlay();
+  vsRunning = true;
+  vsAbort = false;
+  document.getElementById('vs-run-btn').textContent = '⏹ 中止分析';
+  document.getElementById('vs-progress-wrap').style.display = 'block';
+
+  // 計算 Canvas 大小
+  const radiusM = radiusKm * 1000;
+  const gridN = Math.ceil(radiusM / resolution);
+  const size = gridN * 2 + 1;
+
+  // 緯度/經度每格對應的度數
+  const mPerDegLat = 111320;
+  const mPerDegLng = 111320 * Math.cos(cLat * Math.PI / 180);
+  const dLat = resolution / mPerDegLat;
+  const dLng = resolution / mPerDegLng;
+
+  // 掃圓地理邊界
+  const south = cLat - gridN * dLat;
+  const north = cLat + gridN * dLat;
+  const west  = cLng - gridN * dLng;
+  const east  = cLng + gridN * dLng;
+  const bounds = [[south, west], [north, east]];
+
+  // 判斷是否可用快速模式（DSM TIF）
+  const apiSel = document.getElementById('elevationApiSelector');
+  const api = apiSel ? apiSel.value : 'taiwan-dsm';
+  const useFastMode = (api === 'taiwan-dsm');
+
+  // ── 快速模式：預載整塊高程到記憶體 ──
+  if (useFastMode) {
+    vsDsmCache = null;
+    try {
+      await vsPreloadDSM(south, west, north, east);
+    } catch(e) {
+      vsSetStatus('❌ 高程資料載入失敗：' + e.message, '#ff6464');
+      vsRunning = false;
+      document.getElementById('vs-run-btn').textContent = '🔍 開始掃圓分析';
+      return;
+    }
+  }
+
+  // 取得中心點高程
+  let cEle;
+  try {
+    cEle = useFastMode
+      ? vsGetElevationFast(cLat, cLng)
+      : await vsGetElevationAsync(cLat, cLng);
+    if (cEle === null) throw new Error('無法取得高程');
+  } catch(e) {
+    vsSetStatus('❌ 無法取得中心點高程：' + e.message, '#ff6464');
+    vsRunning = false;
+    document.getElementById('vs-run-btn').textContent = '🔍 開始掃圓分析';
+    return;
+  }
+
+  // 建立 Canvas
+  const canvas = document.createElement('canvas');
+  canvas.width  = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, size, size);
+  vsCanvas = canvas;        // 保存全域引用
+  vsRawImageData = null;    // 重置原始資料
+
+  // 移到地圖
+  vsMap.setView([cLat, cLng], Math.max(10, 14 - Math.floor(radiusKm / 3)));
+
+  // 角度範圍說明字串
+  const angleDesc = isFullCircle ? '全圓 0°~359°' : `${angleStart}°~${angleEndVal}°`;
+
+  // 畫中心標記
+  vsCenterMarker = L.circleMarker([cLat, cLng], {
+    radius: 8, color: '#ffd43b', fillColor: '#ffd43b',
+    fillOpacity: 0.9, weight: 2
+  }).addTo(vsMap).bindPopup(`<b>中心點（發射端）</b><br>${cLat.toFixed(6)}, ${cLng.toFixed(6)}<br>地表高程: ${cEle.toFixed(1)} m<br>發射天線高: ${antH} m<br>接收天線高: ${rxH} m<br>掃描角度: ${angleDesc}`);
+
+  // 畫半徑圓（範圍圓，黃色填充）
+  vsCircle = L.circle([cLat, cLng], {
+    radius: radiusM, color: '#ffc800', fillColor: '#ffc800',
+    fillOpacity: 0.04, weight: 2, dashArray: '6,4'
+  }).addTo(vsMap);
+
+  // 建立 ImageOverlay
+  vsOverlay = L.imageOverlay(canvas.toDataURL(), bounds, { opacity: 0.75, interactive: false }).addTo(vsMap);
+
+  // 角度判斷輔助函數：某格是否在掃描角度範圍內
+  // 計算從中心到目標的方位角（0°=正北，順時針）
+  function getBearing(fromLat, fromLng, toLat, toLng) {
+    const dLat = toLat - fromLat;
+    const dLng = (toLng - fromLng) * Math.cos(fromLat * Math.PI / 180);
+    let bearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
+    if (bearing < 0) bearing += 360;
+    return bearing;
+  }
+
+  function isInAngleRange(bearing, start, end) {
+    if (isFullCircle) return true;
+    // 處理跨越0度的情況（如315~45）
+    let s = ((start % 360) + 360) % 360;
+    let e = ((end % 360) + 360) % 360;
+    if (s <= e) {
+      return bearing >= s && bearing <= e;
+    } else {
+      // 跨越0度
+      return bearing >= s || bearing <= e;
+    }
+  }
+
+  // 計算圓內格數（帶角度篩選）
+  const totalCells = [];
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const dx = col - gridN, dy = row - gridN;
+      if (dx*dx + dy*dy <= gridN*gridN) {
+        if (isFullCircle) {
+          totalCells.push([row, col]);
+        } else {
+          // 只計算在角度範圍內的格
+          const tLat = cLat + (gridN - row) * dLat;
+          const tLng = cLng + (col - gridN) * dLng;
+          if (dx === 0 && dy === 0) { totalCells.push([row, col]); continue; }
+          const bearing = getBearing(cLat, cLng, tLat, tLng);
+          if (isInAngleRange(bearing, angleStart, angleEndVal)) {
+            totalCells.push([row, col]);
+          }
+        }
+      }
+    }
+  }
+
+  const total = totalCells.length;
+  let done = 0;
+  vsSetStatus(`分析中… 共 ${total.toLocaleString()} 格${useFastMode ? '（高速模式）' : ''}｜${angleDesc}`, '#5ff0d5');
+
+  if (useFastMode) {
+    // ══════════════════════════════════════
+    // 高速模式：純同步計算，每批 5000 格
+    // 批次之間 yield 讓瀏覽器保持回應
+    // ══════════════════════════════════════
+    const FAST_BATCH = 5000;
+    const imgData = ctx.createImageData(size, size);
+    const px = imgData.data;
+
+    for (let i = 0; i < totalCells.length; i += FAST_BATCH) {
+      if (vsAbort) break;
+      const end = Math.min(i + FAST_BATCH, totalCells.length);
+
+      for (let j = i; j < end; j++) {
+        const [row, col] = totalCells[j];
+        const tLat = cLat + (gridN - row) * dLat;
+        const tLng = cLng + (col - gridN) * dLng;
+        const result = vsCheckLOSFast(cLat, cLng, cEle, antH, rxH, tLat, tLng, resolution);
+        const vis = result ? result.visible : null;
+        const idx = (row * size + col) * 4;
+        if (vis === true) {
+          px[idx]=0; px[idx+1]=200; px[idx+2]=136; px[idx+3]=255;  // 綠（原始alpha=255，透明度由slider控制）
+        } else if (vis === false) {
+          px[idx]=204; px[idx+1]=34; px[idx+2]=0; px[idx+3]=255;   // 紅（原始alpha=255）
+        } else {
+          px[idx]=120; px[idx+1]=120; px[idx+2]=120; px[idx+3]=100; // 灰（無資料）
+        }
+        done++;
+      }
+
+      // 保存原始像素（每批更新）
+      vsRawImageData = new ImageData(new Uint8ClampedArray(px), size, size);
+
+      // 套用目前透明度設定後再渲染
+      const renderImg = ctx.createImageData(size, size);
+      const rd = renderImg.data;
+      for (let k = 0; k < px.length; k += 4) {
+        rd[k]=px[k]; rd[k+1]=px[k+1]; rd[k+2]=px[k+2];
+        const isGreen = px[k+1] > 150 && px[k] < 50;
+        const isRed   = px[k] > 150 && px[k+1] < 80;
+        if (isGreen)      rd[k+3] = px[k+3] > 0 ? vsOpacityVisible : 0;
+        else if (isRed)   rd[k+3] = px[k+3] > 0 ? vsOpacityBlocked : 0;
+        else              rd[k+3] = px[k+3];
+      }
+
+      // 每批更新進度與畫面
+      const pct = Math.round(done / total * 100);
+      document.getElementById('vs-progress-bar').style.width = pct + '%';
+      document.getElementById('vs-progress-text').textContent =
+        `${done.toLocaleString()} / ${total.toLocaleString()} 格 (${pct}%) ⚡高速模式`;
+      ctx.putImageData(renderImg, 0, 0);
+      vsOverlay.setUrl(canvas.toDataURL());
+      await new Promise(r => setTimeout(r, 0)); // yield
+    }
+
+  } else {
+    // ══════════════════════════════════════
+    // 一般模式（非DSM）：async 逐格查詢
+    // ══════════════════════════════════════
+    const BATCH = 30;
+    let updateCounter = 0;
+    for (let i = 0; i < totalCells.length; i += BATCH) {
+      if (vsAbort) break;
+      const batch = totalCells.slice(i, i + BATCH);
+      await Promise.all(batch.map(async ([row, col]) => {
+        if (vsAbort) return;
+        const tLat = cLat + (gridN - row) * dLat;
+        const tLng = cLng + (col - gridN) * dLng;
+        const tEle = await vsGetElevationAsync(tLat, tLng).catch(() => null);
+        let vis = null;
+        if (tEle !== null) {
+          // 簡化LOS（非DSM無法逐點，只做終點判斷）
+          vis = (cEle + antH) >= tEle;
+        }
+        if (vis === true)  ctx.fillStyle = 'rgba(95,240,213,0.6)';
+        else if (vis === false) ctx.fillStyle = 'rgba(255,70,70,0.75)';
+        else ctx.fillStyle = 'rgba(150,150,150,0.3)';
+        ctx.fillRect(col, row, 1, 1);
+        done++;
+      }));
+      updateCounter += BATCH;
+      if (updateCounter >= 300) {
+        updateCounter = 0;
+        const pct = Math.round(done / total * 100);
+        document.getElementById('vs-progress-bar').style.width = pct + '%';
+        document.getElementById('vs-progress-text').textContent = `${done.toLocaleString()} / ${total.toLocaleString()} 格 (${pct}%)`;
+        vsOverlay.setUrl(canvas.toDataURL());
+        await new Promise(r => setTimeout(r, 0));
+      }
+    }
+  }
+
+  // 最終更新
+  vsOverlay.setUrl(canvas.toDataURL());
+  document.getElementById('vs-progress-bar').style.width = '100%';
+  document.getElementById('vs-progress-text').textContent = `完成！共分析 ${total.toLocaleString()} 格`;
+
+  // 顯示透明度控制面板
+  const opCtrl = document.getElementById('vs-opacity-ctrl');
+  if (opCtrl) { opCtrl.style.display = 'block'; vsPositionClickInfo(); }
+
+  vsRunning = false;
+  vsAbort = false;
+  document.getElementById('vs-run-btn').textContent = '🔍 開始掃圓分析';
+
+  const blockedCount = (() => {
+    const imgData = ctx.getImageData(0, 0, size, size).data;
+    let cnt = 0;
+    for (let i = 0; i < imgData.length; i += 4) {
+      if (imgData[i] > 200 && imgData[i+1] < 100) cnt++; // 紅色格
+    }
+    return cnt;
+  })();
+  const visibleCount = total - blockedCount;
+  const blockPct = Math.round(blockedCount / total * 100);
+  const dataSource = useFastMode ? '內政部DSM(含建物)' : '其他API';
+  vsSetStatus(`✅ 完成｜${angleDesc}｜可視 ${visibleCount.toLocaleString()} 格 / 遮蔽 ${blockedCount.toLocaleString()} 格 (${blockPct}%)｜${dataSource}｜含地球曲率+大氣折射修正`, '#5ff0d5');
+}
+
+// 切換到高度圖分頁時初始化地圖
+document.addEventListener('DOMContentLoaded', function() {
+  // 監聽分頁切換，確保地圖尺寸正確
+  const elevTab = document.querySelector('[onclick*="elevation"]') ||
+                  document.querySelector('[data-tab="elevation"]');
+  if (elevTab) {
+    elevTab.addEventListener('click', function() {
+      setTimeout(() => {
+        if (vsMap) vsMap.invalidateSize();
+      }, 200);
+    });
+  }
+});
+</script>
 </div>
 </div>
+
 
 <!-- 指北針分頁 -->
 <div id="compass-content" class="tab-content">
@@ -7028,15 +8636,22 @@ function renderChart(elevations) {
     }
 
   }
+  // 讀取使用者設定的大氣折射係數 K（預設1.33）
+  const k_earth = Math.max(0.5, parseFloat(document.getElementById('profile-k-factor')?.value) || 1.33);
   const losLineWithCurvature = adjustedElevations.map((_, i) => {
     const f = i / (adjustedElevations.length - 1);
     const distFromStart = totalDistM * f;
     const straightLineHeight = adjustedElevations[0] + (adjustedElevations[adjustedElevations.length-1] - adjustedElevations[0]) * f;
     const d1 = distFromStart;
     const d2 = totalDistM - distFromStart;
-    const earthDrop = (d1 * d2) / (2 * R);
+    // ITU-R P.530：d1×d2/(2×k×R)，k 由使用者輸入
+    const earthDrop = (d1 * d2) / (2 * k_earth * R);
     return straightLineHeight - earthDrop;
   });
+  // 全域快取供 jumpToMaxObstruction 等函數使用
+  window._profileLosLine  = losLineWithCurvature;
+  window._profileAdjEle   = adjustedElevations;
+  window._profileTerrains = elevations;
 
   // 計算菲涅爾半徑所需的波長
   const freqMHz = parseFloat(document.getElementById('link_freq_mhz')?.value) || 2400;
@@ -11891,6 +13506,8 @@ function maximizeRouteMap() {
       containerPadding: container.style.padding,
       containerDisplay: container.style.display,
       mapHeight: mapDiv.style.height,
+      mapFlex: mapDiv.style.flex,
+      mapMinHeight: mapDiv.style.minHeight,
       mapBorder: mapDiv.style.border,
       mapBorderRadius: mapDiv.style.borderRadius
     };
@@ -11898,12 +13515,14 @@ function maximizeRouteMap() {
     container.style.padding = '0';
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
-    container.style.justifyContent = 'center';
-    container.style.alignItems = 'center';
+    container.style.justifyContent = '';
+    container.style.alignItems = '';
     if (details) details.style.display = 'none';
     btn.style.display = 'none';
+    mapDiv.style.flex = '1';
     mapDiv.style.width = '100%';
     mapDiv.style.height = '100%';
+    mapDiv.style.minHeight = '0';
     mapDiv.style.border = '2px solid #5ff0d5';
     mapDiv.style.borderRadius = '0';
     mapDiv.style.boxSizing = 'border-box';
@@ -11986,6 +13605,8 @@ document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 document.addEventListener('mozfullscreenchange', handleFullscreenChange);
 document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 function handleFullscreenChange() {
+  // 只處理 AB 圖的全螢幕事件，避免干擾掃圓地圖
+  if (!isMapMaximized) return;
   const container = document.getElementById('route-map-container');
   const mapDiv = document.getElementById('route-map');
   const btn = document.getElementById('maximizeMapBtn');
@@ -12001,8 +13622,10 @@ function handleFullscreenChange() {
       container.style.alignItems = '';
       if (details) details.style.display = 'block';
       btn.style.display = '';
+      mapDiv.style.flex = '';
       mapDiv.style.width = '';
       mapDiv.style.height = originalMapStyles.mapHeight || '450px';
+      mapDiv.style.minHeight = '';
       mapDiv.style.border = originalMapStyles.mapBorder || '2px solid #5ff0d5';
       mapDiv.style.borderRadius = originalMapStyles.mapBorderRadius || '8px';
       mapDiv.style.boxSizing = '';
@@ -12165,15 +13788,14 @@ function jumpToMaxObstruction() {
     alert('請先生成路徑剖面圖');
     return;
   }
-  if (!chartInstance || !chartInstance.data.datasets[1]) {
-    alert('無法獲取視距連線數據');
-    return;
-  }
-  const losLineData = chartInstance.data.datasets[1].data;
+  const losLineData = window._profileLosLine ||
+    (chartInstance && chartInstance.data.datasets[1] && chartInstance.data.datasets[1].data);
+  const adjEle = window._profileAdjEle || elevationData;
+  if (!losLineData) { alert('請先生成路徑剖面圖'); return; }
   let maxObstruction = 0;
   let maxObstructionIndex = -1;
-  for (let i = 1; i < elevationData.length - 1; i++) {
-    const terrainHeight = elevationData[i];
+  for (let i = 1; i < adjEle.length - 1; i++) {
+    const terrainHeight = adjEle[i];
     const losHeight = losLineData[i];
     const clearance = losHeight - terrainHeight;
     if (clearance < 0 && clearance < maxObstruction) {
@@ -12220,14 +13842,13 @@ function jumpToFirstObstructionFromStart() {
     alert('請先生成路徑剖面圖');
     return;
   }
-  if (!chartInstance || !chartInstance.data.datasets[1]) {
-    alert('無法獲取視距連線數據');
-    return;
-  }
-  const losLineData = chartInstance.data.datasets[1].data;
-  for (let i = 1; i < elevationData.length - 1; i++) {
-    const terrainHeight = elevationData[i];
-    const losHeight = losLineData[i];
+  const losLineData_s = window._profileLosLine ||
+    (chartInstance && chartInstance.data.datasets[1] && chartInstance.data.datasets[1].data);
+  const adjEle_s = window._profileAdjEle || elevationData;
+  if (!losLineData_s) { alert('請先生成路徑剖面圖'); return; }
+  for (let i = 1; i < adjEle_s.length - 1; i++) {
+    const terrainHeight = adjEle_s[i];
+    const losHeight = losLineData_s[i];
     const clearance = losHeight - terrainHeight;
     if (clearance < 0) {
       showMap(i, getElevationForIndex(i));
@@ -12276,14 +13897,13 @@ function jumpToFirstObstructionFromEnd() {
     alert('請先生成路徑剖面圖');
     return;
   }
-  if (!chartInstance || !chartInstance.data.datasets[1]) {
-    alert('無法獲取視距連線數據');
-    return;
-  }
-  const losLineData = chartInstance.data.datasets[1].data;
-  for (let i = elevationData.length - 2; i > 0; i--) {
-    const terrainHeight = elevationData[i];
-    const losHeight = losLineData[i];
+  const losLineData_e = window._profileLosLine ||
+    (chartInstance && chartInstance.data.datasets[1] && chartInstance.data.datasets[1].data);
+  const adjEle_e = window._profileAdjEle || elevationData;
+  if (!losLineData_e) { alert('請先生成路徑剖面圖'); return; }
+  for (let i = adjEle_e.length - 2; i > 0; i--) {
+    const terrainHeight = adjEle_e[i];
+    const losHeight = losLineData_e[i];
     const clearance = losHeight - terrainHeight;
     if (clearance < 0) {
       showMap(i, getElevationForIndex(i));
