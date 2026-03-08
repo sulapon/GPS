@@ -1570,134 +1570,133 @@ div.gps-ig.orange-border-card,
 </div>
 
 <!-- ===== 掃圓遮蔽分析區塊 ===== -->
-<div class="card" style="margin-top:12px;">
-  <h2 class="section-title" style="margin-top:0;">🔭 掃圓遮蔽分析（Canvas 高效版）</h2>
+<div class="card" style="margin-top:12px; padding:6px 0;">
+  <h2 class="section-title" style="margin-top:0; padding:0 8px;">🔭 掃圓遮蔽分析（Canvas 高效版）</h2>
 
-  <div class="orange-border-card" style="padding:10px 12px; margin-bottom:8px;">
+  <div class="orange-border-card" style="padding:10px 12px; margin-bottom:8px; margin-left:0; margin-right:0; width:100%; display:block; border-radius:0 !important;">
 
-    <!-- 第一排：發射端座標 + 發射天線高 -->
+    <!-- ① 發射端：緯度 / 經度 / 發射天線高 -->
     <div style="font-size:12px; color:#5ff0d5; font-weight:bold; margin-bottom:4px;">📡 發射端（中心點）</div>
-    <div style="display:grid; grid-template-columns:2fr 2fr 1fr; gap:8px; align-items:end; margin-bottom:8px;">
+    <div style="display:grid; grid-template-columns:2fr 2fr 1fr; gap:6px; align-items:end; margin-bottom:8px;">
       <div>
-        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">中心緯度</label>
-        <input type="number" id="vs-lat" step="0.000001" placeholder="例如 24.164547"
-          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
+        <label style="color:var(--label); font-size:12px; display:block; text-align:center; margin-bottom:2px;">中心緯度</label>
+        <input type="number" id="vs-lat" step="0.000001" placeholder="24.164547"
+          style="width:100%; padding:5px 6px; font-size:14px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
           oninput="if(vsMap) vsUpdateScanOverlay()">
       </div>
       <div>
-        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">中心經度</label>
-        <input type="number" id="vs-lng" step="0.000001" placeholder="例如 120.641258"
-          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
+        <label style="color:var(--label); font-size:12px; display:block; text-align:center; margin-bottom:2px;">中心經度</label>
+        <input type="number" id="vs-lng" step="0.000001" placeholder="120.641258"
+          style="width:100%; padding:5px 6px; font-size:14px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
           oninput="if(vsMap) vsUpdateScanOverlay()">
       </div>
       <div>
-        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">發射天線高 (m)</label>
+        <label style="color:var(--label); font-size:12px; display:block; text-align:center; margin-bottom:2px;">發射天線高(m)</label>
         <input type="number" id="vs-ant-height" value="10" min="0" step="0.5"
-          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;">
+          style="width:100%; padding:5px 6px; font-size:14px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;">
       </div>
     </div>
 
-    <!-- 第二排：掃圓參數 + 接收天線高 -->
-    <div style="font-size:12px; color:#ffd43b; font-weight:bold; margin-bottom:4px;">📻 接收端 / 掃圓參數</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; align-items:end; margin-bottom:8px;">
+    <!-- ② 接收端：天線高 / 起始距離 / 結束距離 / 解析度 -->
+    <div style="font-size:12px; color:#ffd43b; font-weight:bold; margin-bottom:4px;">📻 接收端 / 掃圓範圍</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; align-items:end; margin-bottom:4px;">
       <div>
-        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">接收天線高 (m)</label>
+        <label style="color:var(--label); font-size:12px; display:block; text-align:center; margin-bottom:2px;">接收天線高(m)</label>
         <input type="number" id="vs-rx-height" value="3" min="0" step="0.5"
-          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,200,0,0.4); text-align:center;">
+          style="width:100%; padding:5px 4px; font-size:14px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,200,0,0.4); text-align:center;">
       </div>
       <div>
-        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">掃圓半徑 (km)</label>
+        <label style="color:var(--label); font-size:12px; display:block; text-align:center; margin-bottom:2px;">起始距離(km)</label>
+        <input type="number" id="vs-inner-radius" value="0" min="0" max="50" step="0.5"
+          style="width:100%; padding:5px 4px; font-size:14px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,180,0,0.4); text-align:center;"
+          oninput="vsUpdateCellCount(); vsUpdateScanOverlay()" placeholder="0">
+      </div>
+      <div>
+        <label style="color:var(--label); font-size:12px; display:block; text-align:center; margin-bottom:2px;">結束距離(km)</label>
         <input type="number" id="vs-radius" value="5" min="0.5" max="50" step="0.5"
-          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
+          style="width:100%; padding:5px 4px; font-size:14px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
           oninput="vsUpdateCellCount(); vsUpdateScanOverlay()">
       </div>
       <div>
-        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">格距解析度 (m)</label>
+        <label style="color:var(--label); font-size:12px; display:block; text-align:center; margin-bottom:2px;">格距解析度(m)</label>
         <input type="number" id="vs-resolution" value="20" min="5" max="200" step="5"
-          style="width:100%; padding:5px 8px; font-size:15px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
+          style="width:100%; padding:5px 4px; font-size:14px; color:var(--value); background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.15); text-align:center;"
           oninput="vsUpdateCellCount()">
-        <div id="vs-cell-hint" style="color:#94a3b8; font-size:11px; text-align:center; margin-top:2px;">約 7,845 格</div>
       </div>
     </div>
 
-    <!-- 第二排b：大氣折射K -->
-    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-      <label style="color:#b197fc; font-size:14px; flex-shrink:0; white-space:nowrap;" title="ITU-R P.530 標準大氣=1.33，超折射(海面/熱帶)≈1.5，低折射(乾熱)&lt;1.33">🌐 大氣折射修正 K</label>
+    <!-- ③ 格數估算 + 大氣折射K（同一行） -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+      <div id="vs-cell-hint" style="color:#94a3b8; font-size:12px; min-width:80px;">約 7,845 格</div>
+      <div style="flex:1; height:1px; background:rgba(255,255,255,0.06);"></div>
+      <label style="color:#b197fc; font-size:13px; flex-shrink:0; white-space:nowrap;" title="ITU-R P.530 標準大氣=1.33，超折射(海面/熱帶)≈1.5，低折射(乾熱)&lt;1.33">🌐 大氣折射K</label>
       <input type="number" id="vs-k-factor" value="1.33" min="0.5" max="5" step="0.01"
-        style="width:88px; padding:5px 8px; font-size:15px; color:#b197fc; background:rgba(177,151,252,0.07); border-radius:6px; border:2px solid rgba(177,151,252,0.45); text-align:center;">
-      <span style="color:#94a3b8; font-size:11px; line-height:1.4;">標準大氣 1.33｜超折射(海面) ≈1.5｜低折射(乾熱) &lt;1.33</span>
+        style="width:72px; padding:4px 6px; font-size:14px; color:#b197fc; background:rgba(177,151,252,0.07); border-radius:6px; border:2px solid rgba(177,151,252,0.45); text-align:center;">
+      <span style="color:#94a3b8; font-size:11px; white-space:nowrap;">1.33標準｜≈1.5超折射｜&lt;1.33低折射</span>
     </div>
 
-    <!-- 第三排：掃描角度 -->
-    <div style="font-size:12px; color:#ffd43b; font-weight:bold; margin-bottom:4px;">🧭 掃描角度（0° = 正北，順時針）</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; align-items:end; margin-bottom:10px;">
+    <!-- ④ 掃描角度：起始 / 結束 + 快速按鈕 -->
+    <div style="font-size:12px; color:#ffd43b; font-weight:bold; margin-bottom:4px;">🧭 掃描角度（0°=正北，順時針）</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:6px; align-items:center; margin-bottom:8px;">
       <div>
-        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">起始角度 (°)</label>
+        <label style="color:var(--label); font-size:12px; display:block; text-align:center; margin-bottom:2px;">起始角度 (°)</label>
         <input type="number" id="vs-angle-start" value="0" min="0" max="359" step="1"
-          style="width:100%; padding:5px 8px; font-size:15px; color:#ffd43b; background:transparent; border-radius:6px; border:1px solid rgba(255,215,0,0.5); text-align:center;"
+          style="width:100%; padding:5px 6px; font-size:14px; color:#ffd43b; background:transparent; border-radius:6px; border:1px solid rgba(255,215,0,0.5); text-align:center;"
           oninput="vsUpdateCellCount(); vsUpdateScanOverlay()">
       </div>
       <div>
-        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">結束角度 (°)</label>
+        <label style="color:var(--label); font-size:12px; display:block; text-align:center; margin-bottom:2px;">結束角度 (°)</label>
         <input type="number" id="vs-angle-end" value="359" min="0" max="359" step="1"
-          style="width:100%; padding:5px 8px; font-size:15px; color:#ffd43b; background:transparent; border-radius:6px; border:1px solid rgba(255,215,0,0.5); text-align:center;"
+          style="width:100%; padding:5px 6px; font-size:14px; color:#ffd43b; background:transparent; border-radius:6px; border:1px solid rgba(255,215,0,0.5); text-align:center;"
           oninput="vsUpdateCellCount(); vsUpdateScanOverlay()">
       </div>
-      <div style="display:flex; flex-direction:column; gap:4px;">
-        <label style="color:var(--label); font-size:14px; display:block; text-align:center; margin-bottom:2px;">快速設定</label>
-        <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:center;">
-          <button onclick="vsSetAngle(0,359)" style="padding:3px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">全圓</button>
-          <button onclick="vsSetAngle(315,45)" style="padding:3px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">北 ±45°</button>
-          <button onclick="vsSetAngle(45,135)" style="padding:3px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">東 90°</button>
-          <button onclick="vsSetAngle(135,225)" style="padding:3px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">南 90°</button>
-          <button onclick="vsSetAngle(225,315)" style="padding:3px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">西 90°</button>
-        </div>
+      <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; align-items:center; padding-top:16px;">
+        <button onclick="vsSetAngle(0,359)"   style="padding:4px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">全圓</button>
+        <button onclick="vsSetAngle(315,45)"  style="padding:4px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">北±45°</button>
+        <button onclick="vsSetAngle(45,135)"  style="padding:4px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">東90°</button>
+        <button onclick="vsSetAngle(135,225)" style="padding:4px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">南90°</button>
+        <button onclick="vsSetAngle(225,315)" style="padding:4px 8px; background:rgba(255,215,0,0.15); border:1px solid #ffd43b; color:#ffd43b; border-radius:4px; cursor:pointer; font-size:11px; white-space:nowrap;">西90°</button>
       </div>
     </div>
 
-    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-      <button onclick="vsUseCoordA()" style="padding:5px 12px; background:rgba(95,240,213,0.15); border:1px solid #5ff0d5; color:#5ff0d5; border-radius:6px; cursor:pointer; font-size:13px;">
-        📍 使用A點座標
-      </button>
-      <button onclick="vsUseCoordB()" style="padding:5px 12px; background:rgba(255,100,100,0.15); border:1px solid #ff6464; color:#ff6464; border-radius:6px; cursor:pointer; font-size:13px;">
-        📍 使用B點座標
-      </button>
+    <!-- ⑤ 操作按鈕：A/B座標 ＋ 開始/清除/搜尋 ＋ 狀態 -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+      <button onclick="vsUseCoordA()" style="padding:6px 4px; background:rgba(95,240,213,0.12); border:1px solid #5ff0d5; color:#5ff0d5; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600;">📍 使用A點座標</button>
+      <button onclick="vsUseCoordB()" style="padding:6px 4px; background:rgba(255,100,100,0.12); border:1px solid #ff6464; color:#ff6464; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600;">📍 使用B點座標</button>
+    </div>
+    <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:6px; margin-bottom:6px;">
       <button onclick="startViewshed()" id="vs-run-btn"
-        style="padding:6px 18px; background:rgba(95,240,213,0.2); border:1px solid #5ff0d5; color:#5ff0d5; border-radius:6px; cursor:pointer; font-size:14px; font-weight:bold;">
+        style="padding:7px 4px; background:linear-gradient(90deg,rgba(95,240,213,0.25),rgba(95,240,213,0.12)); border:1.5px solid #5ff0d5; color:#5ff0d5; border-radius:6px; cursor:pointer; font-size:14px; font-weight:bold;">
         🔍 開始掃圓分析
       </button>
-      <button onclick="clearViewshed()" style="padding:6px 14px; background:rgba(255,100,100,0.15); border:1px solid #ff6464; color:#ff6464; border-radius:6px; cursor:pointer; font-size:13px;">
-        🗑 清除結果
-      </button>
-      <button onclick="vsFindHighestPoint()" id="vs-peak-btn" style="padding:6px 14px; background:rgba(255,180,0,0.15); border:1px solid #ffb400; color:#ffb400; border-radius:6px; cursor:pointer; font-size:13px; white-space:nowrap;">
-        🏔 搜尋最高點
-      </button>
-      <span id="vs-status" style="color:#94a3b8; font-size:13px; flex:1; min-width:150px;"></span>
+      <button onclick="clearViewshed()" style="padding:7px 4px; background:rgba(255,100,100,0.12); border:1px solid #ff6464; color:#ff6464; border-radius:6px; cursor:pointer; font-size:13px;">🗑 清除結果</button>
+      <button onclick="vsFindHighestPoint()" id="vs-peak-btn" style="padding:7px 4px; background:rgba(255,180,0,0.12); border:1px solid #ffb400; color:#ffb400; border-radius:6px; cursor:pointer; font-size:13px;">🏔 最高點</button>
     </div>
+    <div id="vs-status" style="color:#94a3b8; font-size:12px; min-height:16px; margin-bottom:6px;"></div>
 
-    <!-- 圖例 -->
-    <div style="display:flex; gap:16px; margin-top:8px; font-size:12px; align-items:center; flex-wrap:wrap;">
+    <!-- ⑥ 圖例（一行） -->
+    <div style="display:flex; gap:12px; font-size:12px; align-items:center; flex-wrap:wrap; padding-top:4px; border-top:1px solid rgba(255,255,255,0.06);">
       <div style="display:flex; align-items:center; gap:4px;">
-        <div id="vs-legend-visible" style="width:16px; height:16px; background:#00cc88; border-radius:2px;"></div>
-        <span style="color:#94a3b8;">無遮蔽（可視）</span>
+        <div id="vs-legend-visible" style="width:14px; height:14px; background:#00cc88; border-radius:2px; flex-shrink:0;"></div>
+        <span style="color:#94a3b8;">無遮蔽</span>
       </div>
       <div style="display:flex; align-items:center; gap:4px;">
-        <div id="vs-legend-blocked" style="width:16px; height:16px; background:#cc2200; border-radius:2px;"></div>
+        <div id="vs-legend-blocked" style="width:14px; height:14px; background:#cc2200; border-radius:2px; flex-shrink:0;"></div>
         <span style="color:#94a3b8;">有遮蔽</span>
       </div>
       <div style="display:flex; align-items:center; gap:4px;">
-        <div style="width:16px; height:16px; background:rgba(255,200,0,0.25); border:1px solid #ffc800; border-radius:2px;"></div>
+        <div style="width:14px; height:14px; background:rgba(255,200,0,0.25); border:1px solid #ffc800; border-radius:2px; flex-shrink:0;"></div>
         <span style="color:#94a3b8;">掃圓範圍</span>
       </div>
       <div style="display:flex; align-items:center; gap:4px;">
-        <div style="width:24px; height:3px; background:rgba(0,0,0,0); border-top:2px dashed #ffd43b;"></div>
-        <span style="color:#94a3b8;">掃描角度範圍</span>
+        <div style="width:22px; height:2px; border-top:2px dashed #ffd43b;"></div>
+        <span style="color:#94a3b8;">角度範圍</span>
       </div>
     </div>
   </div>
 
   <!-- 進度條 -->
-  <div id="vs-progress-wrap" style="display:none; margin-bottom:8px;">
+  <div id="vs-progress-wrap" style="display:none; margin-bottom:8px; width:100%; box-sizing:border-box; border:2px solid var(--orange-border); border-radius:8px; background-color:rgba(255,170,0,0.05); padding:8px 12px;">
     <div style="background:rgba(255,255,255,0.08); border-radius:4px; height:8px; overflow:hidden;">
       <div id="vs-progress-bar" style="height:100%; width:0%; background:#5ff0d5; transition:width 0.2s; border-radius:4px;"></div>
     </div>
@@ -1705,7 +1704,7 @@ div.gps-ig.orange-border-card,
   </div>
 
   <!-- 地圖容器 -->
-  <div id="vs-map-container" style="text-align:center; padding:0; position:relative;">
+  <div id="vs-map-container" style="text-align:center; padding:0; position:relative; width:100%; box-sizing:border-box;">
     <button id="vs-maximize-btn" onclick="vsMaximizeMap()" style="background:linear-gradient(90deg, #4dabf7, #339af0); border:0; padding:5px 10px; border-radius:6px; font-weight:700; font-size:13px; color:#fff; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.3); display:inline-flex; align-items:center; gap:6px; margin-bottom:3px;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
@@ -1816,6 +1815,7 @@ let vsCircle = null;
 let vsCenterMarker = null;
 let vsRunning = false;
 let vsAbort = false;
+let vsActiveWorkers = []; // 用於中止功能
 let vsScanOverlay = null;
 let vsCanvas = null;        // 保存canvas引用供透明度調整使用
 let vsRawImageData = null;  // 保存原始像素資料（不含透明度）
@@ -1987,6 +1987,7 @@ function vsUpdateScanOverlay() {
   const cLat = parseFloat(document.getElementById('vs-lat').value);
   const cLng = parseFloat(document.getElementById('vs-lng').value);
   const radiusKm = parseFloat(document.getElementById('vs-radius').value) || 5;
+  const innerRadiusKm = Math.max(0, parseFloat(document.getElementById('vs-inner-radius').value) || 0);
   const angleStart = parseFloat(document.getElementById('vs-angle-start').value);
   const angleEnd   = parseFloat(document.getElementById('vs-angle-end').value);
 
@@ -1994,12 +1995,14 @@ function vsUpdateScanOverlay() {
 
   // 移除舊的掃描覆蓋層
   if (vsScanOverlay) { vsMap.removeLayer(vsScanOverlay); vsScanOverlay = null; }
+  if (window.vsInnerCircle) { vsMap.removeLayer(window.vsInnerCircle); window.vsInnerCircle = null; }
   if (window.vsScanLines) {
     window.vsScanLines.forEach(l => vsMap.removeLayer(l));
     window.vsScanLines = [];
   }
 
   const radiusM = radiusKm * 1000;
+  const innerRadiusM = innerRadiusKm * 1000;
   const mPerDegLat = 111320;
   const mPerDegLng = 111320 * Math.cos(cLat * Math.PI / 180);
 
@@ -2066,6 +2069,19 @@ function vsUpdateScanOverlay() {
       opacity: 0.95
     }).addTo(vsMap);
     window.vsScanLines.push(arc);
+  }
+
+  // 內圈虛線圓（起始距離 > 0 時顯示）
+  if (innerRadiusM > 0) {
+    window.vsInnerCircle = L.circle([cLat, cLng], {
+      radius: innerRadiusM,
+      color: '#ff9500',
+      fillColor: 'transparent',
+      fillOpacity: 0,
+      weight: 2,
+      dashArray: '6,5',
+      opacity: 0.85
+    }).addTo(vsMap);
   }
 }
 
@@ -2531,6 +2547,7 @@ function clearViewshed() {
   if (vsCircle)  { vsMap.removeLayer(vsCircle);  vsCircle  = null; }
   if (vsCenterMarker) { vsMap.removeLayer(vsCenterMarker); vsCenterMarker = null; }
   if (vsScanOverlay) { vsMap.removeLayer(vsScanOverlay); vsScanOverlay = null; }
+  if (window.vsInnerCircle) { vsMap.removeLayer(window.vsInnerCircle); window.vsInnerCircle = null; }
   if (window.vsScanLines) {
     window.vsScanLines.forEach(l => vsMap.removeLayer(l));
     window.vsScanLines = [];
@@ -2853,9 +2870,11 @@ async function vsGetElevationAsync(lat, lng) {
 // 預估格數提示
 function vsUpdateCellCount() {
   const r = parseFloat(document.getElementById('vs-radius').value) || 5;
+  const innerR = Math.max(0, parseFloat(document.getElementById('vs-inner-radius').value) || 0);
   const res = Math.max(5, parseFloat(document.getElementById('vs-resolution').value) || 20);
   const gridN = Math.ceil(r * 1000 / res);
-  const approx = Math.round(Math.PI * gridN * gridN);
+  const gridInner = Math.ceil(innerR * 1000 / res);
+  const approx = Math.round(Math.PI * (gridN * gridN - gridInner * gridInner));
   const hint = document.getElementById('vs-cell-hint');
   if (hint) {
     let warn = '';
@@ -2871,6 +2890,8 @@ async function startViewshed() {
   if (vsRunning) {
     vsAbort = true;
     vsRunning = false;
+    vsActiveWorkers.forEach(w => { try { w.terminate(); } catch(e){} });
+    vsActiveWorkers = [];
     document.getElementById('vs-run-btn').textContent = '🔍 開始掃圓分析';
     vsSetStatus('已中止', '#fbbf24');
     return;
@@ -2881,6 +2902,7 @@ async function startViewshed() {
   const antH = parseFloat(document.getElementById('vs-ant-height').value) || 10;
   const rxH  = parseFloat(document.getElementById('vs-rx-height').value)  || 3;
   const radiusKm = parseFloat(document.getElementById('vs-radius').value) || 5;
+  const innerRadiusKm = Math.max(0, parseFloat(document.getElementById('vs-inner-radius').value) || 0);
   const resolution = Math.max(5, parseFloat(document.getElementById('vs-resolution').value) || 20);
 
   // 讀取掃描角度（0°=正北，順時針）
@@ -2902,12 +2924,16 @@ async function startViewshed() {
   vsUpdateScanOverlay();
   vsRunning = true;
   vsAbort = false;
+  vsActiveWorkers = [];
   document.getElementById('vs-run-btn').textContent = '⏹ 中止分析';
   document.getElementById('vs-progress-wrap').style.display = 'block';
+  const _vsScanStartTime = performance.now();
 
   // 計算 Canvas 大小
   const radiusM = radiusKm * 1000;
+  const innerRadiusM = innerRadiusKm * 1000;
   const gridN = Math.ceil(radiusM / resolution);
+  const innerGridN = Math.ceil(innerRadiusM / resolution); // 內圈格數半徑
   const size = gridN * 2 + 1;
 
   // 緯度/經度每格對應的度數
@@ -3008,23 +3034,26 @@ async function startViewshed() {
     }
   }
 
-  // 計算圓內格數（帶角度篩選）
+  // 計算圓內格數（帶角度篩選 + 內圈排除）
   const totalCells = [];
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       const dx = col - gridN, dy = row - gridN;
-      if (dx*dx + dy*dy <= gridN*gridN) {
-        if (isFullCircle) {
+      const distSq = dx*dx + dy*dy;
+      // 外圈篩選
+      if (distSq > gridN*gridN) continue;
+      // 內圈排除（起始距離）
+      if (innerGridN > 0 && distSq < innerGridN*innerGridN) continue;
+      if (isFullCircle) {
+        totalCells.push([row, col]);
+      } else {
+        // 只計算在角度範圍內的格
+        const tLat = cLat + (gridN - row) * dLat;
+        const tLng = cLng + (col - gridN) * dLng;
+        if (dx === 0 && dy === 0) { totalCells.push([row, col]); continue; }
+        const bearing = getBearing(cLat, cLng, tLat, tLng);
+        if (isInAngleRange(bearing, angleStart, angleEndVal)) {
           totalCells.push([row, col]);
-        } else {
-          // 只計算在角度範圍內的格
-          const tLat = cLat + (gridN - row) * dLat;
-          const tLng = cLng + (col - gridN) * dLng;
-          if (dx === 0 && dy === 0) { totalCells.push([row, col]); continue; }
-          const bearing = getBearing(cLat, cLng, tLat, tLng);
-          if (isInAngleRange(bearing, angleStart, angleEndVal)) {
-            totalCells.push([row, col]);
-          }
         }
       }
     }
@@ -3036,38 +3065,217 @@ async function startViewshed() {
 
   if (useFastMode) {
     // ══════════════════════════════════════
-    // 高速模式：純同步計算，每批 5000 格
-    // 批次之間 yield 讓瀏覽器保持回應
+    // Web Worker 多執行緒模式
     // ══════════════════════════════════════
-    const FAST_BATCH = 5000;
-    const imgData = ctx.createImageData(size, size);
-    const px = imgData.data;
 
-    for (let i = 0; i < totalCells.length; i += FAST_BATCH) {
-      if (vsAbort) break;
-      const end = Math.min(i + FAST_BATCH, totalCells.length);
+    // Worker 程式碼（內嵌 Blob，不需額外 .js 檔案）
+    const workerCode = `
+// ── 優化1：noData 改用 Set，提升到模組層級，只建立一次 ──
+const NO_DATA_SET = new Set([-32768, -32767, -9999, -99999, 32767, 65535]);
 
-      for (let j = i; j < end; j++) {
-        const [row, col] = totalCells[j];
-        const tLat = cLat + (gridN - row) * dLat;
-        const tLng = cLng + (col - gridN) * dLng;
-        const result = vsCheckLOSFast(cLat, cLng, cEle, antH, rxH, tLat, tLng, resolution);
-        const vis = result ? result.visible : null;
-        const idx = (row * size + col) * 4;
-        if (vis === true) {
-          px[idx]=0; px[idx+1]=200; px[idx+2]=136; px[idx+3]=255;  // 綠（原始alpha=255，透明度由slider控制）
-        } else if (vis === false) {
-          px[idx]=204; px[idx+1]=34; px[idx+2]=0; px[idx+3]=255;   // 紅（原始alpha=255）
-        } else {
-          px[idx]=120; px[idx+1]=120; px[idx+2]=120; px[idx+3]=100; // 灰（無資料）
+// ── 高程查詢（優化版） ──
+// 優化2：預計算座標轉像素比例係數（由 self.onmessage 初始化後設定）
+let _scaleX = 0, _scaleY = 0, _scaleFullX = 0, _scaleFullY = 0;
+
+function getEle(lat, lng, c) {
+  let px, py;
+  if (c.fullW) {
+    // 優化2：用預計算的乘法取代每次除法
+    px = Math.floor((lng - c.fullBboxW) * _scaleFullX) - c.blockPx0;
+    py = Math.floor((c.fullBboxN - lat) * _scaleFullY) - c.blockPy0;
+  } else {
+    px = Math.floor((lng - c.west)  * _scaleX);
+    py = Math.floor((c.north - lat) * _scaleY);
+  }
+  if (px < 0 || px >= c.width || py < 0 || py >= c.height) return null;
+  const v = c.data[py * c.width + px];
+  // Float32Array 不會有 null/undefined，isNaN 已足夠
+  if (isNaN(v)) return null;
+  // 優化1：Set.has() 是 O(1)，避免每次建立陣列與 Array.some()
+  if (NO_DATA_SET.has(Math.round(v))) return null;
+  if (v < -500 || v > 9000) return null;
+  return v;
+}
+
+// ── LOS 計算（掃描專用優化版） ──
+// 優化3：Haversine 改平面近似（50km內誤差<0.01%，遠小於解析度）
+// 優化4：f 改增量加法，避免迴圈內除法
+// 優化5：早退（Early Exit）—掃描只需知道有/無遮蔽，一旦發現穿透立即回傳
+let _cosLat = 1; // 由 self.onmessage 預計算
+const _R = 6371000;
+let _2kR_inv = 1; // 由 self.onmessage 預計算 1/(2*k*R)
+
+function checkLOS(cLat, cLng, cEle, txH, rxH, tLat, tLng, resolution, c) {
+  // 優化3：平面近似距離（省去 sin/cos/atan2）
+  const dy = (tLat - cLat) * 111320;
+  const dx = (tLng - cLng) * 111320 * _cosLat;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist < resolution) return 1; // visible
+
+  const tEle = getEle(tLat, tLng, c);
+  if (tEle === null) return 0; // null
+
+  const steps = Math.max(2, Math.ceil(dist / resolution));
+  const srcH = cEle + txH;
+  const dstH = tEle + rxH;
+  const dH   = dstH - srcH;
+
+  // 優化4：預計算步進，迴圈內只做加法
+  const stepsM1 = steps - 1;
+  const fStep = 1 / stepsM1;
+  const latStep = (tLat - cLat) * fStep;
+  const lngStep = (tLng - cLng) * fStep;
+
+  let f   = fStep;
+  let lat = cLat + latStep;
+  let lng = cLng + lngStep;
+
+  for (let i = 1; i < stepsM1; i++, f += fStep, lat += latStep, lng += lngStep) {
+    const ele = getEle(lat, lng, c);
+    if (ele === null) continue;
+    const losH = srcH + dH * f;
+    // 曲率修正：d1*d2/(2kR) = f*(1-f)*dist²*(1/(2kR))
+    const hCurv = f * (1 - f) * dist * dist * _2kR_inv;
+    const clearance = losH - (ele - hCurv);
+    // 優化5：早退 — 掃描只要確認遮蔽即可，不需找最嚴苛點
+    if (clearance < 0) return -1;
+  }
+  return 1; // visible
+}
+
+self.onmessage = function(e) {
+  const { cells, cLat, cLng, cEle, antH, rxH, gridN, dLat, dLng, resolution, kFactor, dsm, workerId, reportEvery } = e.data;
+
+  // 優化2：預計算比例係數（整個 Worker 只算一次）
+  _scaleX    = dsm.width  / (dsm.east  - dsm.west);
+  _scaleY    = dsm.height / (dsm.north - dsm.south);
+  _scaleFullX = dsm.fullW ? dsm.fullW / (dsm.fullBboxE - dsm.fullBboxW) : 0;
+  _scaleFullY = dsm.fullH ? dsm.fullH / (dsm.fullBboxN - dsm.fullBboxS) : 0;
+
+  // 優化3：預計算 cosLat（整個 Worker 只算一次）
+  _cosLat = Math.cos(cLat * Math.PI / 180);
+
+  // 優化4：預計算 1/(2*k*R)（整個 Worker 只算一次）
+  _2kR_inv = 1 / (2 * kFactor * _R);
+
+  const results = new Int8Array(cells.length); // 1=visible, -1=blocked, 0=null
+  let done = 0;
+  for (let i = 0; i < cells.length; i++) {
+    const [row, col] = cells[i];
+    const tLat = cLat + (gridN - row) * dLat;
+    const tLng = cLng + (col - gridN) * dLng;
+    results[i] = checkLOS(cLat, cLng, cEle, antH, rxH, tLat, tLng, resolution, dsm);
+    done++;
+    if (done % reportEvery === 0) {
+      self.postMessage({ type: 'progress', workerId, done });
+    }
+  }
+  self.postMessage({ type: 'done', workerId, results: results.buffer, cells }, [results.buffer]);
+};
+    `;
+
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    const workerUrl = URL.createObjectURL(blob);
+
+    const numWorkers = Math.min(navigator.hardwareConcurrency || 4, 8);
+    const chunkSize = Math.ceil(totalCells.length / numWorkers);
+    const workers = [];
+    const workerDone = new Array(numWorkers).fill(0);
+    const allResults = new Array(numWorkers).fill(null); // 每個 worker 的結果
+
+    // 讀取 K factor
+    const kFactor = Math.max(0.5, parseFloat(document.getElementById('vs-k-factor')?.value) || 1.33);
+
+    // DSM 資料（structured clone 傳給每個 worker，Float32Array 自動複製）
+    const dsmPayload = {
+      data: vsDsmCache.data,          // Float32Array — structured clone
+      width: vsDsmCache.width,
+      height: vsDsmCache.height,
+      west: vsDsmCache.west,   east: vsDsmCache.east,
+      north: vsDsmCache.north, south: vsDsmCache.south,
+      fullBboxW: vsDsmCache.fullBboxW, fullBboxE: vsDsmCache.fullBboxE,
+      fullBboxN: vsDsmCache.fullBboxN, fullBboxS: vsDsmCache.fullBboxS,
+      fullW: vsDsmCache.fullW,   fullH: vsDsmCache.fullH,
+      blockPx0: vsDsmCache.blockPx0, blockPy0: vsDsmCache.blockPy0
+    };
+
+    vsSetStatus(`分析中… 共 ${total.toLocaleString()} 格 ⚡ ${numWorkers} 執行緒並行`, '#5ff0d5');
+
+    await new Promise((resolve, reject) => {
+      let finishedWorkers = 0;
+
+      for (let w = 0; w < numWorkers; w++) {
+        const start = w * chunkSize;
+        const end = Math.min(start + chunkSize, totalCells.length);
+        if (start >= totalCells.length) { finishedWorkers++; if (finishedWorkers === numWorkers) resolve(); continue; }
+
+        const cells = totalCells.slice(start, end);
+        const worker = new Worker(workerUrl);
+        workers.push(worker);
+        vsActiveWorkers.push(worker);
+
+        worker.onmessage = (ev) => {
+          const msg = ev.data;
+          if (msg.type === 'progress') {
+            workerDone[msg.workerId] = msg.done;
+            done = workerDone.reduce((a, b) => a + b, 0);
+            if (!vsAbort) {
+              const pct = Math.round(done / total * 100);
+              document.getElementById('vs-progress-bar').style.width = pct + '%';
+              document.getElementById('vs-progress-text').textContent =
+                `${done.toLocaleString()} / ${total.toLocaleString()} 格 (${pct}%) ⚡${numWorkers} 執行緒`;
+            }
+          } else if (msg.type === 'done') {
+            workerDone[msg.workerId] = msg.cells.length;
+            allResults[msg.workerId] = { results: new Int8Array(msg.results), cells: msg.cells };
+            worker.terminate();
+            finishedWorkers++;
+            if (finishedWorkers === numWorkers) resolve();
+          }
+        };
+        worker.onerror = (err) => { worker.terminate(); reject(err); };
+
+        worker.postMessage({
+          cells, cLat, cLng, cEle, antH, rxH,
+          gridN, dLat, dLng, resolution, kFactor,
+          dsm: dsmPayload,
+          workerId: w,
+          reportEvery: Math.max(100, Math.floor(cells.length / 20))
+        });
+      }
+    });
+
+    // 清理 Worker Blob URL
+    URL.revokeObjectURL(workerUrl);
+
+    if (vsAbort) {
+      workers.forEach(w => { try { w.terminate(); } catch(e){} });
+    } else {
+      // ── 一次性把所有 Worker 結果寫入 ImageData ──
+      const imgData = ctx.createImageData(size, size);
+      const px = imgData.data;
+
+      for (let w = 0; w < numWorkers; w++) {
+        if (!allResults[w]) continue;
+        const { results, cells: wCells } = allResults[w];
+        for (let i = 0; i < wCells.length; i++) {
+          const [row, col] = wCells[i];
+          const idx = (row * size + col) * 4;
+          const vis = results[i];
+          if (vis === 1) {
+            px[idx]=0; px[idx+1]=200; px[idx+2]=136; px[idx+3]=255;
+          } else if (vis === -1) {
+            px[idx]=204; px[idx+1]=34; px[idx+2]=0; px[idx+3]=255;
+          } else {
+            px[idx]=120; px[idx+1]=120; px[idx+2]=120; px[idx+3]=100;
+          }
         }
-        done++;
       }
 
-      // 保存原始像素（每批更新）
+      // 保存原始像素
       vsRawImageData = new ImageData(new Uint8ClampedArray(px), size, size);
 
-      // 套用目前透明度設定後再渲染
+      // 套用透明度後渲染
       const renderImg = ctx.createImageData(size, size);
       const rd = renderImg.data;
       for (let k = 0; k < px.length; k += 4) {
@@ -3079,14 +3287,12 @@ async function startViewshed() {
         else              rd[k+3] = px[k+3];
       }
 
-      // 每批更新進度與畫面
-      const pct = Math.round(done / total * 100);
-      document.getElementById('vs-progress-bar').style.width = pct + '%';
+      done = total;
+      document.getElementById('vs-progress-bar').style.width = '100%';
       document.getElementById('vs-progress-text').textContent =
-        `${done.toLocaleString()} / ${total.toLocaleString()} 格 (${pct}%) ⚡高速模式`;
+        `${total.toLocaleString()} / ${total.toLocaleString()} 格 (100%) ⚡${numWorkers} 執行緒`;
       ctx.putImageData(renderImg, 0, 0);
       vsOverlay.setUrl(canvas.toDataURL());
-      await new Promise(r => setTimeout(r, 0)); // yield
     }
 
   } else {
@@ -3129,7 +3335,8 @@ async function startViewshed() {
   // 最終更新
   vsOverlay.setUrl(canvas.toDataURL());
   document.getElementById('vs-progress-bar').style.width = '100%';
-  document.getElementById('vs-progress-text').textContent = `完成！共分析 ${total.toLocaleString()} 格`;
+  const _vsElapsed = ((performance.now() - _vsScanStartTime) / 1000).toFixed(1);
+  document.getElementById('vs-progress-text').textContent = `完成！共分析 ${total.toLocaleString()} 格　⏱ ${_vsElapsed} 秒`;
 
   // 顯示透明度控制面板
   const opCtrl = document.getElementById('vs-opacity-ctrl');
@@ -3137,6 +3344,7 @@ async function startViewshed() {
 
   vsRunning = false;
   vsAbort = false;
+  vsActiveWorkers = [];
   document.getElementById('vs-run-btn').textContent = '🔍 開始掃圓分析';
 
   const blockedCount = (() => {
