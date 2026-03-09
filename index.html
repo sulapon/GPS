@@ -1376,11 +1376,11 @@ div.gps-ig.orange-border-card,
   splash.style.transition = "0.4s";
   setTimeout(() => splash.remove(), 400);
   }, 500);
-</script> <header></header><main><div class="tabs"><button class="tab-button active" data-tab="rftool" onclick="showTab('rftool')">📡 RF工具</button><button class="tab-button" data-tab="gps" onclick="showTab('gps')">🌍 GPS</button><button class="tab-button" data-tab="elevation" onclick="showTab('elevation')">📈 高度圖</button><button class="tab-button" data-tab="archive" onclick="showTab('archive')">💾 存檔</button><button class="tab-button" data-tab="report" onclick="showTab('report')">📄 報告</button><button class="tab-button" data-tab="compass" onclick="showTab('compass')">🧭 指北針</button></div><div id="gps-content" class="tab-content gps-container"><div class="card"><h2 class="section-title" style="margin-top:0;">兩點GPS 距離、方位角與俯仰角計算</h2><p class="gps-tip">考慮地球曲率與高度差 (WGS84)</p><div class="display-mode-container"><span class="display-mode-text">顯示格式</span><select id="displayMode" style="padding:6px; border-radius:6px; font-size:14px;"><option value="decimal">度 — 十進制 (DD)</option><option value="dms">度分秒 (DMS)</option></select></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 A <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameA" placeholder="A點" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('A')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('A')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('A')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latA" placeholder="十進制數值" step="0.000001" value="24.164547" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latA_deg" placeholder="度" oninput="dmsToD('latA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latA_min" placeholder="分" oninput="dmsToD('latA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latA_sec" placeholder="秒" step="0.01" oninput="dmsToD('latA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonA" placeholder="十進制數值" step="0.000001" value="120.641258" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonA_deg" placeholder="度" oninput="dmsToD('lonA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonA_min" placeholder="分" oninput="dmsToD('lonA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonA_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div></div><div class="gps-er"><label for="eleA">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleA" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleA-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('A')">✖</button></div></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 B <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameB" placeholder="B點" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('B')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('B')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('B')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latB" placeholder="十進制數值" step="0.000001" value="23.877521" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latB_deg" placeholder="度" oninput="dmsToD('latB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latB_min" placeholder="分" oninput="dmsToD('latB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latB_sec" placeholder="秒" step="0.01" oninput="dmsToD('latB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonB" placeholder="十進制數值" step="0.000001" value="120.360578" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonB_deg" placeholder="度" oninput="dmsToD('lonB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonB_min" placeholder="分" oninput="dmsToD('lonB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonB_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div></div><div class="gps-er"><label for="eleB">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleB" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleB-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('B')">✖</button></div></div></div><div id="gps-controls-container"><div class="btn-row" style="margin-top:5px; margin-bottom:5px; gap:12px; display:flex !important; width:100% !important; justify-content:space-between !important;"><button id="gpsSwapBtn" class="btn" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important; background:linear-gradient(90deg, #bb66ff, #9945ff) !important; color:#fff !important;" onclick="swapGpsCoordinates()">互換A↔B</button><button id="gpsResetBtn" class="btn ghost" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="resetGps()">預設</button><button id="gpsClearBtn" class="btn clear" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="clearAllGps()">清除</button></div><div id="gpsRes"> 計算中... </div></div></div><header></header><div class="tab-content active" id="rftool-content"><div class="rf-header"><div class="section-title">🚀 綜合 RF工具</div></div><div class="function-selector-container"><label for="function_selector">選擇顯示功能模組:</label><select id="function_selector" onchange="toggleSections()"><option value="ALL">ALL - 顯示所有計算器</option><option value="power">1. 功率轉換 (dBm / W)</option><option value="matching">2. 匹配度參數換算</option><option value="sensitivity">3. 系統靈敏度 (Sensitivity) 計算</option><option value="los">4. 通視最大距離計算</option><option value="fspl">5. 自由空間損耗 (FSPL)</option><option value="linkbudget">6. 通訊模擬 (Link Budget)</option><option value="cabloss">7. 線損計算 (Cable Loss)</option></select></div><section class="card section-item" id="section-power"><div class="section-header-with-controls"><div class="section-title">1. 功率轉換 (dBm / W)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-power')">預設</button><button class="btn btn-clear" onclick="clearSection('section-power')">清除</button></div></div><div class="input-group-border"><label for="power_unit">選擇輸入單位:</label><select id="power_unit" onchange="swapAndCalculate()"><option value="w">W</option><option value="dbm">dBm</option></select><label for="power_input">輸入數值:</label><div class="input-with-clear"><input id="power_input" oninput="calculateDbmWNew()" placeholder="輸入數值" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('power_input', 'calculateDbmWNew')">×</button></div></div><div class="results-card-border" id="power_output_result">換算結果:</div></section><section class="card section-item" id="section-matching"><div class="section-header-with-controls"><div class="section-title">2. 匹配度參數換算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-matching')">預設</button><button class="btn btn-clear" onclick="clearSection('section-matching')">清除</button></div></div><div class="input-group-border"><label for="matching_unit">選擇輸入參數:</label><select id="matching_unit" onchange="swapAndConvertMatching()"><option value="rl">回波損耗 (Return Loss, RL) [dB]</option><option value="vswr">駐波比 (VSWR)</option><option value="gamma">反射係數 (V, Γ)</option><option value="refl_pct">反射功率 [%]</option><option value="pass_pct">通過功率 [%]</option></select><label for="matching_input_value" style="margin-top:8px;">輸入數值:</label><div class="input-with-clear"><input id="matching_input_value" oninput="calculateMatching()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('matching_input_value', 'calculateMatching')">×</button></div></div><div class="results-card-border" id="matching_output"> 回波損耗 (RL) [dB]: <span class="result-value" id="rl_val"></span><br/> 駐波比 (VSWR): <span class="result-value" id="vswr_val"></span><br/> 反射係數 (V，Γ): <span class="result-value" id="gamma_val"></span><br/> 反射功率 [%]: <span class="result-value" id="refl_percent"></span><br/> 通過功率 [%]: <span class="result-value" id="pass_percent"></span></div></section><section class="card section-item" id="section-sensitivity"><div class="section-header-with-controls"><div class="section-title">3. 系統靈敏度 (Sensitivity) 計算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-sensitivity')">預設</button><button class="btn btn-clear" onclick="clearSection('section-sensitivity')">清除</button></div></div><div class="input-group-border"><label for="sensitivity_bw">訊號頻寬 (BW) [MHz]:</label><div class="input-with-clear"><input id="sensitivity_bw" oninput="calculateSensitivity()" placeholder="例如: 1 (1MHz)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_bw', 'calculateSensitivity')">×</button></div><label for="sensitivity_nf">雜訊指數 (Noise Figure, NF) [dB]:</label><div class="input-with-clear"><input id="sensitivity_nf" oninput="calculateSensitivity()" placeholder="例如: 5" type="number" value="5"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_nf', 'calculateSensitivity')">×</button></div><label for="sensitivity_sn">所需訊雜比 (S/N) [dB]:</label><div class="input-with-clear"><input id="sensitivity_sn" oninput="calculateSensitivity()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_sn', 'calculateSensitivity')">×</button></div></div><div class="results-card-border" id="sensitivity_output">接收器靈敏度 (Sensitivity):</div></section><section class="card section-item" id="section-los"><div class="section-header-with-controls"><div class="section-title">4. 通視最大距離 (地球曲度遮蔽)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-los')">預設</button><button class="btn btn-clear" onclick="clearSection('section-los')">清除</button></div></div><div class="input-group-border"><div class="los-point-title">A 點</div><div class="los-input-container"><div class="input-item"><label for="los_g1">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g1" oninput="calculateMaxLOS()" placeholder="例如: 100" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g1', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h1">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h1" oninput="calculateMaxLOS()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('los_h1', 'calculateMaxLOS')">×</button></div></div></div><div class="los-point-title">B 點</div><div class="los-input-container"><div class="input-item"><label for="los_g2">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g2" oninput="calculateMaxLOS()" placeholder="例如: 150" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g2', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h2">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h2" oninput="calculateMaxLOS()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('los_h2', 'calculateMaxLOS')">×</button></div></div></div></div>
+</script> <header></header><main><div class="tabs"><button class="tab-button active" data-tab="rftool" onclick="showTab('rftool')">📡 RF工具</button><button class="tab-button" data-tab="gps" onclick="showTab('gps')">🌍 GPS</button><button class="tab-button" data-tab="elevation" onclick="showTab('elevation')">🏔️ 剖面</button><button class="tab-button" data-tab="archive" onclick="showTab('archive')">💾 存檔</button><button class="tab-button" data-tab="report" onclick="showTab('report')">📄 報告</button><button class="tab-button" data-tab="compass" onclick="showTab('compass')">🧭 指北針</button></div><div id="gps-content" class="tab-content gps-container"><div class="card"><h2 class="section-title" style="margin-top:0;">兩點GPS 距離、方位角與俯仰角計算</h2><p class="gps-tip">考慮地球曲率與高度差 (WGS84)</p><div class="display-mode-container"><span class="display-mode-text">顯示格式</span><select id="displayMode" style="padding:6px; border-radius:6px; font-size:14px;"><option value="decimal">度 — 十進制 (DD)</option><option value="dms">度分秒 (DMS)</option></select></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 A <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameA" placeholder="A點" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('A')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('A')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('A')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latA" placeholder="十進制數值" step="0.000001" value="24.164547" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latA_deg" placeholder="度" oninput="dmsToD('latA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latA_min" placeholder="分" oninput="dmsToD('latA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latA_sec" placeholder="秒" step="0.01" oninput="dmsToD('latA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latA')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonA" placeholder="十進制數值" step="0.000001" value="120.641258" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonA_deg" placeholder="度" oninput="dmsToD('lonA')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonA_min" placeholder="分" oninput="dmsToD('lonA')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonA_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonA')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonA')">✖</button></div></div><div class="gps-er"><label for="eleA">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleA" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleA-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('A')">✖</button></div></div></div><div class="gps-ig orange-border-card"><div class="gps-loc-header"> 地點 B <div style="display:flex; align-items:center; gap:5px; flex:1;"><input type="text" id="nameB" placeholder="B點" maxlength="7" style="flex:1;" oninput="calculate()"><span>(地名)</span><button class="gps-cb" onclick="clearNameOnly('B')">✖</button><button class="btn" style="background:linear-gradient(90deg, #ff9500, #ffcc00); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#000; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="getCurrentLocation('B')" title="讀取當前GPS位置">📍</button><button class="btn" style="background:linear-gradient(90deg, #5fb3ff, #3d8eff); border:0; padding:5px 8px; border-radius:4px; font-weight:700; font-size:16px; color:#fff; cursor:pointer; margin-left:4px; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-align:center; min-width:fit-content;" onclick="openMapPicker('B')" title="從地圖選擇座標">🗺️</button></div></div><div class="gps-cg"><span class="gps-cl">緯度 (Latitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="latB" placeholder="十進制數值" step="0.000001" value="23.877521" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="latB_deg" placeholder="度" oninput="dmsToD('latB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="latB_min" placeholder="分" oninput="dmsToD('latB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="latB_sec" placeholder="秒" step="0.01" oninput="dmsToD('latB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('latB')">✖</button></div></div><div class="gps-cg"><span class="gps-cl">經度 (Longitude) - 十進制/DMS</span><div class="gps-ddr"><input type="number" id="lonB" placeholder="十進制數值" step="0.000001" value="120.360578" oninput="calculate()"><span>(度)</span><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div><div class="gps-dmsr"><div class="gps-dmsf"><input type="number" id="lonB_deg" placeholder="度" oninput="dmsToD('lonB')"><span>(度)</span></div><div class="gps-dmsf"><input type="number" id="lonB_min" placeholder="分" oninput="dmsToD('lonB')"><span>(分)</span></div><div class="gps-dmsf"><input style="min-width:60px;" type="number" id="lonB_sec" placeholder="秒" step="0.01" oninput="dmsToD('lonB')"><span>(秒)</span></div><button class="gps-cb" onclick="clearCoord('lonB')">✖</button></div></div><div class="gps-er"><label for="eleB">高度 (Elevation)</label><div style="position:relative; flex-grow:1.2;"><input type="number" id="eleB" placeholder="請輸入數值" step="0.01" oninput="calculate()"><span id="eleB-loading" style="position:absolute; top:50%; left:0; transform:translateY(-50%); color:#ffd43b; font-weight:bold; display:none; pointer-events:none; padding:4px 8px;"></span></div><div class="control-group"><span>公尺 (m)</span><button class="gps-cb" onclick="clearElevation('B')">✖</button></div></div></div><div id="gps-controls-container"><div class="btn-row" style="margin-top:5px; margin-bottom:5px; gap:12px; display:flex !important; width:100% !important; justify-content:space-between !important;"><button id="gpsSwapBtn" class="btn" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important; background:linear-gradient(90deg, #bb66ff, #9945ff) !important; color:#fff !important;" onclick="swapGpsCoordinates()">互換A↔B</button><button id="gpsResetBtn" class="btn ghost" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="resetGps()">預設</button><button id="gpsClearBtn" class="btn clear" style="flex:1 1 0% !important; min-width:0 !important; box-sizing:border-box !important;" onclick="clearAllGps()">清除</button></div><div id="gpsRes"> 計算中... </div></div></div><header></header><div class="tab-content active" id="rftool-content"><div class="rf-header"><div class="section-title">🚀 綜合 RF工具</div></div><div class="function-selector-container"><label for="function_selector">選擇顯示功能模組:</label><select id="function_selector" onchange="toggleSections()"><option value="ALL">ALL - 顯示所有計算器</option><option value="power">1. 功率轉換 (dBm / W)</option><option value="matching">2. 匹配度參數換算</option><option value="sensitivity">3. 系統靈敏度 (Sensitivity) 計算</option><option value="los">4. 通視最大距離計算</option><option value="fspl">5. 自由空間損耗 (FSPL)</option><option value="linkbudget">6. 通訊模擬 (Link Budget)</option><option value="cabloss">7. 線損計算 (Cable Loss)</option></select></div><section class="card section-item" id="section-power"><div class="section-header-with-controls"><div class="section-title">1. 功率轉換 (dBm / W)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-power')">預設</button><button class="btn btn-clear" onclick="clearSection('section-power')">清除</button></div></div><div class="input-group-border"><label for="power_unit">選擇輸入單位:</label><select id="power_unit" onchange="swapAndCalculate()"><option value="w">W</option><option value="dbm">dBm</option></select><label for="power_input">輸入數值:</label><div class="input-with-clear"><input id="power_input" oninput="calculateDbmWNew()" placeholder="輸入數值" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('power_input', 'calculateDbmWNew')">×</button></div></div><div class="results-card-border" id="power_output_result">換算結果:</div></section><section class="card section-item" id="section-matching"><div class="section-header-with-controls"><div class="section-title">2. 匹配度參數換算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-matching')">預設</button><button class="btn btn-clear" onclick="clearSection('section-matching')">清除</button></div></div><div class="input-group-border"><label for="matching_unit">選擇輸入參數:</label><select id="matching_unit" onchange="swapAndConvertMatching()"><option value="rl">回波損耗 (Return Loss, RL) [dB]</option><option value="vswr">駐波比 (VSWR)</option><option value="gamma">反射係數 (V, Γ)</option><option value="refl_pct">反射功率 [%]</option><option value="pass_pct">通過功率 [%]</option></select><label for="matching_input_value" style="margin-top:8px;">輸入數值:</label><div class="input-with-clear"><input id="matching_input_value" oninput="calculateMatching()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('matching_input_value', 'calculateMatching')">×</button></div></div><div class="results-card-border" id="matching_output"> 回波損耗 (RL) [dB]: <span class="result-value" id="rl_val"></span><br/> 駐波比 (VSWR): <span class="result-value" id="vswr_val"></span><br/> 反射係數 (V，Γ): <span class="result-value" id="gamma_val"></span><br/> 反射功率 [%]: <span class="result-value" id="refl_percent"></span><br/> 通過功率 [%]: <span class="result-value" id="pass_percent"></span></div></section><section class="card section-item" id="section-sensitivity"><div class="section-header-with-controls"><div class="section-title">3. 系統靈敏度 (Sensitivity) 計算</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-sensitivity')">預設</button><button class="btn btn-clear" onclick="clearSection('section-sensitivity')">清除</button></div></div><div class="input-group-border"><label for="sensitivity_bw">訊號頻寬 (BW) [MHz]:</label><div class="input-with-clear"><input id="sensitivity_bw" oninput="calculateSensitivity()" placeholder="例如: 1 (1MHz)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_bw', 'calculateSensitivity')">×</button></div><label for="sensitivity_nf">雜訊指數 (Noise Figure, NF) [dB]:</label><div class="input-with-clear"><input id="sensitivity_nf" oninput="calculateSensitivity()" placeholder="例如: 5" type="number" value="5"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_nf', 'calculateSensitivity')">×</button></div><label for="sensitivity_sn">所需訊雜比 (S/N) [dB]:</label><div class="input-with-clear"><input id="sensitivity_sn" oninput="calculateSensitivity()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('sensitivity_sn', 'calculateSensitivity')">×</button></div></div><div class="results-card-border" id="sensitivity_output">接收器靈敏度 (Sensitivity):</div></section><section class="card section-item" id="section-los"><div class="section-header-with-controls"><div class="section-title">4. 通視最大距離 (地球曲度遮蔽)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-los')">預設</button><button class="btn btn-clear" onclick="clearSection('section-los')">清除</button></div></div><div class="input-group-border"><div class="los-point-title">A 點</div><div class="los-input-container"><div class="input-item"><label for="los_g1">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g1" oninput="calculateMaxLOS()" placeholder="例如: 100" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g1', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h1">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h1" oninput="calculateMaxLOS()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('los_h1', 'calculateMaxLOS')">×</button></div></div></div><div class="los-point-title">B 點</div><div class="los-input-container"><div class="input-item"><label for="los_g2">天線架設點水平面高度 [m]:</label><div class="input-with-clear"><input id="los_g2" oninput="calculateMaxLOS()" placeholder="例如: 150" type="number" value="0"/><button class="clear-button" onclick="clearAndRecalculate('los_g2', 'calculateMaxLOS')">×</button></div></div><div class="input-item"><label for="los_h2">天線高度 [m]:</label><div class="input-with-clear"><input id="los_h2" oninput="calculateMaxLOS()" placeholder="例如: 20" type="number" value="20"/><button class="clear-button" onclick="clearAndRecalculate('los_h2', 'calculateMaxLOS')">×</button></div></div></div></div>
 <div style="margin-top:6px;">
   <button class="btn ghost" onclick="toggleRefraction()" id="refBtn" style="color:#bb66ff;">目前：不含大氣折射</button>
 </div>
-<div class="results-card-border" id="los_output">最大通視距離:</div></section><section class="card section-item" id="section-fspl"><div class="section-header-with-controls"><div class="section-title">5. 自由空間損耗 (Free Space Path Loss, FSPL)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-fspl')">預設</button><button class="btn btn-clear" onclick="clearSection('section-fspl')">清除</button></div></div><div class="input-group-border"><label for="fspl_freq">頻率 (Frequency) [MHz]:</label><div class="input-with-clear"><input id="fspl_freq" oninput="calculateFSPL()" placeholder="例如: 2400 (2.4 GHz)" type="number" value="2400"/><button class="clear-button" onclick="clearAndRecalculate('fspl_freq', 'calculateFSPL')">×</button></div><label for="fspl_dist">距離 (Distance) [km]:</label><div class="input-with-clear"><input id="fspl_dist" oninput="calculateFSPL()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('fspl_dist', 'calculateFSPL')">×</button></div></div><div class="results-card-border" id="fspl_output">自由空間衰減量 (FSPL):</div></section><section class="card section-item" id="section-linkbudget"><div class="section-header-with-controls"><div class="section-title">6. 通訊模擬 (Link Budget)</div><div class="btn-group"><button class="btn" onclick="showTab('elevation'); setTimeout(function(){ var el=document.getElementById('elevation-rss-panel'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 200);" style="background:rgba(95,240,213,0.15); border:1px solid #5ff0d5; color:#5ff0d5; font-size:13px; padding:3px 8px; white-space:nowrap;" title="跳轉至高度圖 > 接收訊號強度估算">📈 高度圖</button><button class="btn btn-reset" onclick="resetSection('section-linkbudget')">預設</button><button class="btn btn-clear" onclick="clearSection('section-linkbudget')">清除</button></div></div><div class="input-group-border"><div class="los-point-title" style="margin-top:0;">通信參數</div><div class="los-input-container"><div class="input-item"><label for="link_freq_mhz">頻率 [MHz]:</label><div class="input-with-clear"><input id="link_freq_mhz" oninput="calculateLinkBudget(); checkProfileOutdated();" placeholder="例如: 2400 (2.4 GHz)" type="number" value="2400"/><button class="clear-button" onclick="clearAndRecalculate('link_freq_mhz', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_dist_km">距離 [km]:</label><div class="input-with-clear"><input id="link_dist_km" oninput="calculateLinkBudget()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('link_dist_km', 'calculateLinkBudget')">×</button></div></div></div><div class="los-point-title">發射端(TX)</div><div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;"><label for="link_tx_power_unit" style="margin-bottom:0; flex-shrink:0; white-space:nowrap; min-width:160px;">發射功率輸入單位:</label><select id="link_tx_power_unit" onchange="swapLinkTxUnit()" style="flex:1; margin-bottom:0;"><option value="w">W</option><option value="dbm">dBm</option></select></div><div class="los-input-container"><div class="input-item"><label for="link_tx_power_input">發射功率 [W/dBm]:</label><div class="input-with-clear"><input id="link_tx_power_input" oninput="calculateLinkBudget()" placeholder="例如: 1 (1W)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_power_input', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_tx_gain_dbi">天線增益 [dBi]:</label><div class="input-with-clear"><input id="link_tx_gain_dbi" oninput="calculateLinkBudget()" placeholder="例如: 3" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_gain_dbi', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_tx_loss_db">線損 [dB]:</label><div class="input-with-clear"><input id="link_tx_loss_db" oninput="calculateLinkBudget()" placeholder="例如: 3 (3 dB)" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_loss_db', 'calculateLinkBudget')">×</button></div></div></div><div class="los-point-title">接收端(RX)</div><div class="los-input-container"><div class="input-item"><label for="link_rx_gain_dbi">天線增益 [dBi]:</label><div class="input-with-clear"><input id="link_rx_gain_dbi" oninput="calculateLinkBudget()" placeholder="例如: 3" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_rx_gain_dbi', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_rx_loss_db">線損 [dB]:</label><div class="input-with-clear"><input id="link_rx_loss_db" oninput="calculateLinkBudget()" placeholder="例如: 3 (3 dB)" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_rx_loss_db', 'calculateLinkBudget')">×</button></div></div></div></div><div class="results-card-border" id="linkbudget_output">接收訊號強度:</div></section>
+<div class="results-card-border" id="los_output">最大通視距離:</div></section><section class="card section-item" id="section-fspl"><div class="section-header-with-controls"><div class="section-title">5. 自由空間損耗 (Free Space Path Loss, FSPL)</div><div class="btn-group"><button class="btn btn-reset" onclick="resetSection('section-fspl')">預設</button><button class="btn btn-clear" onclick="clearSection('section-fspl')">清除</button></div></div><div class="input-group-border"><label for="fspl_freq">頻率 (Frequency) [MHz]:</label><div class="input-with-clear"><input id="fspl_freq" oninput="calculateFSPL()" placeholder="例如: 2400 (2.4 GHz)" type="number" value="2400"/><button class="clear-button" onclick="clearAndRecalculate('fspl_freq', 'calculateFSPL')">×</button></div><label for="fspl_dist">距離 (Distance) [km]:</label><div class="input-with-clear"><input id="fspl_dist" oninput="calculateFSPL()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('fspl_dist', 'calculateFSPL')">×</button></div></div><div class="results-card-border" id="fspl_output">自由空間衰減量 (FSPL):</div></section><section class="card section-item" id="section-linkbudget"><div class="section-header-with-controls"><div class="section-title">6. 通訊模擬 (Link Budget)</div><div class="btn-group"><button class="btn" onclick="showTab('elevation'); setTimeout(function(){ var el=document.getElementById('elevation-rss-panel'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 200);" style="background:rgba(95,240,213,0.15); border:1px solid #5ff0d5; color:#5ff0d5; font-size:13px; padding:3px 8px; white-space:nowrap;" title="跳轉至地形剖面 > 接收訊號強度估算">🏔️ 剖面</button><button class="btn btn-reset" onclick="resetSection('section-linkbudget')">預設</button><button class="btn btn-clear" onclick="clearSection('section-linkbudget')">清除</button></div></div><div class="input-group-border"><div class="los-point-title" style="margin-top:0;">通信參數</div><div class="los-input-container"><div class="input-item"><label for="link_freq_mhz">頻率 [MHz]:</label><div class="input-with-clear"><input id="link_freq_mhz" oninput="calculateLinkBudget(); checkProfileOutdated();" placeholder="例如: 2400 (2.4 GHz)" type="number" value="2400"/><button class="clear-button" onclick="clearAndRecalculate('link_freq_mhz', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_dist_km">距離 [km]:</label><div class="input-with-clear"><input id="link_dist_km" oninput="calculateLinkBudget()" placeholder="例如: 10" type="number" value="10"/><button class="clear-button" onclick="clearAndRecalculate('link_dist_km', 'calculateLinkBudget')">×</button></div></div></div><div class="los-point-title">發射端(TX)</div><div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;"><label for="link_tx_power_unit" style="margin-bottom:0; flex-shrink:0; white-space:nowrap; min-width:160px;">發射功率輸入單位:</label><select id="link_tx_power_unit" onchange="swapLinkTxUnit()" style="flex:1; margin-bottom:0;"><option value="w">W</option><option value="dbm">dBm</option></select></div><div class="los-input-container"><div class="input-item"><label for="link_tx_power_input">發射功率 [W/dBm]:</label><div class="input-with-clear"><input id="link_tx_power_input" oninput="calculateLinkBudget()" placeholder="例如: 1 (1W)" type="number" value="1"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_power_input', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_tx_gain_dbi">天線增益 [dBi]:</label><div class="input-with-clear"><input id="link_tx_gain_dbi" oninput="calculateLinkBudget()" placeholder="例如: 3" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_gain_dbi', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_tx_loss_db">線損 [dB]:</label><div class="input-with-clear"><input id="link_tx_loss_db" oninput="calculateLinkBudget()" placeholder="例如: 3 (3 dB)" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_tx_loss_db', 'calculateLinkBudget')">×</button></div></div></div><div class="los-point-title">接收端(RX)</div><div class="los-input-container"><div class="input-item"><label for="link_rx_gain_dbi">天線增益 [dBi]:</label><div class="input-with-clear"><input id="link_rx_gain_dbi" oninput="calculateLinkBudget()" placeholder="例如: 3" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_rx_gain_dbi', 'calculateLinkBudget')">×</button></div></div><div class="input-item"><label for="link_rx_loss_db">線損 [dB]:</label><div class="input-with-clear"><input id="link_rx_loss_db" oninput="calculateLinkBudget()" placeholder="例如: 3 (3 dB)" type="number" value="3"/><button class="clear-button" onclick="clearAndRecalculate('link_rx_loss_db', 'calculateLinkBudget')">×</button></div></div></div></div><div class="results-card-border" id="linkbudget_output">接收訊號強度:</div></section>
 <section class="card section-item" id="section-cabloss">
 <div class="section-header-with-controls">
   <div class="section-title">7. 線損計算 (Cable Loss)</div>
@@ -1544,9 +1544,10 @@ div.gps-ig.orange-border-card,
 </div>
 <div style="display:flex; gap:8px; align-items:center; justify-content:center; padding:6px 0;">
 <label style="color:#ffd43b; font-size:15px; font-weight:700; flex-shrink:0; margin-right:8px;">遮蔽：</label>
-<button class="btn" style="background:linear-gradient(90deg, #c92a2a, #a61e1e); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:34px;" onclick="jumpToMaxObstruction()">主遮蔽</button>
-<button class="btn" style="background:linear-gradient(90deg, #ff8fab, #ff6b8a); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:34px;" onclick="jumpToFirstObstructionFromStart()">A點障礙</button>
-<button class="btn" style="background:linear-gradient(90deg, #ff8fab, #ff6b8a); border:0; padding:6px 14px; border-radius:4px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:34px;" onclick="jumpToFirstObstructionFromEnd()">B點障礙</button>
+<button class="btn" style="background:linear-gradient(90deg, #c92a2a, #a61e1e); border:0; padding:4px 8px; border-radius:4px; font-weight:700; font-size:12px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:28px;" onclick="jumpToMaxObstruction()">主遮蔽</button>
+<button class="btn" style="background:linear-gradient(90deg, #f5a623, #e08c00); border:0; padding:4px 8px; border-radius:4px; font-weight:700; font-size:12px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:28px;" onclick="jumpToWorstFresnelPoint()">菲涅爾</button>
+<button class="btn" style="background:linear-gradient(90deg, #ff8fab, #ff6b8a); border:0; padding:4px 8px; border-radius:4px; font-weight:700; font-size:12px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:28px;" onclick="jumpToFirstObstructionFromStart()">A障礙</button>
+<button class="btn" style="background:linear-gradient(90deg, #ff8fab, #ff6b8a); border:0; padding:4px 8px; border-radius:4px; font-weight:700; font-size:12px; color:#fff; cursor:pointer; white-space:nowrap; flex:1; height:28px;" onclick="jumpToFirstObstructionFromEnd()">B障礙</button>
 </div>
 </div>
 <div id="map-container" style="margin-top:5px; text-align:center; display:none; padding:0; border-top:none;">
@@ -5233,13 +5234,13 @@ async function continueGenerateReport() {
 
     centerContent += `
     <div style="background:${blockStyle.highlightBg}; padding:5px; border-radius:4px; margin-top:3px; border:${blockStyle.highlightBorder};">
-      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px; font-weight:bold;">路徑遮蔽 (含60%菲涅爾區)</div>
+      <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px; font-weight:bold;">路徑遮蔽 (含第一菲涅爾區)</div>
       <div style="font-size:13px; color:${blockStyle.lrTitle}; margin-bottom:2px;">
         繞射損耗: <span style="color:${fresnelValColor}; font-weight:700;">−${rss.fresnelLoss_db.toFixed(2)} dB</span>
       </div>
       <div style="font-size:13px; color:${blockStyle.lrTitle};">
         ${rss.hasObstruction
-          ? `⚠️ 60%菲涅爾淨空不足：<span style="color:${fresnelValColor}; font-weight:700;">${rss.maxPenetration_m.toFixed(1)} m</span>`
+          ? `⚠️ 繞射損耗：<span style="color:${fresnelValColor}; font-weight:700;">${rss.fresnelLoss_db.toFixed(2)} dB</span>`
           : `<span style="color:${blockStyle.lrValue}; font-weight:700;">✅ 視線暢通</span>`
         }
       </div>
@@ -5947,6 +5948,9 @@ function calculateElevationRSS() {
   const output = document.getElementById('elevation-rss-output');
   if (!panel || !output) return;
 
+  // 讀取大氣折射係數 K（預設 1.33，標準大氣）
+  const k_earth = Math.max(0.5, parseFloat(document.getElementById('profile-k-factor')?.value) || 1.33);
+
   // 1. 讀取 RF工具 第6節 通訊模擬 的參數
   const freq_mhz    = parseFloat(document.getElementById('link_freq_mhz')?.value);
   const tx_power_input = parseFloat(document.getElementById('link_tx_power_input')?.value);
@@ -6007,12 +6011,13 @@ function calculateElevationRSS() {
   const fspl_db = 32.44 + 20 * Math.log10(freq_mhz) + 20 * Math.log10(dist_km);
 
   // 5. 菲涅爾區遮蔽附加損耗
-  //    對每個剖面圖採樣點計算 60% 菲涅爾半徑，
-  //    找出最嚴重的穿透深度（地形超出菲涅爾區的量），
-  //    用 6 dB/菲涅爾半徑 的近似換算為繞射損耗。
+  //    對每個剖面圖採樣點計算第一菲涅爾區半徑（100%），
+  //    找出最嚴重遮蔽點及其真實 d1/d2，
+  //    用 ITU-R P.526 刃邊公式換算繞射損耗。
   let fresnelLoss_db = 0;
   let obstructionStatus = '✅ 無遮蔽（視線暢通）';
-  let maxPenetration_m = 0;  // 最嚴重穿透深度 (m)，正值=地形高於菲涅爾60%邊界
+  let maxPenetration_m = 0;  // 最嚴重穿透深度 (m)，正值=地形高於第一菲涅爾區邊界
+  let worst_d1 = 0, worst_d2 = 0, worst_fresnelR = 1; // 最差點的幾何參數
 
   const losDataset = chartInstance.data.datasets.find(d =>
     d.label && (d.label.includes('視距連線') || d.label.includes('視距'))
@@ -6034,27 +6039,25 @@ function calculateElevationRSS() {
       // 第一菲涅爾區半徑 (m)，使用工程公式
       const fresnelR = 17.3 * Math.sqrt((d1 * d2) / (freqGHz * D)); // m
 
-      // 60% 菲涅爾區下邊界
+      // 第一菲涅爾區（100%）下邊界
       const losHeight    = losDataset.data[i];
-      const fresnelBound = losHeight - fresnelR * 0.6;
+      const fresnelBound = losHeight - fresnelR;  // 100% 第一菲涅爾區
       const terrainH     = terrainDataset.data[i];
 
-      // 穿透深度：地形超出菲涅爾 60% 下界的量（正值=有穿透）
+      // 穿透深度：地形超出第一菲涅爾區下界的量（正值=有穿透）
       const penetration = terrainH - fresnelBound;
       if (penetration > maxPenetration_m) {
         maxPenetration_m = penetration;
+        worst_d1 = d1;
+        worst_d2 = d2;
+        worst_fresnelR = fresnelR;
       }
     }
 
     if (maxPenetration_m > 0) {
-      // 近似計算繞射損耗：
-      // 菲涅爾-基爾霍夫繞射，ν (刃邊繞射參數) ≈ penetration / (fresnelR_at_worst)
-      // 使用簡化公式：L_diffraction ≈ 6 + 20*log10(ν+0.1) dB  (for ν > -0.7)
-      // 此處用最嚴重穿透點附近的菲涅爾半徑為代表（取全段平均）
-      const mid_d1  = dist_km / 2;
-      const mid_d2  = dist_km / 2;
-      const fresnelR_mid = 17.3 * Math.sqrt((mid_d1 * mid_d2) / (freqGHz * dist_km));
-      const nu = maxPenetration_m / (fresnelR_mid > 0 ? fresnelR_mid : 1);
+      // 菲涅爾-基爾霍夫繞射，ν 使用最嚴重遮蔽點的真實 d1、d2 計算
+      // （而非取路徑中點，避免低估損耗）
+      const nu = maxPenetration_m / (worst_fresnelR > 0 ? worst_fresnelR : 1);
 
       // Knife-edge 繞射損耗近似公式 (ITU-R P.526)
       let J_nu = 0;
@@ -6072,7 +6075,7 @@ function calculateElevationRSS() {
       fresnelLoss_db = Math.max(0, -J_nu); // 損耗為正值
 
       if (maxPenetration_m > 0) {
-        obstructionStatus = `⚠️ 地形遮蔽菲涅爾區（60%菲涅爾淨空不足：${maxPenetration_m.toFixed(1)} m，ν=${nu.toFixed(2)}）`;
+        obstructionStatus = `⚠️ 地形遮蔽菲涅爾區（第一菲涅爾區淨空不足：${maxPenetration_m.toFixed(1)} m，ν=${nu.toFixed(2)}）`;
       }
     }
   }
@@ -9169,34 +9172,20 @@ function renderChart(elevations) {
           cubicInterpolationMode: 'monotone'
         },
         {
-          label: '菲涅爾區 (60%)',
+          label: '第一菲涅爾區',
           data: losLineWithCurvature.map((losVal, i) => {
-            // 在起點和終點，菲涅爾區半徑應該為 0
-            if (i === 0 || i === adjustedElevations.length - 1) {
-              return losVal;
-            }
-
             const f = i / (adjustedElevations.length - 1);
-            const distFromStartKm = totalDist * f;  // km
-            const d1 = distFromStartKm;  // km
-            const d2 = totalDist - distFromStartKm;  // km
-
-            // 額外檢查：如果距離端點太近（< 0.1 km），也返回視距線值
-            if (d1 < 0.1 || d2 < 0.1) {
-              return losVal;
-            }
-
-            // 使用工程公式計算第一菲涅爾區半徑 (米)
-            // r₁ = 17.3 × √(d1 × d2 / (f × D))
-            const freqGHz = freqMHz / 1000;  // 轉換為 GHz
-            const D = totalDist;  // 總距離 km
-            const fresnelRadius = 17.3 * Math.sqrt((d1 * d2) / (freqGHz * D));
-
-            return losVal + fresnelRadius * 0.6;
+            const d1 = totalDist * f;
+            const d2 = totalDist * (1 - f);
+            if (d1 < 0.001 || d2 < 0.001) return losVal; // 端點菲涅爾半徑≈0
+            const freqGHz = freqMHz / 1000;
+            const fresnelRadius = 17.3 * Math.sqrt((d1 * d2) / (freqGHz * totalDist));
+            return losVal + fresnelRadius;  // 100% 第一菲涅爾區
           }),
-          borderColor: 'rgba(255, 193, 7, 0.6)',
-          borderDash: [3, 3],
-          fill: false,
+          borderColor: 'rgba(255, 193, 7, 0.8)',
+          borderDash: [4, 3],
+          fill: '+1',
+          backgroundColor: 'rgba(255, 193, 7, 0.08)',
           pointRadius: 0,
           order: 4,
           tension: 0.4,
@@ -9206,29 +9195,16 @@ function renderChart(elevations) {
         {
           label: '菲涅爾區下界',
           data: losLineWithCurvature.map((losVal, i) => {
-            // 在起點和終點，菲涅爾區半徑應該為 0
-            if (i === 0 || i === adjustedElevations.length - 1) {
-              return losVal;
-            }
-
             const f = i / (adjustedElevations.length - 1);
-            const distFromStartKm = totalDist * f;  // km
-            const d1 = distFromStartKm;  // km
-            const d2 = totalDist - distFromStartKm;  // km
-
-            // 額外檢查：如果距離端點太近（< 0.1 km），也返回視距線值
-            if (d1 < 0.1 || d2 < 0.1) {
-              return losVal;
-            }
-
+            const d1 = totalDist * f;
+            const d2 = totalDist * (1 - f);
+            if (d1 < 0.001 || d2 < 0.001) return losVal; // 端點菲涅爾半徑≈0
             const freqGHz = freqMHz / 1000;
-            const D = totalDist;
-            const fresnelRadius = 17.3 * Math.sqrt((d1 * d2) / (freqGHz * D));
-
-            return losVal - fresnelRadius * 0.6;
+            const fresnelRadius = 17.3 * Math.sqrt((d1 * d2) / (freqGHz * totalDist));
+            return losVal - fresnelRadius;  // 100% 第一菲涅爾區
           }),
-          borderColor: 'rgba(255, 193, 7, 0.6)',
-          borderDash: [3, 3],
+          borderColor: 'rgba(255, 193, 7, 0.8)',
+          borderDash: [4, 3],
           fill: false,
           pointRadius: 0,
           order: 4,
@@ -9327,7 +9303,7 @@ function renderChart(elevations) {
             const meta = chart.getDatasetMeta(index);
 
             // 如果點擊的是菲涅爾區，同時切換上界和下界
-            if (legendItem.text === '菲涅爾區 (60%)') {
+            if (legendItem.text === '第一菲涅爾區') {
               const upperMeta = chart.getDatasetMeta(index);
               const lowerMeta = chart.getDatasetMeta(index + 1);
 
@@ -10042,8 +10018,8 @@ function openChartFullscreen() {
             displayLabel = '海拔';
           } else if (dataset.label === '視距連線 (考慮地球曲度)') {
             displayLabel = '視距 (含地球曲度)';
-          } else if (dataset.label === '菲涅爾區 (60%)') {
-            displayLabel = '菲涅爾60%區';
+          } else if (dataset.label === '第一菲涅爾區') {
+            displayLabel = '第一菲涅爾區';
           }
 
           // 決定 hidden 狀態：優先使用保存的狀態，否則使用原始圖表的狀態
@@ -10135,7 +10111,7 @@ function openChartFullscreen() {
               const meta = chart.getDatasetMeta(index);
 
               // 如果點擊的是菲涅爾區，同時切換上界和下界
-              if (legendItem.text === '菲涅爾60%區') {
+              if (legendItem.text === '第一菲涅爾區') {
                 const upperMeta = chart.getDatasetMeta(index);
                 const lowerMeta = chart.getDatasetMeta(index + 1);
 
@@ -12263,12 +12239,35 @@ function showMap(index, height) {
       const clearance = losHeight - terrainHeight;
       const isStartPoint = (index === 0);
       const isEndPoint = (index === elevationData.length - 1);
+      // 計算當前點的第一菲涅爾區淨空
+      let fresnelInfo = '';
+      try {
+        const eleArr = window._profileAdjEle || elevationData;
+        if (index > 0 && index < eleArr.length - 1) {
+          const totalDist = parseFloat(pathData[pathData.length - 1].dist);
+          const freqMHz = parseFloat(document.getElementById('freq')?.value) || 900;
+          const freqGHz = freqMHz / 1000;
+          const f  = index / (eleArr.length - 1);
+          const d1 = totalDist * f;
+          const d2 = totalDist * (1 - f);
+          if (d1 >= 0.001 && d2 >= 0.001) {
+            const fR = 17.3 * Math.sqrt((d1 * d2) / (freqGHz * totalDist));
+            const fClear = (losLineData[index] - fR) - eleArr[index];
+            if (fClear >= 0) {
+              fresnelInfo = `<br><span style="color:#94a3b8;">菲涅爾淨空</span> <span style="color:#51cf66; font-weight:bold;">+${fClear.toFixed(2)} m</span>`;
+            } else {
+              fresnelInfo = `<br><span style="color:#94a3b8;">菲涅爾不足</span> <span style="color:#ff4444; font-weight:bold;">${fClear.toFixed(2)} m</span>`;
+            }
+          }
+        }
+      } catch(e) {}
+
       if (clearance > 0) {
-        obstructionInfo = `<br><span style="color:#ffd43b;">無遮蔽:</span> <span style="color:#51cf66; font-weight:bold;">+${clearance.toFixed(2)} m</span>`;
+        obstructionInfo = `<br><span style="color:#ffd43b;">無遮蔽:</span> <span style="color:#51cf66; font-weight:bold;">+${clearance.toFixed(2)} m</span>${fresnelInfo}`;
       } else if (clearance === 0 && (isStartPoint || isEndPoint)) {
-        obstructionInfo = `<br><span style="color:#ffd43b;">無遮蔽:</span> <span style="color:#51cf66; font-weight:bold;">0.00 m</span>`;
+        obstructionInfo = `<br><span style="color:#ffd43b;">無遮蔽:</span> <span style="color:#51cf66; font-weight:bold;">0.00 m</span>${fresnelInfo}`;
       } else {
-        obstructionInfo = `<br><span style="color:#ffd43b;">有遮蔽:</span> <span style="color:#ff6b6b; font-weight:bold;">${clearance.toFixed(2)} m</span>`;
+        obstructionInfo = `<br><span style="color:#ffd43b;">有遮蔽:</span> <span style="color:#ff6b6b; font-weight:bold;">${clearance.toFixed(2)} m</span>${fresnelInfo}`;
       }
     }
   }
@@ -14024,6 +14023,46 @@ function jumpToMaxPoint() {
   showMap(maxIndex, getElevationForIndex(maxIndex));
   syncFullscreenChartAfterButtonClick(maxIndex);
 }
+function jumpToWorstFresnelPoint() {
+  selectedPointsInCurrentHeight.clear();
+  if (!elevationData || elevationData.length === 0) {
+    alert('請先生成路徑剖面圖');
+    return;
+  }
+  const losLineData = window._profileLosLine ||
+    (chartInstance && chartInstance.data.datasets[1] && chartInstance.data.datasets[1].data);
+  const adjEle = window._profileAdjEle || elevationData;
+  if (!losLineData) { alert('請先生成路徑剖面圖'); return; }
+
+  const totalDist = pathData[pathData.length - 1].dist;
+  const freqMHz = parseFloat(document.getElementById('profile-freq')?.value) || 2400;
+  const freqGHz = freqMHz / 1000;
+
+  let worstClearance = Infinity;
+  let worstIndex = -1;
+
+  for (let i = 1; i < adjEle.length - 1; i++) {
+    const f  = i / (adjEle.length - 1);
+    const d1 = totalDist * f;
+    const d2 = totalDist * (1 - f);
+    if (d1 < 0.05 || d2 < 0.05) continue;
+    const fresnelR = 17.3 * Math.sqrt((d1 * d2) / (freqGHz * totalDist));
+    const fresnelBound = losLineData[i] - fresnelR;
+    const clearance = fresnelBound - adjEle[i];
+    if (clearance < worstClearance) {
+      worstClearance = clearance;
+      worstIndex = i;
+    }
+  }
+
+  if (worstIndex === -1) {
+    alert('無法計算菲涅爾淨空');
+    return;
+  }
+  showMap(worstIndex, getElevationForIndex(worstIndex));
+  syncFullscreenChartAfterButtonClick(worstIndex);
+}
+
 function jumpToMaxObstruction() {
   selectedPointsInCurrentHeight.clear();
   if (!elevationData || elevationData.length === 0) {
