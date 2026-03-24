@@ -1,4 +1,4 @@
-name: Build Android APK (Bubblewrap)
+name: Build Android APK (PWA Builder)
 
 on:
   push:
@@ -12,48 +12,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # 使用微軟官方提供的 PWA Builder Action，這是目前最穩定、專門為 GitHub 雲端編譯設計的 APK 打包方式。
+      # 它能自動處理 Android SDK、簽署金鑰、和 Bubblewrap 的所有互動問題。
+      - name: PWA-to-APK Build
+        uses: pwa-builder/pwa-builder-action@v2
         with:
-          node-version: 18
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Bubblewrap
-        run: npm install -g @bubblewrap/cli
-
-      - name: Configure Bubblewrap
-        run: |
-          mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
-
-      - name: Build APK (Automatic One-Shot)
-        run: |
-          # 1. 產生金鑰
-          keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=RF, OU=IT, O=RF, L=Taipei, S=Taiwan, C=TW"
-          
-          export BUBBLEWRAP_KEYSTORE_PASSWORD=password
-          export BUBBLEWRAP_KEY_PASSWORD=password
-          
-          # 🔥 終極核心：同步設定檔並標記為已初始化
-          # Bubblewrap build 預期會讀取 .bubblewrap 這個子目錄裡的設定。
-          # 我們手動幫它建立，讓它以為專案早已設定好，跳過所有提問階段。
-          mkdir -p .bubblewrap
-          cp twa-manifest.json .bubblewrap/twa-manifest.json
-          
-          # 2. 執行編譯（使用 --skipConfig 並全面改用 Enter 回應）
-          # yes "" 會不斷送出「換行符號/Enter」，這能通過所有要求確定的對話框
-          yes "" | bubblewrap build
-          
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: rf-tool-apk
-          path: "*.apk"
+          # 你的網頁網址 (必須已經開啟 GitHub Pages)
+          url: https://sulapon.github.io/GPS/
+          # 這是我們之前的 JSON 設定檔案
+          source_dir: .
+          # 下載結果的名字
+          output_name: rf-tool-apk
