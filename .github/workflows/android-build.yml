@@ -17,29 +17,41 @@ jobs:
         with:
           node-version: 18
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
+      - name: Configure Bubblewrap
+        run: |
+          mkdir -p ~/.bubblewrap
+          # 設定 Bubblewrap 的配置檔案，使其知道 JDK 和 Android SDK 的位置
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          echo "Bubblewrap configured with JDK: $JAVA_HOME and SDK: $ANDROID_HOME"
+
       - name: Build APK
-        # 這裡使用 Bubblewrap 的快速編譯模式
-        # bubblewrap build 會根據 twa-manifest.json 自動生成專案並編譯
         run: |
           if [ ! -f "twa-manifest.json" ]; then
-            echo "Error: twa-manifest.json not found. Please ensure it exists."
+            echo "Error: twa-manifest.json not found."
             exit 1
           fi
-          # 建立必要的目錄
-          mkdir -p .bubblewrap
           
-          # 產生簽署金鑰 (僅供測試/個人使用，正式上架需自行保存 JKS)
+          # 產生簽署金鑰 (自動化流程)
           keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=RF, OU=IT, O=RF, L=Taipei, S=Taiwan, C=TW"
           
-          # 將密碼寫入環境變數供 Bubblewrap 使用
+          # 環境變數供 Bubblewrap 使用
           export BUBBLEWRAP_KEYSTORE_PASSWORD=password
           export BUBBLEWRAP_KEY_PASSWORD=password
           
-          # 執行編譯
-          bubblewrap build --quiet
+          # 使用 yes 管道來自動回答所有可能的提示 (如是否同意條款)
+          yes | bubblewrap build
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
