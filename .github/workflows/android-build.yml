@@ -1,4 +1,4 @@
-name: Build Android APK (PWA-to-APK)
+name: Build Android APK (Manual Robust)
 
 on:
   push:
@@ -12,13 +12,42 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 使用目前在 GitHub Actions 市集上最穩定、已被驗證過的路徑：sharadcodes/pwa-to-apk-action
-      - name: Build APK
-        uses: sharadcodes/pwa-to-apk-action@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          # 你的網址
-          url: https://sulapon.github.io/GPS/
+          node-version: 20
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build APK (Automatic Fix)
+        run: |
+          # 1. 產生金鑰
+          keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=RF, OU=IT, O=RF, L=Taipei, S=Taiwan, C=TW"
+          
+          # 2. 安裝 Bubblewrap
+          npm install -g @bubblewrap/cli
+          
+          # 3. 配置環境 (JDK & SDK)
+          mkdir -p ~/.bubblewrap
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          
+          # 4. 強制初始化內部專案目錄
+          mkdir -p .bubblewrap
+          cp twa-manifest.json .bubblewrap/twa-manifest.json
+          
+          # 5. 執行編譯 (手動對應所有可能的問題)
+          # y (是否重新生成), n (是否顯示紀錄), 1.0.0 (版本名), 1 (版本號)
+          export BUBBLEWRAP_KEYSTORE_PASSWORD=password
+          export BUBBLEWRAP_KEY_PASSWORD=password
+          printf "y\nn\n1.0.0\n1\n" | bubblewrap build --skipConfig
+          
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
