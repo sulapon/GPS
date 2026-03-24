@@ -12,10 +12,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 使用微軟官方提供的 PWA Builder Action，這是目前最穩定、專門為 GitHub 雲端編譯設計的 APK 打包方式。
-      # 它能自動處理 Android SDK、簽署金鑰、和 Bubblewrap 的所有互動問題。
+      # 修正 Action 名稱：正確的路徑是 pwa-builder/pwa-action
       - name: PWA-to-APK Build
-        uses: pwa-builder/pwa-builder-action@v2
+        uses: pwa-builder/pwa-action@v2
         with:
           # 你的網頁網址 (必須已經開啟 GitHub Pages)
           url: https://sulapon.github.io/GPS/
