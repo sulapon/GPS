@@ -31,18 +31,11 @@ jobs:
 
       - name: Create Cordova Project
         run: |
-          # 建立專案 (修正：package ID 不能用 native 這個 Java 保留字)
           cordova create myapp com.rf.tool.offline "RF計算工具"
           cd myapp
           cordova platform add android
-          
-          # 清空預設的 www 資料夾
           rm -rf www/*
-          
-          # 將你的 index.html (已經是離線版的) 複製進去作為主頁面
           cp ../index.html www/index.html
-          
-          # 處理圖示
           mkdir -p www/res/icon
           cp ../icon-512x512.png www/res/icon/icon.png || echo "Icon not found, using default"
 
@@ -54,14 +47,24 @@ jobs:
       - name: Build Android APK
         run: |
           cd myapp
-          cordova build android --release --verbose
+          cordova build android --verbose
 
-      - name: Sign APK
+      - name: Find and Copy APK
         run: |
-          APK_PATH=$(find myapp/platforms/android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
-          keytool -genkey -v -keystore my.keystore -alias my-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=RF, OU=IT, O=RF, L=Taipei, S=Taiwan, C=TW"
-          jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore my.keystore -storepass password $APK_PATH my-alias
-          mv $APK_PATH ../RF計算工具_原生離線版.apk
+          echo "=== 尋找所有產出的 APK 檔案 ==="
+          find myapp/platforms/android -name "*.apk" -type f
+          
+          # 從所有找到的 APK 中取第一個
+          APK_PATH=$(find myapp/platforms/android -name "*.apk" -type f | head -n 1)
+          
+          if [ -z "$APK_PATH" ]; then
+            echo "Error: 找不到任何 APK 檔案！"
+            exit 1
+          fi
+          
+          echo "找到 APK: $APK_PATH"
+          cp "$APK_PATH" RF計算工具_原生離線版.apk
+          echo "APK 已複製完成！"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
