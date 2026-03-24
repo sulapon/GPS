@@ -1,0 +1,48 @@
+name: Build Android APK (Bubblewrap)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Build APK
+        # 這裡使用 Bubblewrap 的快速編譯模式
+        # bubblewrap build 會根據 twa-manifest.json 自動生成專案並編譯
+        run: |
+          if [ ! -f "twa-manifest.json" ]; then
+            echo "Error: twa-manifest.json not found. Please ensure it exists."
+            exit 1
+          fi
+          # 建立必要的目錄
+          mkdir -p .bubblewrap
+          
+          # 產生簽署金鑰 (僅供測試/個人使用，正式上架需自行保存 JKS)
+          keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=RF, OU=IT, O=RF, L=Taipei, S=Taiwan, C=TW"
+          
+          # 將密碼寫入環境變數供 Bubblewrap 使用
+          export BUBBLEWRAP_KEYSTORE_PASSWORD=password
+          export BUBBLEWRAP_KEY_PASSWORD=password
+          
+          # 執行編譯
+          bubblewrap build --quiet
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf-tool-apk
+          path: "*.apk"
