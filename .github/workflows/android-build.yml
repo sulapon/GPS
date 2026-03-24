@@ -1,58 +1,12 @@
-name: Build Android APK (Final Offline)
-
-on:
-  push:
-    branches: [ main, master ]
-  workflow_dispatch:
-
+name: Build Android APK
+on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - name: Build Android
+        # 這是目前市集上最通用的 PWA 打包插件
+        uses: Bubblewrap/pwa-build-action@main
         with:
-          node-version: 20
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Build APK
-        run: |
-          # 1. 準備金鑰 (這支金鑰只用來完成打包，不影響功能)
-          keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=RF, OU=IT, O=RF, L=Taipei, S=Taiwan, C=TW"
-          
-          # 2. 安裝核心工具
-          npm install -g @bubblewrap/cli
-          
-          # 3. 注入快取環境 (避免它去問 SDK 路徑)
-          mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
-          
-          # 4. 同步專案內部設定
-          mkdir -p .bubblewrap
-          cp twa-manifest.json .bubblewrap/twa-manifest.json
-          
-          # 5. 【終極絕招】使用 --completelyOffline 模式
-          # 這會強迫編譯器「不準連網去檢查 PWA」，只根據我們本地端提供的檔案進行打包
-          # 這能避開所有關於「GitHub Pages 沒跑、網址不對」的偵測！
-          
-          export BUBBLEWRAP_KEYSTORE_PASSWORD=password
-          export BUBBLEWRAP_KEY_PASSWORD=password
-          
-          printf "y\nn\n1.0.0\n1\n" | bubblewrap build --completelyOffline --skipConfig
-          
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: rf-tool-apk
-          path: "*.apk"
+          url: https://sulapon.github.io/GPS/
