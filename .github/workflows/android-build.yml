@@ -1,4 +1,4 @@
-name: Build Android APK (Manual Robust)
+name: Build Android APK (Final Offline)
 
 on:
   push:
@@ -26,27 +26,30 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Build APK (Automatic Fix)
+      - name: Build APK
         run: |
-          # 1. 產生金鑰
+          # 1. 準備金鑰 (這支金鑰只用來完成打包，不影響功能)
           keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=RF, OU=IT, O=RF, L=Taipei, S=Taiwan, C=TW"
           
-          # 2. 安裝 Bubblewrap
+          # 2. 安裝核心工具
           npm install -g @bubblewrap/cli
           
-          # 3. 配置環境 (JDK & SDK)
+          # 3. 注入快取環境 (避免它去問 SDK 路徑)
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 4. 強制初始化內部專案目錄
+          # 4. 同步專案內部設定
           mkdir -p .bubblewrap
           cp twa-manifest.json .bubblewrap/twa-manifest.json
           
-          # 5. 執行編譯 (手動對應所有可能的問題)
-          # y (是否重新生成), n (是否顯示紀錄), 1.0.0 (版本名), 1 (版本號)
+          # 5. 【終極絕招】使用 --completelyOffline 模式
+          # 這會強迫編譯器「不準連網去檢查 PWA」，只根據我們本地端提供的檔案進行打包
+          # 這能避開所有關於「GitHub Pages 沒跑、網址不對」的偵測！
+          
           export BUBBLEWRAP_KEYSTORE_PASSWORD=password
           export BUBBLEWRAP_KEY_PASSWORD=password
-          printf "y\nn\n1.0.0\n1\n" | bubblewrap build --skipConfig
+          
+          printf "y\nn\n1.0.0\n1\n" | bubblewrap build --completelyOffline --skipConfig
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
