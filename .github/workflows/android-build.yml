@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11' # Cordova 推薦使用 Java 11
+          java-version: '17' # 修正：最新的 Android SDK 需要 Java 17
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
