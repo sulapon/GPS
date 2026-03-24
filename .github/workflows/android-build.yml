@@ -39,19 +39,47 @@ jobs:
           mkdir -p www/res/icon
           cp ../icon-512x512.png www/res/icon/icon.png || echo "Icon not found, using default"
 
-      - name: Fix Viewport and Inject Cordova.js
+      - name: Clean HTML for Cordova
         run: |
           cd myapp/www
-          # 1. 在 <head> 最前面插入 viewport meta 標籤（確保 WebView 優先讀取）
-          # 2. 在 </body> 前面插入 cordova.js（Cordova 必要的橋接腳本）
+          
+          echo "=== 移除 PWA 專用程式碼（在 APK 裡不需要）==="
+          
+          # 1. 在 <head> 最前面插入 viewport（確保 WebView 正確縮放）
           sed -i 's|<head>|<head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">|' index.html
+          
+          # 2. 移除 manifest 連結（APK 不需要 PWA manifest）
+          sed -i 's|<link rel="manifest" href="manifest.json">||g' index.html
+          
+          # 3. 移除 Service Worker 註冊（APK 不需要 SW）
+          sed -i "/serviceWorker/d" index.html
+          sed -i "/service-worker/d" index.html
+          
+          # 4. 移除版本跳轉腳本（這是導致白屏/英文頁面的元兇！）
+          #    這段程式碼會執行 location.replace()，在 Cordova 的 file:// 環境下會跳轉失敗
+          python3 -c "
+          import re
+          with open('index.html', 'r', encoding='utf-8') as f:
+              content = f.read()
+          # 移除版本跳轉的 IIFE
+          content = re.sub(r'\(function\s*\(\)\s*\{\s*const\s+VERSION\s*=.*?location\.replace\(.*?\}\s*\)\s*\(\s*\)\s*;', '', content, flags=re.DOTALL)
+          with open('index.html', 'w', encoding='utf-8') as f:
+              f.write(content)
+          "
+          
+          # 5. 在 </body> 前插入 cordova.js
           sed -i 's|</body>|<script src="cordova.js"></script></body>|' index.html
-          echo "Viewport and cordova.js injected successfully"
+          
+          echo "=== HTML 清理完成 ==="
+          # 驗證：顯示 head 區塊的前幾行
+          head -c 500 index.html
+          echo ""
+          echo "=== 檔案大小 ==="
+          ls -lh index.html
 
       - name: Configure Cordova (config.xml)
         run: |
           cd myapp
-          # 加入圖示設定和 WebView 設定
           sed -i 's|<content src="index.html" />|<content src="index.html" />\n    <icon src="www/res/icon/icon.png" />\n    <preference name="android-minSdkVersion" value="22" />\n    <preference name="android-targetSdkVersion" value="33" />|' config.xml
 
       - name: Build Android APK
