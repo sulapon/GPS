@@ -39,10 +39,20 @@ jobs:
           mkdir -p www/res/icon
           cp ../icon-512x512.png www/res/icon/icon.png || echo "Icon not found, using default"
 
+      - name: Fix Viewport and Inject Cordova.js
+        run: |
+          cd myapp/www
+          # 1. 在 <head> 最前面插入 viewport meta 標籤（確保 WebView 優先讀取）
+          # 2. 在 </body> 前面插入 cordova.js（Cordova 必要的橋接腳本）
+          sed -i 's|<head>|<head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">|' index.html
+          sed -i 's|</body>|<script src="cordova.js"></script></body>|' index.html
+          echo "Viewport and cordova.js injected successfully"
+
       - name: Configure Cordova (config.xml)
         run: |
           cd myapp
-          sed -i 's/<content src="index.html" \/>/<content src="index.html" \/>\n    <icon src="www\/res\/icon\/icon.png" \/>/' config.xml
+          # 加入圖示設定和 WebView 設定
+          sed -i 's|<content src="index.html" />|<content src="index.html" />\n    <icon src="www/res/icon/icon.png" />\n    <preference name="android-minSdkVersion" value="22" />\n    <preference name="android-targetSdkVersion" value="33" />|' config.xml
 
       - name: Build Android APK
         run: |
@@ -53,18 +63,13 @@ jobs:
         run: |
           echo "=== 尋找所有產出的 APK 檔案 ==="
           find myapp/platforms/android -name "*.apk" -type f
-          
-          # 從所有找到的 APK 中取第一個
           APK_PATH=$(find myapp/platforms/android -name "*.apk" -type f | head -n 1)
-          
           if [ -z "$APK_PATH" ]; then
             echo "Error: 找不到任何 APK 檔案！"
             exit 1
           fi
-          
           echo "找到 APK: $APK_PATH"
           cp "$APK_PATH" RF計算工具_原生離線版.apk
-          echo "APK 已複製完成！"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
