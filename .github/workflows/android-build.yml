@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17' # 修正：最新的 Android SDK 需要 Java 17
+          java-version: '17'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -31,8 +31,8 @@ jobs:
 
       - name: Create Cordova Project
         run: |
-          # 建立專案
-          cordova create myapp com.rf.tool.native "RF計算工具"
+          # 建立專案 (修正：package ID 不能用 native 這個 Java 保留字)
+          cordova create myapp com.rf.tool.offline "RF計算工具"
           cd myapp
           cordova platform add android
           
@@ -42,34 +42,25 @@ jobs:
           # 將你的 index.html (已經是離線版的) 複製進去作為主頁面
           cp ../index.html www/index.html
           
-          # 處理圖示 (將 512x512 圖示設為預設)
+          # 處理圖示
           mkdir -p www/res/icon
-          # 從專案目錄複製圖示
           cp ../icon-512x512.png www/res/icon/icon.png || echo "Icon not found, using default"
 
       - name: Configure Cordova (config.xml)
         run: |
           cd myapp
-          # 使用 sed 修改 config.xml 加入圖示與權限設定
           sed -i 's/<content src="index.html" \/>/<content src="index.html" \/>\n    <icon src="www\/res\/icon\/icon.png" \/>/' config.xml
-          echo "Config.xml updated"
 
       - name: Build Android APK
         run: |
           cd myapp
-          # 執行編譯
           cordova build android --release --verbose
 
-      - name: Sign APK (Manual)
+      - name: Sign APK
         run: |
-          # 尋找產出的 APK
           APK_PATH=$(find myapp/platforms/android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
-          
-          # 產生金鑰並簽署
           keytool -genkey -v -keystore my.keystore -alias my-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=RF, OU=IT, O=RF, L=Taipei, S=Taiwan, C=TW"
           jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore my.keystore -storepass password $APK_PATH my-alias
-          
-          # 重新命名以便下載
           mv $APK_PATH ../RF計算工具_原生離線版.apk
 
       - name: Upload APK
