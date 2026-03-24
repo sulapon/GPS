@@ -42,6 +42,6 @@ jobs:
           export BUBBLEWRAP_KEYSTORE_PASSWORD=password
           export BUBBLEWRAP_KEY_PASSWORD=password
           
-          # 加入 --skipCheck 參數(如果支援) 並使用更穩定的輸入方式
-          # 我們手動回答一次 Y，剩下的交給 yes
-          echo "y" | bubblewrap build
+          # 如果程式還是開口問，我們預先準備好所有的標準答案 (y, y, y, 1.0.0, 1)
+          # 並使用 printf 來精確控制換行
+          printf "y\ny\ny\n1.0.0\n1\n" | bubblewrap build
