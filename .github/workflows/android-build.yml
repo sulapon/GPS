@@ -34,14 +34,26 @@ jobs:
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
 
-      - name: Build APK
+      - name: Build APK (Automatic One-Shot)
         run: |
-          # 產生金鑰
+          # 1. 產生金鑰
           keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=RF, OU=IT, O=RF, L=Taipei, S=Taiwan, C=TW"
           
           export BUBBLEWRAP_KEYSTORE_PASSWORD=password
           export BUBBLEWRAP_KEY_PASSWORD=password
           
-          # 如果程式還是開口問，我們預先準備好所有的標準答案 (y, y, y, 1.0.0, 1)
-          # 並使用 printf 來精確控制換行
-          printf "y\ny\ny\n1.0.0\n1\n" | bubblewrap build
+          # 🔥 終極核心：同步設定檔並標記為已初始化
+          # Bubblewrap build 預期會讀取 .bubblewrap 這個子目錄裡的設定。
+          # 我們手動幫它建立，讓它以為專案早已設定好，跳過所有提問階段。
+          mkdir -p .bubblewrap
+          cp twa-manifest.json .bubblewrap/twa-manifest.json
+          
+          # 2. 執行編譯（使用 --skipConfig 並全面改用 Enter 回應）
+          # yes "" 會不斷送出「換行符號/Enter」，這能通過所有要求確定的對話框
+          yes "" | bubblewrap build
+          
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf-tool-apk
+          path: "*.apk"
