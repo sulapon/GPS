@@ -42,9 +42,17 @@ jobs:
       - name: Fix Viewport Scale
         run: |
           cd myapp/www
-          # 只做一件事：在 <head> 開頭插入 viewport 標籤，修正文字太大的問題
+          # 在 <head> 開頭插入 viewport 標籤
           sed -i 's|<head>|<head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">|' index.html
-          echo "Viewport 已插入"
+
+      - name: Configure Cordova (config.xml)
+        run: |
+          cd myapp
+          # 關鍵修正：告訴 Cordova 的 WebView 要「尊重」viewport 標籤
+          # 沒有這些設定，Cordova 會忽略 HTML 裡的 viewport meta tag
+          sed -i 's|</widget>|\n    <preference name="EnableViewportScale" value="true" />\n    <preference name="android-minSdkVersion" value="22" />\n    <preference name="android-targetSdkVersion" value="33" />\n</widget>|' config.xml
+          echo "config.xml 已更新"
+          cat config.xml
 
       - name: Build Android APK
         run: |
