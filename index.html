@@ -2824,7 +2824,12 @@ function vsCheckLOSFast(cLat, cLng, cEle, txH, rxH, tLat, tLng, resolution) {
   const a0 = Math.sin(dLat0/2)**2 + Math.cos(cLat*Math.PI/180)*Math.cos(tLat*Math.PI/180)*Math.sin(dLng0/2)**2;
   const dist = R * 2 * Math.atan2(Math.sqrt(a0), Math.sqrt(1-a0));
 
-  if (dist < resolution) return { visible: true, clearance: Infinity, dist };
+  if (dist < resolution) {
+    const tEleNear = vsGetElevationFast(tLat, tLng);
+    if (tEleNear === null) return { visible: null, clearance: null, dist };
+    const vis = (cEle + txH) >= (tEleNear + rxH);
+    return { visible: vis, clearance: vis ? Infinity : -Infinity, dist };
+  }
 
   const tEle = vsGetElevationFast(tLat, tLng);
   const steps = Math.max(2, Math.ceil(dist / resolution));
@@ -3132,22 +3137,32 @@ function getEle(lat, lng, c) {
   return v;
 }
 
-// ── LOS 計算（掃描專用優化版） ──
-// 優化3：Haversine 改平面近似（50km內誤差<0.01%，遠小於解析度）
-// 優化4：f 改增量加法，避免迴圈內除法
-// 優化5：早退（Early Exit）—掃描只需知道有/無遮蔽，一旦發現穿透立即回傳
-let _cosLat = 1; // 由 self.onmessage 預計算
+// ── LOS 計算（掃描版，使用 Haversine 距離 + ITU-R P.530 曲率修正）
+// 與 vsCheckLOSFast 計算邏輯完全一致，確保 Canvas 著色與點擊查詢結果相符
+// f 改增量加法，避免迴圈內除法
+// 早退（Early Exit）—掃描只需知道有/無遮蔽，一旦發現穿透立即回傳
+let _cosLat = 1; // 保留相容性（未使用）
+const _DEG2RAD = Math.PI / 180;
+let _cosLatRad = 1; // cos(cLat in radians)，由 self.onmessage 設定
 const _R = 6371000;
 let _2kR_inv = 1; // 由 self.onmessage 預計算 1/(2*k*R)
 
 function checkLOS(cLat, cLng, cEle, txH, rxH, tLat, tLng, resolution, c) {
-  // 優化3：平面近似距離（省去 sin/cos/atan2）
-  const dy = (tLat - cLat) * 111320;
-  const dx = (tLng - cLng) * 111320 * _cosLat;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  if (dist < resolution) return 1; // visible
+  // 使用 Haversine 計算球面距離（與點擊查詢完全一致）
+  const dLat0 = (tLat - cLat) * _DEG2RAD;
+  const dLng0 = (tLng - cLng) * _DEG2RAD;
+  const sinDLat = Math.sin(dLat0 / 2);
+  const sinDLng = Math.sin(dLng0 / 2);
+  const a0 = sinDLat * sinDLat + _cosLatRad * Math.cos(tLat * _DEG2RAD) * sinDLng * sinDLng;
+  const dist = _R * 2 * Math.atan2(Math.sqrt(a0), Math.sqrt(1 - a0));
 
+  // 近距離：仍需比較終點高程，不可跳過
   const tEle = getEle(tLat, tLng, c);
+  if (dist < resolution) {
+    if (tEle === null) return 0;
+    return ((cEle + txH) >= (tEle + rxH)) ? 1 : -1;
+  }
+
   if (tEle === null) return 0; // null
 
   const steps = Math.max(2, Math.ceil(dist / resolution));
@@ -3155,7 +3170,7 @@ function checkLOS(cLat, cLng, cEle, txH, rxH, tLat, tLng, resolution, c) {
   const dstH = tEle + rxH;
   const dH   = dstH - srcH;
 
-  // 優化4：預計算步進，迴圈內只做加法
+  // 預計算步進，迴圈內只做加法
   const stepsM1 = steps - 1;
   const fStep = 1 / stepsM1;
   const latStep = (tLat - cLat) * fStep;
@@ -3169,10 +3184,12 @@ function checkLOS(cLat, cLng, cEle, txH, rxH, tLat, tLng, resolution, c) {
     const ele = getEle(lat, lng, c);
     if (ele === null) continue;
     const losH = srcH + dH * f;
-    // 曲率修正：d1*d2/(2kR) = f*(1-f)*dist²*(1/(2kR))
+    // 地球曲率+大氣折射修正 ITU-R P.530：d1×d2/(2kR)
+    // d1 = f*dist, d2 = (1-f)*dist → hCurv = f*(1-f)*dist²/(2kR)
     const hCurv = f * (1 - f) * dist * dist * _2kR_inv;
-    const clearance = losH - (ele - hCurv);
-    // 優化5：早退 — 掃描只要確認遮蔽即可，不需找最嚴苛點
+    const eleEffective = ele - hCurv; // 等效地形高（扣除曲率下沉量）
+    const clearance = losH - eleEffective;
+    // 早退：掃描只需確認有/無遮蔽
     if (clearance < 0) return -1;
   }
   return 1; // visible
@@ -3187,8 +3204,9 @@ self.onmessage = function(e) {
   _scaleFullX = dsm.fullW ? dsm.fullW / (dsm.fullBboxE - dsm.fullBboxW) : 0;
   _scaleFullY = dsm.fullH ? dsm.fullH / (dsm.fullBboxN - dsm.fullBboxS) : 0;
 
-  // 優化3：預計算 cosLat（整個 Worker 只算一次）
-  _cosLat = Math.cos(cLat * Math.PI / 180);
+  // 預計算 cosLat（整個 Worker 只算一次）
+  _cosLat    = Math.cos(cLat * Math.PI / 180);
+  _cosLatRad = _cosLat; // Haversine 用
 
   // 優化4：預計算 1/(2*k*R)（整個 Worker 只算一次）
   _2kR_inv = 1 / (2 * kFactor * _R);
