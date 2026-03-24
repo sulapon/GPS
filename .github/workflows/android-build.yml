@@ -1,4 +1,4 @@
-name: Build Android APK (PWA Builder)
+name: Build Android APK (PWA-to-APK)
 
 on:
   push:
@@ -12,13 +12,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 修正 Action 名稱：正確的路徑是 pwa-builder/pwa-action
-      - name: PWA-to-APK Build
-        uses: pwa-builder/pwa-action@v2
+      # 使用目前在 GitHub Actions 市集上最穩定、已被驗證過的路徑：sharadcodes/pwa-to-apk-action
+      - name: Build APK
+        uses: sharadcodes/pwa-to-apk-action@v1
         with:
-          # 你的網頁網址 (必須已經開啟 GitHub Pages)
+          # 你的網址
           url: https://sulapon.github.io/GPS/
-          # 這是我們之前的 JSON 設定檔案
-          source_dir: .
-          # 下載結果的名字
-          output_name: rf-tool-apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf-tool-apk
+          path: "*.apk"
