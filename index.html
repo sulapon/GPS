@@ -1793,7 +1793,7 @@ div.gps-ig.orange-border-card,
     <!-- ⑥ 圖例（一行） -->
     <div style="display:flex; gap:12px; font-size:15px; align-items:center; flex-wrap:wrap; padding-top:4px; border-top:1px solid rgba(255,255,255,0.06);">
       <div style="display:flex; align-items:center; gap:4px;">
-        <div id="vs-legend-visible" style="width:14px; height:14px; background:#00cc88; border-radius:2px; flex-shrink:0;"></div>
+        <div id="vs-legend-visible" style="width:14px; height:14px; background:#2255dd; border-radius:2px; flex-shrink:0;"></div>
         <span style="color:#94a3b8;">無遮蔽</span>
       </div>
       <div style="display:flex; align-items:center; gap:4px;">
@@ -1802,7 +1802,7 @@ div.gps-ig.orange-border-card,
       </div>
       <div id="vs-legend-tx2-group" style="display:none; contents;">
         <div style="display:flex; align-items:center; gap:4px;">
-          <div id="vs-legend-tx2-visible" style="width:14px; height:14px; background:#4dabf7; border-radius:2px; flex-shrink:0;"></div>
+          <div id="vs-legend-tx2-visible" style="width:14px; height:14px; background:#00cc00; border-radius:2px; flex-shrink:0;"></div>
           <span style="color:#94a3b8;">TX2可視</span>
         </div>
         <div style="display:flex; align-items:center; gap:4px;">
@@ -1810,7 +1810,7 @@ div.gps-ig.orange-border-card,
           <span style="color:#94a3b8;">TX2遮蔽</span>
         </div>
         <div style="display:flex; align-items:center; gap:4px;">
-          <div id="vs-legend-both-visible" style="width:14px; height:14px; background:#d0ff00; border-radius:2px; flex-shrink:0;"></div>
+          <div id="vs-legend-both-visible" style="width:14px; height:14px; background:#ff00cc; border-radius:2px; flex-shrink:0;"></div>
           <span style="color:#94a3b8;">兩者皆可視</span>
         </div>
       </div>
@@ -1853,38 +1853,73 @@ div.gps-ig.orange-border-card,
       </div>
       <!-- 詳細內容（可折疊） -->
       <div id="vs-click-info-body" style="padding:0 11px 10px 11px; border-top:1px solid rgba(255,255,255,0.08);">
-        <!-- 距中心 -->
-        <div id="vs-click-dist" style="margin-top:5px; color:#ffd43b; font-size:13px; display:none;">
-          📏 距中心：<span id="vs-click-dist-val" style="font-weight:700; color:#ffd43b;"></span>
-        </div>
-        <!-- 點擊點高度 -->
-        <div id="vs-click-ele" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
+        <!-- 點擊點高度（共用，只顯示一次） -->
+        <div id="vs-click-ele" style="margin-top:5px; font-size:13px; display:none; color:#94a3b8;">
           🏔️ 點位地表：<span id="vs-click-ele-val" style="font-weight:700; color:#85c9ff;"></span>
           　天線高：<span id="vs-click-rx-ant-val" style="font-weight:700; color:#85c9ff;"></span>
           　= <span id="vs-click-rx-total" style="font-weight:700; color:#5ff0d5;"></span>
         </div>
-        <!-- 發射點高度 -->
-        <div id="vs-click-tx" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
-          📡 發射地表：<span id="vs-click-tx-ele-val" style="font-weight:700; color:#ffa94d;"></span>
-          　天線高：<span id="vs-click-tx-ant-val" style="font-weight:700; color:#ffa94d;"></span>
-          　= <span id="vs-click-tx-total" style="font-weight:700; color:#ffd43b;"></span>
+        <!-- ── TX1 資訊區塊 ── -->
+        <div id="vs-click-tx1-block" style="display:none; margin-top:7px; background:rgba(95,240,213,0.07); border:1px solid rgba(95,240,213,0.45); border-radius:6px; padding:6px 8px;">
+          <div style="font-size:13px; color:#5ff0d5; font-weight:700; letter-spacing:0.5px;">📡 TX1（中心點）</div>
+          <!-- 距TX1中心 -->
+          <div id="vs-click-dist" style="margin-top:4px; color:#ffd43b; font-size:13px; display:none;">
+            📏 距中心：<span id="vs-click-dist-val" style="font-weight:700; color:#ffd43b;"></span>
+          </div>
+          <!-- 發射點高度 TX1 -->
+          <div id="vs-click-tx" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
+            📡 發射地表：<span id="vs-click-tx-ele-val" style="font-weight:700; color:#ffa94d;"></span>
+            　天線高：<span id="vs-click-tx-ant-val" style="font-weight:700; color:#ffa94d;"></span>
+            　= <span id="vs-click-tx-total" style="font-weight:700; color:#ffd43b;"></span>
+          </div>
+          <!-- 地球曲率修正 TX1 -->
+          <div id="vs-click-curv" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
+            🌍 曲率修正：<span id="vs-click-curv-val" style="font-weight:700; color:#b197fc;"></span>
+          </div>
+          <!-- 分隔線 TX1 -->
+          <div id="vs-click-sep" style="margin-top:4px; border-top:1px solid rgba(255,255,255,0.1); display:none;"></div>
+          <!-- 淨空差值 + 遮蔽狀態 TX1 -->
+          <div id="vs-click-los" style="margin-top:4px; font-size:14px; display:none;">
+            <span id="vs-click-los-val"></span>
+          </div>
+          <!-- 最嚴苛遮蔽點 TX1 -->
+          <div id="vs-click-worst" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
+            🚧 遮蔽點：<span id="vs-click-worst-coord" style="font-weight:700; color:#ff8787; user-select:text; -webkit-user-select:text;"></span><br>
+            　地表高：<span id="vs-click-worst-ele" style="color:#ffb3b3;"></span>
+            　視線高：<span id="vs-click-worst-los" style="color:#ffb3b3;"></span>
+            　穿透：<span id="vs-click-worst-pen" style="font-weight:700; color:#ff6b6b;"></span>
+          </div>
         </div>
-        <!-- 地球曲率修正 -->
-        <div id="vs-click-curv" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
-          🌍 曲率修正：<span id="vs-click-curv-val" style="font-weight:700; color:#b197fc;"></span>
-        </div>
-        <!-- 分隔線 -->
-        <div id="vs-click-sep" style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); display:none;"></div>
-        <!-- 淨空差值 + 遮蔽狀態 -->
-        <div id="vs-click-los" style="margin-top:5px; font-size:14px; display:none;">
-          <span id="vs-click-los-val"></span>
-        </div>
-        <!-- 最嚴苛遮蔽點（僅有遮蔽時顯示） -->
-        <div id="vs-click-worst" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
-          🚧 遮蔽點：<span id="vs-click-worst-coord" style="font-weight:700; color:#ff8787; user-select:text; -webkit-user-select:text;"></span><br>
-          　地表高：<span id="vs-click-worst-ele" style="color:#ffb3b3;"></span>
-          　視線高：<span id="vs-click-worst-los" style="color:#ffb3b3;"></span>
-          　穿透：<span id="vs-click-worst-pen" style="font-weight:700; color:#ff6b6b;"></span>
+        <!-- ── TX2 資訊區塊 ── -->
+        <div id="vs-click-tx2-block" style="display:none; margin-top:7px; background:rgba(255,169,77,0.07); border:1px solid rgba(255,169,77,0.45); border-radius:6px; padding:6px 8px;">
+          <div style="font-size:13px; color:#ffa94d; font-weight:700; letter-spacing:0.5px;">📡 TX2（第二發射點）</div>
+          <!-- 距TX2中心 -->
+          <div id="vs-click-dist2" style="margin-top:4px; color:#ffd43b; font-size:13px; display:none;">
+            📏 距中心：<span id="vs-click-dist2-val" style="font-weight:700; color:#ffd43b;"></span>
+          </div>
+          <!-- 發射點高度 TX2 -->
+          <div id="vs-click-tx2" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
+            📡 發射地表：<span id="vs-click-tx2-ele-val" style="font-weight:700; color:#ffa94d;"></span>
+            　天線高：<span id="vs-click-tx2-ant-val" style="font-weight:700; color:#ffa94d;"></span>
+            　= <span id="vs-click-tx2-total" style="font-weight:700; color:#ffd43b;"></span>
+          </div>
+          <!-- 地球曲率修正 TX2 -->
+          <div id="vs-click-curv2" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
+            🌍 曲率修正：<span id="vs-click-curv2-val" style="font-weight:700; color:#b197fc;"></span>
+          </div>
+          <!-- 分隔線 TX2 -->
+          <div id="vs-click-sep2" style="margin-top:4px; border-top:1px solid rgba(255,255,255,0.1); display:none;"></div>
+          <!-- 淨空差值 + 遮蔽狀態 TX2 -->
+          <div id="vs-click-los2" style="margin-top:4px; font-size:14px; display:none;">
+            <span id="vs-click-los2-val"></span>
+          </div>
+          <!-- 最嚴苛遮蔽點 TX2 -->
+          <div id="vs-click-worst2" style="margin-top:4px; font-size:13px; display:none; color:#94a3b8;">
+            🚧 遮蔽點：<span id="vs-click-worst2-coord" style="font-weight:700; color:#ff8787; user-select:text; -webkit-user-select:text;"></span><br>
+            　地表高：<span id="vs-click-worst2-ele" style="color:#ffb3b3;"></span>
+            　視線高：<span id="vs-click-worst2-los" style="color:#ffb3b3;"></span>
+            　穿透：<span id="vs-click-worst2-pen" style="font-weight:700; color:#ff6b6b;"></span>
+          </div>
         </div>
       </div>
     </div>
@@ -1895,26 +1930,26 @@ div.gps-ig.orange-border-card,
       <div id="vs-opacity-header" onclick="vsToggleOpacity()" style="display:flex; align-items:center; gap:5px; padding:6px 11px; cursor:pointer; user-select:none; white-space:nowrap;">
         <span style="font-size:14px;">🎨</span>
         <span style="font-weight:700; color:#5ff0d5; font-size:13px;">透明度 / 顏色</span>
-        <span id="vs-opacity-arrow" style="color:#94a3b8; font-size:12px; margin-left:2px;">▲</span>
+        <span id="vs-opacity-arrow" style="color:#94a3b8; font-size:12px; margin-left:2px;">▼</span>
       </div>
       <!-- 拉桿+顏色內容（可折疊） -->
-      <div id="vs-opacity-body" style="padding:0 11px 8px 11px; border-top:1px solid rgba(255,255,255,0.08);">
+      <div id="vs-opacity-body" style="padding:0 11px 8px 11px; border-top:1px solid rgba(255,255,255,0.08); display:none;">
         <!-- ── TX1 ── 標題 -->
         <div style="margin-top:5px; border-bottom:1px solid rgba(95,240,213,0.25); padding-bottom:4px; font-size:12px; color:#5ff0d5; font-weight:700; text-align:center;">── TX1 ──</div>
         <!-- 可視 -->
         <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
-          <input type="color" id="vs-color-visible" value="#00cc88"
+          <input type="color" id="vs-color-visible" value="#2255dd"
             title="可視顏色"
             style="width:20px; height:20px; border:none; border-radius:3px; padding:0; cursor:pointer; flex-shrink:0; background:none;"
             oninput="vsApplyOpacity()">
           <span style="color:#94a3b8; flex-shrink:0; font-size:13px; width:36px;">可視</span>
-          <input type="range" id="vs-opacity-visible" min="0" max="100" value="78"
-            style="width:90px; accent-color:#00cc88; cursor:pointer;"
+          <input type="range" id="vs-opacity-visible" min="0" max="100" value="80"
+            style="width:90px; accent-color:#2255dd; cursor:pointer;"
             oninput="vsApplyOpacity()">
-          <span id="vs-opacity-visible-val" style="color:#00cc88; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">78%</span>
+          <span id="vs-opacity-visible-val" style="color:#2255dd; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">80%</span>
           <button id="vs-toggle-visible-btn" onclick="vsToggleLayerVisible()"
             title="顯示/隱藏可視圖層"
-            style="padding:2px 7px; font-size:12px; font-weight:700; border-radius:4px; border:1px solid #00cc88; background:rgba(0,204,136,0.2); color:#00cc88; cursor:pointer; flex-shrink:0; line-height:1.4;">👁</button>
+            style="padding:2px 7px; font-size:12px; font-weight:700; border-radius:4px; border:1px solid #2255dd; background:rgba(34,85,221,0.2); color:#2255dd; cursor:pointer; flex-shrink:0; line-height:1.4;">👁</button>
         </div>
         <!-- 遮蔽 -->
         <div style="display:flex; align-items:center; gap:6px; margin-top:3px;">
@@ -1923,10 +1958,10 @@ div.gps-ig.orange-border-card,
             style="width:20px; height:20px; border:none; border-radius:3px; padding:0; cursor:pointer; flex-shrink:0; background:none;"
             oninput="vsApplyOpacity()">
           <span style="color:#94a3b8; flex-shrink:0; font-size:13px; width:36px;">遮蔽</span>
-          <input type="range" id="vs-opacity-blocked" min="0" max="100" value="82"
+          <input type="range" id="vs-opacity-blocked" min="0" max="100" value="80"
             style="width:90px; accent-color:#cc2200; cursor:pointer;"
             oninput="vsApplyOpacity()">
-          <span id="vs-opacity-blocked-val" style="color:#cc2200; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">82%</span>
+          <span id="vs-opacity-blocked-val" style="color:#cc2200; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">80%</span>
           <button id="vs-toggle-blocked-btn" onclick="vsToggleLayerBlocked()"
             title="顯示/隱藏遮蔽圖層"
             style="padding:2px 7px; font-size:12px; font-weight:700; border-radius:4px; border:1px solid #cc2200; background:rgba(204,34,0,0.2); color:#cc2200; cursor:pointer; flex-shrink:0; line-height:1.4;">👁</button>
@@ -1936,18 +1971,18 @@ div.gps-ig.orange-border-card,
           <div style="margin-top:5px; border-top:1px solid rgba(255,160,80,0.25); padding-top:4px; font-size:12px; color:#ffa94d; font-weight:700; margin-bottom:3px; text-align:center;">── TX2 ──</div>
           <!-- TX2 可視 -->
           <div style="display:flex; align-items:center; gap:6px; margin-top:3px;">
-            <input type="color" id="vs-color-tx2-visible" value="#4dabf7"
+            <input type="color" id="vs-color-tx2-visible" value="#00cc00"
               title="TX2可視顏色"
               style="width:20px; height:20px; border:none; border-radius:3px; padding:0; cursor:pointer; flex-shrink:0; background:none;"
               oninput="vsApplyOpacity()">
             <span style="color:#94a3b8; flex-shrink:0; font-size:13px; width:36px;">可視</span>
-            <input type="range" id="vs-opacity-tx2-visible" min="0" max="100" value="78"
-              style="width:90px; accent-color:#4dabf7; cursor:pointer;"
+            <input type="range" id="vs-opacity-tx2-visible" min="0" max="100" value="80"
+              style="width:90px; accent-color:#00cc00; cursor:pointer;"
               oninput="vsApplyOpacity()">
-            <span id="vs-opacity-tx2-visible-val" style="color:#4dabf7; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">78%</span>
+            <span id="vs-opacity-tx2-visible-val" style="color:#00cc00; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">80%</span>
             <button id="vs-toggle-tx2-vis-btn" onclick="vsToggleLayerTx2Vis()"
               title="顯示/隱藏TX2可視圖層"
-              style="padding:2px 7px; font-size:12px; font-weight:700; border-radius:4px; border:1px solid #4dabf7; background:rgba(77,171,247,0.2); color:#4dabf7; cursor:pointer; flex-shrink:0; line-height:1.4;">👁</button>
+              style="padding:2px 7px; font-size:12px; font-weight:700; border-radius:4px; border:1px solid #00cc00; background:rgba(0,204,0,0.2); color:#00cc00; cursor:pointer; flex-shrink:0; line-height:1.4;">👁</button>
           </div>
           <!-- TX2 遮蔽 -->
           <div style="display:flex; align-items:center; gap:6px; margin-top:3px;">
@@ -1956,28 +1991,28 @@ div.gps-ig.orange-border-card,
               style="width:20px; height:20px; border:none; border-radius:3px; padding:0; cursor:pointer; flex-shrink:0; background:none;"
               oninput="vsApplyOpacity()">
             <span style="color:#94a3b8; flex-shrink:0; font-size:13px; width:36px;">遮蔽</span>
-            <input type="range" id="vs-opacity-tx2-blocked" min="0" max="100" value="82"
+            <input type="range" id="vs-opacity-tx2-blocked" min="0" max="100" value="80"
               style="width:90px; accent-color:#ff9500; cursor:pointer;"
               oninput="vsApplyOpacity()">
-            <span id="vs-opacity-tx2-blocked-val" style="color:#ff9500; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">82%</span>
+            <span id="vs-opacity-tx2-blocked-val" style="color:#ff9500; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">80%</span>
             <button id="vs-toggle-tx2-blk-btn" onclick="vsToggleLayerTx2Blk()"
               title="顯示/隱藏TX2遮蔽圖層"
               style="padding:2px 7px; font-size:12px; font-weight:700; border-radius:4px; border:1px solid #ff9500; background:rgba(255,149,0,0.2); color:#ff9500; cursor:pointer; flex-shrink:0; line-height:1.4;">👁</button>
           </div>
           <!-- 皆可視 -->
           <div style="display:flex; align-items:center; gap:6px; margin-top:3px;">
-            <input type="color" id="vs-color-both-visible" value="#d0ff00"
+            <input type="color" id="vs-color-both-visible" value="#ff00cc"
               title="兩者皆可視顏色"
               style="width:20px; height:20px; border:none; border-radius:3px; padding:0; cursor:pointer; flex-shrink:0; background:none;"
               oninput="vsApplyOpacity()">
             <span style="color:#94a3b8; flex-shrink:0; font-size:13px; width:36px;">皆可視</span>
-            <input type="range" id="vs-opacity-both-visible" min="0" max="100" value="90"
-              style="width:90px; accent-color:#d0ff00; cursor:pointer;"
+            <input type="range" id="vs-opacity-both-visible" min="0" max="100" value="80"
+              style="width:90px; accent-color:#ff00cc; cursor:pointer;"
               oninput="vsApplyOpacity()">
-            <span id="vs-opacity-both-visible-val" style="color:#d0ff00; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">90%</span>
+            <span id="vs-opacity-both-visible-val" style="color:#ff00cc; font-weight:700; font-size:13px; width:32px; text-align:right; flex-shrink:0;">80%</span>
             <button id="vs-toggle-both-vis-btn" onclick="vsToggleLayerBothVis()"
               title="顯示/隱藏兩者皆可視圖層"
-              style="padding:2px 7px; font-size:12px; font-weight:700; border-radius:4px; border:1px solid #d0ff00; background:rgba(208,255,0,0.2); color:#d0ff00; cursor:pointer; flex-shrink:0; line-height:1.4;">👁</button>
+              style="padding:2px 7px; font-size:12px; font-weight:700; border-radius:4px; border:1px solid #ff00cc; background:rgba(255,0,204,0.2); color:#ff00cc; cursor:pointer; flex-shrink:0; line-height:1.4;">👁</button>
           </div>
         </div>
       </div>
@@ -2003,8 +2038,8 @@ let vsRawImageData = null;  // 保存原始像素資料（不含透明度）
 let vsWorstMarker = null;   // 最嚴苛遮蔽點柵欄標記
 
 // 透明度預設值（0~255）
-let vsOpacityVisible = 200; // 約 78%
-let vsOpacityBlocked = 210; // 約 82%
+let vsOpacityVisible = 204; // 約 80%
+let vsOpacityBlocked = 204; // 約 80%
 
 // TX2 相關狀態
 let vsTx2Data = null; // 儲存TX2的掃圓原始結果 Int8Array（與TX1 totalCells同樣順序）
@@ -2098,7 +2133,7 @@ function vsSetAngle2(start, end) {
 }
 
 // 折疊/展開透明度控制面板
-let vsOpacityExpanded = true;
+let vsOpacityExpanded = false;
 function vsToggleOpacity() {
   const body  = document.getElementById('vs-opacity-body');
   const arrow = document.getElementById('vs-opacity-arrow');
@@ -2109,7 +2144,7 @@ function vsToggleOpacity() {
   vsPositionClickInfo();
 }
 
-let vsClickInfoExpanded = true;
+let vsClickInfoExpanded = false;
 
 function vsToggleClickInfo() {
   const body  = document.getElementById('vs-click-info-body');
@@ -2141,7 +2176,7 @@ let vsLayerBothVisOn = true;
 function vsToggleLayerVisible() {
   vsLayerVisibleOn = !vsLayerVisibleOn;
   const btn = document.getElementById('vs-toggle-visible-btn');
-  const cv = document.getElementById('vs-color-visible')?.value || '#00cc88';
+  const cv = document.getElementById('vs-color-visible')?.value || '#2255dd';
   if (btn) {
     btn.textContent   = vsLayerVisibleOn ? '👁' : '🚫';
     btn.style.opacity = vsLayerVisibleOn ? '1' : '0.45';
@@ -2169,7 +2204,7 @@ function vsToggleLayerBlocked() {
 function vsToggleLayerTx2Vis() {
   vsLayerTx2VisOn = !vsLayerTx2VisOn;
   const btn = document.getElementById('vs-toggle-tx2-vis-btn');
-  const c = document.getElementById('vs-color-tx2-visible')?.value || '#4dabf7';
+  const c = document.getElementById('vs-color-tx2-visible')?.value || '#00cc00';
   if (btn) {
     btn.textContent = vsLayerTx2VisOn ? '👁' : '🚫';
     btn.style.opacity = vsLayerTx2VisOn ? '1' : '0.45';
@@ -2195,7 +2230,7 @@ function vsToggleLayerTx2Blk() {
 function vsToggleLayerBothVis() {
   vsLayerBothVisOn = !vsLayerBothVisOn;
   const btn = document.getElementById('vs-toggle-both-vis-btn');
-  const c = document.getElementById('vs-color-both-visible')?.value || '#d0ff00';
+  const c = document.getElementById('vs-color-both-visible')?.value || '#ff00cc';
   if (btn) {
     btn.textContent = vsLayerBothVisOn ? '👁' : '🚫';
     btn.style.opacity = vsLayerBothVisOn ? '1' : '0.45';
@@ -2235,7 +2270,7 @@ function vsApplyOpacity() {
     vsOpacityVisible = Math.round(parseInt(sliderVis.value) / 100 * 255);
     if (valVis) {
       valVis.textContent = sliderVis.value + '%';
-      const cv = colorVis ? colorVis.value : '#00cc88';
+      const cv = colorVis ? colorVis.value : '#2255dd';
       valVis.style.color = cv;
       sliderVis.style.accentColor = cv;
       const legendVis = document.getElementById('vs-legend-visible');
@@ -2289,15 +2324,15 @@ function vsApplyOpacity() {
   if (!vsCanvas || !vsRawImageData) return;
 
   // 取得自訂顏色 RGB
-  const [vr,vg,vb] = vsHexToRgb(colorVis ? colorVis.value : '#00cc88');
+  const [vr,vg,vb] = vsHexToRgb(colorVis ? colorVis.value : '#2255dd');
   const [br,bg,bb] = vsHexToRgb(colorBlk ? colorBlk.value : '#cc2200');
-  const [t2vr,t2vg,t2vb] = vsHexToRgb(colorTx2Vis ? colorTx2Vis.value : '#4dabf7');
+  const [t2vr,t2vg,t2vb] = vsHexToRgb(colorTx2Vis ? colorTx2Vis.value : '#00cc00');
   const [t2br,t2bg,t2bb] = vsHexToRgb(colorTx2Blk ? colorTx2Blk.value : '#ff9500');
-  const [bvr,bvg,bvb]    = vsHexToRgb(colorBoth    ? colorBoth.value   : '#d0ff00');
+  const [bvr,bvg,bvb]    = vsHexToRgb(colorBoth    ? colorBoth.value   : '#ff00cc');
 
-  const opTx2Vis  = sliderTx2Vis ? Math.round(parseInt(sliderTx2Vis.value) / 100 * 255) : 200;
-  const opTx2Blk  = sliderTx2Blk ? Math.round(parseInt(sliderTx2Blk.value) / 100 * 255) : 210;
-  const opBoth    = sliderBoth    ? Math.round(parseInt(sliderBoth.value)    / 100 * 255) : 230;
+  const opTx2Vis  = sliderTx2Vis ? Math.round(parseInt(sliderTx2Vis.value) / 100 * 255) : 204;
+  const opTx2Blk  = sliderTx2Blk ? Math.round(parseInt(sliderTx2Blk.value) / 100 * 255) : 204;
+  const opBoth    = sliderBoth    ? Math.round(parseInt(sliderBoth.value)    / 100 * 255) : 204;
 
   const ctx = vsCanvas.getContext('2d');
   const cvW = vsCanvas.width;
@@ -2528,8 +2563,6 @@ function initViewshedMap() {
     const info = document.getElementById('vs-click-info');
     const coord = document.getElementById('vs-click-coord');
     const copyOk = document.getElementById('vs-copy-ok');
-    const distDiv = document.getElementById('vs-click-dist');
-    const distVal = document.getElementById('vs-click-dist-val');
 
     if (info && coord) {
       coord.textContent = coordText;
@@ -2537,79 +2570,133 @@ function initViewshedMap() {
       copyOk.style.display = 'none';
 
       // ── 共用參數 ──
-      const cLat = parseFloat(document.getElementById('vs-lat').value);
-      const cLng = parseFloat(document.getElementById('vs-lng').value);
+      const cLat   = parseFloat(document.getElementById('vs-lat').value);
+      const cLng   = parseFloat(document.getElementById('vs-lng').value);
       const txAntH = parseFloat(document.getElementById('vs-ant-height').value) || 10;
       const rxAntH = parseFloat(document.getElementById('vs-rx-height').value)  || 3;
-      const R_earth = 6371000;
-      const k_refract = 1.33; // 標準大氣折射係數
+      const R_earth  = 6371000;
+      const k_refract = 1.33;
 
-      // ── 距中心距離（Haversine）──
-      if (!isNaN(cLat) && !isNaN(cLng) && distDiv && distVal) {
-        const dLat = (e.latlng.lat - cLat) * Math.PI / 180;
-        const dLng = (e.latlng.lng - cLng) * Math.PI / 180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(cLat*Math.PI/180)*Math.cos(e.latlng.lat*Math.PI/180)*Math.sin(dLng/2)**2;
-        const dist = R_earth * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        distVal.textContent = dist < 1000 ? `${dist.toFixed(0)} m` : `${(dist/1000).toFixed(3)} km`;
-        distDiv.style.display = 'block';
+      // ── TX2 參數 ──
+      const tx2Enabled = document.getElementById('vs-tx2-enabled')?.checked;
+      const cLat2 = tx2Enabled ? parseFloat(document.getElementById('vs-tx2-lat').value) : NaN;
+      const cLng2 = tx2Enabled ? parseFloat(document.getElementById('vs-tx2-lng').value) : NaN;
+      const tx2AntH   = tx2Enabled ? (parseFloat(document.getElementById('vs-tx2-ant-height')?.value) || 10) : 10;
+      const tx2RadiusKm = tx2Enabled ? (parseFloat(document.getElementById('vs-tx2-radius')?.value) || 5) : 0;
 
-        // ── 點擊點高度（DSM） ──
-        const eleDiv    = document.getElementById('vs-click-ele');
-        const txDiv     = document.getElementById('vs-click-tx');
-        const curvDiv   = document.getElementById('vs-click-curv');
-        const sepDiv    = document.getElementById('vs-click-sep');
+      // ── 判斷TX1/TX2圓半徑（km → m）──
+      const tx1RadiusKm = parseFloat(document.getElementById('vs-radius')?.value) || 5;
+      const tx1RadiusM = tx1RadiusKm * 1000;
+      const tx2RadiusM = tx2RadiusKm * 1000;
 
-        const clickEle = vsGetElevationFast(e.latlng.lat, e.latlng.lng);
-        const txEle    = vsGetElevationFast(cLat, cLng);
+      // ── Haversine 計算距離函數 ──
+      function haversineDist(lat1, lng1, lat2, lng2) {
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+        return R_earth * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      }
 
-        if (clickEle !== null && eleDiv) {
-          const rxTotal = clickEle + rxAntH;
-          document.getElementById('vs-click-ele-val').textContent    = `${clickEle.toFixed(1)} m`;
-          document.getElementById('vs-click-rx-ant-val').textContent = `${rxAntH.toFixed(1)} m`;
-          document.getElementById('vs-click-rx-total').textContent   = `${rxTotal.toFixed(1)} m`;
-          eleDiv.style.display = 'block';
-        } else if (eleDiv) { eleDiv.style.display = 'none'; } // 暫隱，待LOS結果補填
+      // ── 判斷點在哪個圓內 ──
+      const distTx1 = (!isNaN(cLat) && !isNaN(cLng)) ? haversineDist(cLat, cLng, e.latlng.lat, e.latlng.lng) : Infinity;
+      const distTx2 = (tx2Enabled && !isNaN(cLat2) && !isNaN(cLng2)) ? haversineDist(cLat2, cLng2, e.latlng.lat, e.latlng.lng) : Infinity;
 
-        // ── 發射點高度 ──
+      const inTx1 = distTx1 <= tx1RadiusM;
+      const inTx2 = tx2Enabled && distTx2 <= tx2RadiusM;
+
+      // ── 依圖層開啟狀態決定要顯示哪些TX資訊 ──
+      // TX1圖層是否有開啟（可視或遮蔽任一開啟）
+      const tx1LayerOn = vsLayerVisibleOn || vsLayerBlockedOn;
+      // TX2圖層是否有開啟
+      const tx2LayerOn = tx2Enabled && (vsLayerTx2VisOn || vsLayerTx2BlkOn || vsLayerBothVisOn);
+
+      // 決定要顯示的TX組合
+      let showTx1 = false, showTx2 = false;
+      if (inTx1 && inTx2) {
+        // 重疊區：依圖層開啟狀態決定
+        showTx1 = tx1LayerOn;
+        showTx2 = tx2LayerOn;
+      } else if (inTx1) {
+        showTx1 = tx1LayerOn || !tx2LayerOn; // 只有TX1圓內，顯示TX1
+      } else if (inTx2) {
+        showTx2 = tx2LayerOn || !tx1LayerOn; // 只有TX2圓內，顯示TX2
+      } else {
+        // 兩個圓都不在，仍顯示TX1（向後相容）
+        showTx1 = true;
+      }
+      // 若兩個都關閉，至少顯示TX1
+      if (!showTx1 && !showTx2) showTx1 = true;
+
+      // ── 點擊點高度（共用，只顯示一次）──
+      const eleDiv = document.getElementById('vs-click-ele');
+      const clickEle = (!isNaN(cLat)) ? vsGetElevationFast(e.latlng.lat, e.latlng.lng) : null;
+      if (clickEle !== null && eleDiv) {
+        const rxTotal = clickEle + rxAntH;
+        document.getElementById('vs-click-ele-val').textContent    = `${clickEle.toFixed(1)} m`;
+        document.getElementById('vs-click-rx-ant-val').textContent = `${rxAntH.toFixed(1)} m`;
+        document.getElementById('vs-click-rx-total').textContent   = `${rxTotal.toFixed(1)} m`;
+        eleDiv.style.display = 'block';
+      } else if (eleDiv) { eleDiv.style.display = 'none'; }
+
+      // ── 清除舊的遮蔽標記 ──
+      if (vsWorstMarker) { vsMap.removeLayer(vsWorstMarker); vsWorstMarker = null; }
+      if (window.vsWorstMarker2) { vsMap.removeLayer(window.vsWorstMarker2); window.vsWorstMarker2 = null; }
+
+      const resolution = Math.max(5, parseFloat(document.getElementById('vs-resolution').value) || 20);
+
+      // ═══════════════════════════════════════════
+      // ── 函數：填入TX1/TX2資訊區塊 ──
+      // ═══════════════════════════════════════════
+      function fillTxBlock(txId, txLat, txLng, txAnt, dist, clickEleVal) {
+        const isTx1 = (txId === 1);
+        const suffix = isTx1 ? '' : '2';
+        const blockEl  = document.getElementById(`vs-click-tx${isTx1?'1':'2'}-block`);
+        const distDiv  = document.getElementById(`vs-click-dist${suffix}`);
+        const distVal  = document.getElementById(`vs-click-dist${suffix}-val`);
+        const txDiv    = document.getElementById(`vs-click-tx${isTx1?'':2}`);
+        const curvDiv  = document.getElementById(`vs-click-curv${suffix}`);
+        const sepDiv   = document.getElementById(`vs-click-sep${suffix}`);
+        const losDiv   = document.getElementById(`vs-click-los${suffix}`);
+        const losVal   = document.getElementById(`vs-click-los${suffix}-val`);
+        const worstDiv = document.getElementById(`vs-click-worst${suffix}`);
+
+        if (!blockEl) return;
+        blockEl.style.display = 'block';
+
+        // 距中心
+        if (distDiv && distVal) {
+          distVal.textContent = dist < 1000 ? `${dist.toFixed(0)} m` : `${(dist/1000).toFixed(3)} km`;
+          distDiv.style.display = 'block';
+        }
+
+        // 發射點高度
+        const txEle = vsGetElevationFast(txLat, txLng);
         if (txEle !== null && txDiv) {
-          const txTotal = txEle + txAntH;
-          document.getElementById('vs-click-tx-ele-val').textContent = `${txEle.toFixed(1)} m`;
-          document.getElementById('vs-click-tx-ant-val').textContent = `${txAntH.toFixed(1)} m`;
-          document.getElementById('vs-click-tx-total').textContent   = `${txTotal.toFixed(1)} m`;
+          const txTotal = txEle + txAnt;
+          document.getElementById(`vs-click-tx${isTx1?'':2}-ele-val`).textContent = `${txEle.toFixed(1)} m`;
+          document.getElementById(`vs-click-tx${isTx1?'':2}-ant-val`).textContent = `${txAnt.toFixed(1)} m`;
+          document.getElementById(`vs-click-tx${isTx1?'':2}-total`).textContent   = `${txTotal.toFixed(1)} m`;
           txDiv.style.display = 'block';
         } else if (txDiv) { txDiv.style.display = 'none'; }
 
-        // ── 地球曲率修正量（此距離） ──
-        // 修正公式：h_curv = d²/(2kR)，在接收端完整距離d處的曲率下沉
+        // 地球曲率修正
         const hCurv = (dist * dist) / (2 * k_refract * R_earth);
         if (curvDiv) {
-          document.getElementById('vs-click-curv-val').textContent =
+          document.getElementById(`vs-click-curv${suffix}-val`).textContent =
             `${hCurv.toFixed(2)} m（距離${dist < 1000 ? dist.toFixed(0)+'m' : (dist/1000).toFixed(2)+'km'}，k=${k_refract}）`;
           curvDiv.style.display = 'block';
         }
 
-        // ── 淨空差值計算：直接呼叫 vsCheckLOSFast 取得詳細結果 ──
-        const losDiv   = document.getElementById('vs-click-los');
-        const losVal   = document.getElementById('vs-click-los-val');
-        const worstDiv = document.getElementById('vs-click-worst');
-
-        // 清除上一次的柵欄標記
-        if (vsWorstMarker) { vsMap.removeLayer(vsWorstMarker); vsWorstMarker = null; }
-
-        if (losDiv && losVal && txEle !== null && clickEle !== null) {
-          // 使用與掃圓分析完全相同的函數（含地球曲率+大氣折射）
-          const resolution = Math.max(5, parseFloat(document.getElementById('vs-resolution').value) || 20);
-          const losResult = vsCheckLOSFast(cLat, cLng, txEle, txAntH, rxAntH, e.latlng.lat, e.latlng.lng, resolution);
-
+        // LOS 分析
+        if (losDiv && losVal && txEle !== null && clickEleVal !== null) {
+          const losResult = vsCheckLOSFast(txLat, txLng, txEle, txAnt, rxAntH, e.latlng.lat, e.latlng.lng, resolution);
           if (sepDiv) sepDiv.style.display = 'block';
-
           if (!losResult || losResult.visible === null) {
             losVal.innerHTML = `❓ <span style="color:#94a3b8;">無法計算（DSM無資料）</span>`;
             if (worstDiv) worstDiv.style.display = 'none';
           } else {
-            const clr = losResult.clearance;
+            const clr    = losResult.clearance;
             const clrStr = clr === Infinity ? '∞' : (clr >= 0 ? `+${clr.toFixed(1)}` : clr.toFixed(1));
-
             if (losResult.visible) {
               losVal.innerHTML =
                 `✅ <span style="font-weight:700; color:#00cc88;">無遮蔽</span>` +
@@ -2619,60 +2706,54 @@ function initViewshedMap() {
               losVal.innerHTML =
                 `🚧 <span style="font-weight:700; color:#ff6b6b;">有遮蔽</span>` +
                 `　最大穿透：<span style="font-weight:700; color:#ff6b6b; font-size:13px;">${clrStr} m</span>`;
-
-              // 顯示最嚴苛遮蔽點詳細資訊
               if (worstDiv && losResult.worstLat !== null) {
-                document.getElementById('vs-click-worst-coord').textContent =
+                document.getElementById(`vs-click-worst${suffix}-coord`).textContent =
                   `${losResult.worstLat.toFixed(6)}, ${losResult.worstLng.toFixed(6)}`;
-                document.getElementById('vs-click-worst-ele').textContent =
+                document.getElementById(`vs-click-worst${suffix}-ele`).textContent =
                   `${losResult.worstEle.toFixed(1)} m`;
-                document.getElementById('vs-click-worst-los').textContent =
+                document.getElementById(`vs-click-worst${suffix}-los`).textContent =
                   `${losResult.worstLosH.toFixed(1)} m`;
-                document.getElementById('vs-click-worst-pen').textContent =
+                document.getElementById(`vs-click-worst${suffix}-pen`).textContent =
                   `${clrStr} m`;
                 worstDiv.style.display = 'block';
-
-                // 在地圖最嚴苛點放柵欄圖示
-                vsWorstMarker = L.marker([losResult.worstLat, losResult.worstLng], {
+                const wMarker = L.marker([losResult.worstLat, losResult.worstLng], {
                   icon: L.divIcon({
                     className: '',
-                    html: `<div style="font-size:22px; line-height:1; filter:drop-shadow(0 0 3px #ff4444);" title="最嚴苛遮蔽點\n穿透: ${clrStr} m\n地表高: ${losResult.worstEle.toFixed(1)} m\n視線高: ${losResult.worstLosH.toFixed(1)} m">🚧</div>`,
-                    iconSize: [26, 26],
-                    iconAnchor: [13, 13]
-                  }),
-                  zIndexOffset: 500
-                }).addTo(vsMap)
-                  .bindPopup(
-                    `<b>🚧 最嚴苛遮蔽點</b><br>` +
-                    `座標：${losResult.worstLat.toFixed(6)}, ${losResult.worstLng.toFixed(6)}<br>` +
-                    `地表高：${losResult.worstEle.toFixed(1)} m<br>` +
-                    `視線高：${losResult.worstLosH.toFixed(1)} m<br>` +
-                    `穿透量：<b style="color:#ff4444;">${clrStr} m</b>`
-                  );
+                    html: `<div style="font-size:22px; line-height:1; filter:drop-shadow(0 0 3px #ff4444);" title="TX${txId} 最嚴苛遮蔽點\n穿透: ${clrStr} m\n地表高: ${losResult.worstEle.toFixed(1)} m\n視線高: ${losResult.worstLosH.toFixed(1)} m">🚧</div>`,
+                    iconSize: [26, 26], iconAnchor: [13, 13]
+                  }), zIndexOffset: 500
+                }).addTo(vsMap).bindPopup(
+                  `<b>🚧 TX${txId} 最嚴苛遮蔽點</b><br>` +
+                  `座標：${losResult.worstLat.toFixed(6)}, ${losResult.worstLng.toFixed(6)}<br>` +
+                  `地表高：${losResult.worstEle.toFixed(1)} m<br>` +
+                  `視線高：${losResult.worstLosH.toFixed(1)} m<br>` +
+                  `穿透量：<b style="color:#ff4444;">${clrStr} m</b>`
+                );
+                if (isTx1) vsWorstMarker = wMarker;
+                else window.vsWorstMarker2 = wMarker;
               }
             }
           }
           losDiv.style.display = 'block';
         } else if (losDiv) {
-          // 無DSM精確資料（點在DSM bbox外）：仍嘗試用vsCheckLOSFast，沿途取得遮蔽資訊
-          if (vsDsmCache && txEle !== null) {
-            const resolution2 = Math.max(5, parseFloat(document.getElementById('vs-resolution').value) || 20);
-            const losResult2 = vsCheckLOSFast(cLat, cLng, txEle, txAntH, rxAntH, e.latlng.lat, e.latlng.lng, resolution2);
-            // 若點位地表尚未顯示，用LOS回傳的估算終點高程補填
-            if (clickEle === null && eleDiv && losResult2 && losResult2.tEleEst !== null) {
+          // 無DSM精確資料：備援路徑
+          if (vsDsmCache) {
+            const txEle2 = txEle !== null ? txEle : 0;
+            const losResult2 = vsCheckLOSFast(txLat, txLng, txEle2, txAnt, rxAntH, e.latlng.lat, e.latlng.lng, resolution);
+            if (clickEleVal === null && eleDiv && losResult2 && losResult2.tEleEst !== null) {
               const estEle = losResult2.tEleEst;
-              const rxTotal = estEle + rxAntH;
+              const rxTotal2 = estEle + rxAntH;
               document.getElementById('vs-click-ele-val').textContent    = `${estEle.toFixed(1)} m *`;
               document.getElementById('vs-click-rx-ant-val').textContent = `${rxAntH.toFixed(1)} m`;
-              document.getElementById('vs-click-rx-total').textContent   = `${rxTotal.toFixed(1)} m *`;
-              eleDiv.style.display = 'block';
+              document.getElementById('vs-click-rx-total').textContent   = `${rxTotal2.toFixed(1)} m *`;
+              if (eleDiv) eleDiv.style.display = 'block';
             }
             if (sepDiv) sepDiv.style.display = 'block';
             if (!losResult2 || losResult2.visible === null) {
               losVal.innerHTML = `❓ <span style="color:#94a3b8;">超出DSM範圍，無法計算遮蔽</span>`;
               if (worstDiv) worstDiv.style.display = 'none';
             } else {
-              const clr2 = losResult2.clearance;
+              const clr2    = losResult2.clearance;
               const clrStr2 = clr2 === Infinity ? '∞' : (clr2 >= 0 ? `+${clr2.toFixed(1)}` : clr2.toFixed(1));
               const partialNote2 = losResult2.partial ? `　<span style="color:#94a3b8; font-size:11px;">（終點超出DSM，路徑估算）</span>` : '';
               if (losResult2.visible) {
@@ -2681,60 +2762,51 @@ function initViewshedMap() {
               } else {
                 losVal.innerHTML = `🚧 <span style="font-weight:700; color:#ff6b6b;">有遮蔽</span>　最大穿透：<span style="font-weight:700; color:#ff6b6b; font-size:13px;">${clrStr2} m</span>${partialNote2}`;
                 if (worstDiv && losResult2.worstLat !== null) {
-                  document.getElementById('vs-click-worst-coord').textContent = `${losResult2.worstLat.toFixed(6)}, ${losResult2.worstLng.toFixed(6)}`;
-                  document.getElementById('vs-click-worst-ele').textContent  = `${losResult2.worstEle.toFixed(1)} m`;
-                  document.getElementById('vs-click-worst-los').textContent  = `${losResult2.worstLosH.toFixed(1)} m`;
-                  document.getElementById('vs-click-worst-pen').textContent  = `${clrStr2} m`;
+                  document.getElementById(`vs-click-worst${suffix}-coord`).textContent = `${losResult2.worstLat.toFixed(6)}, ${losResult2.worstLng.toFixed(6)}`;
+                  document.getElementById(`vs-click-worst${suffix}-ele`).textContent  = `${losResult2.worstEle.toFixed(1)} m`;
+                  document.getElementById(`vs-click-worst${suffix}-los`).textContent  = `${losResult2.worstLosH.toFixed(1)} m`;
+                  document.getElementById(`vs-click-worst${suffix}-pen`).textContent  = `${clrStr2} m`;
                   worstDiv.style.display = 'block';
-                  if (vsWorstMarker) { vsMap.removeLayer(vsWorstMarker); vsWorstMarker = null; }
-                  vsWorstMarker = L.marker([losResult2.worstLat, losResult2.worstLng], {
+                  if (isTx1) { if (vsWorstMarker) { vsMap.removeLayer(vsWorstMarker); vsWorstMarker = null; } }
+                  else { if (window.vsWorstMarker2) { vsMap.removeLayer(window.vsWorstMarker2); window.vsWorstMarker2 = null; } }
+                  const wm2 = L.marker([losResult2.worstLat, losResult2.worstLng], {
                     icon: L.divIcon({
                       className: '',
-                      html: `<div style="font-size:22px; line-height:1; filter:drop-shadow(0 0 3px #ff4444);" title="最嚴苛遮蔽點">🚧</div>`,
+                      html: `<div style="font-size:22px; line-height:1; filter:drop-shadow(0 0 3px #ff4444);" title="TX${txId} 最嚴苛遮蔽點">🚧</div>`,
                       iconSize: [26, 26], iconAnchor: [13, 13]
                     }), zIndexOffset: 500
                   }).addTo(vsMap).bindPopup(
-                    `<b>🚧 最嚴苛遮蔽點</b><br>座標：${losResult2.worstLat.toFixed(6)}, ${losResult2.worstLng.toFixed(6)}<br>` +
+                    `<b>🚧 TX${txId} 最嚴苛遮蔽點</b><br>座標：${losResult2.worstLat.toFixed(6)}, ${losResult2.worstLng.toFixed(6)}<br>` +
                     `地表高：${losResult2.worstEle.toFixed(1)} m<br>視線高：${losResult2.worstLosH.toFixed(1)} m<br>` +
                     `穿透量：<b style="color:#ff4444;">${clrStr2} m</b>`
                   );
+                  if (isTx1) vsWorstMarker = wm2; else window.vsWorstMarker2 = wm2;
                 }
               }
             }
             losDiv.style.display = 'block';
-          } else if (vsCanvas && vsRawImageData) {
-            try {
-              const radiusKm  = parseFloat(document.getElementById('vs-radius').value) || 5;
-              const resolution = Math.max(5, parseFloat(document.getElementById('vs-resolution').value) || 20);
-              const gridN = Math.ceil(radiusKm * 1000 / resolution);
-              const size  = vsCanvas.width;
-              const mPerDegLat = 111320;
-              const mPerDegLng = 111320 * Math.cos(cLat * Math.PI / 180);
-              const col = Math.round((e.latlng.lng - cLng) / (resolution / mPerDegLng) + gridN);
-              const row = Math.round((cLat - e.latlng.lat) / (resolution / mPerDegLat) + gridN);
-              if (col >= 0 && col < size && row >= 0 && row < size) {
-                const idx = (row * size + col) * 4;
-                const src = vsRawImageData.data;
-                const isGreen = src[idx+1] > 150 && src[idx] < 50;
-                const isRed   = src[idx] > 150 && src[idx+1] < 80;
-                if (src[idx+3] === 0) {
-                  losVal.innerHTML = `🔘 <span style="color:#94a3b8;">掃描範圍外</span>`;
-                } else if (isGreen) {
-                  losVal.innerHTML = `✅ <span style="color:#00cc88; font-weight:700;">無遮蔽（可視）</span>`;
-                } else if (isRed) {
-                  losVal.innerHTML = `🚧 <span style="color:#ff6b6b; font-weight:700;">有遮蔽</span>`;
-                } else {
-                  losVal.innerHTML = `❓ <span style="color:#94a3b8;">無高程資料</span>`;
-                }
-                if (sepDiv) sepDiv.style.display = 'block';
-                losDiv.style.display = 'block';
-              } else { losDiv.style.display = 'none'; }
-            } catch(err) { losDiv.style.display = 'none'; }
           } else { losDiv.style.display = 'none'; }
         }
+      } // end fillTxBlock
 
-      } else {
-        if (distDiv) distDiv.style.display = 'none';
+      // ── 隱藏所有TX區塊，重置高度顯示 ──
+      const blk1 = document.getElementById('vs-click-tx1-block');
+      const blk2 = document.getElementById('vs-click-tx2-block');
+      if (blk1) blk1.style.display = 'none';
+      if (blk2) blk2.style.display = 'none';
+      // 隱藏所有子元素
+      ['vs-click-dist','vs-click-tx','vs-click-curv','vs-click-sep','vs-click-los','vs-click-worst',
+       'vs-click-dist2','vs-click-tx2','vs-click-curv2','vs-click-sep2','vs-click-los2','vs-click-worst2'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+
+      // ── 填入對應TX資訊 ──
+      if (showTx1 && !isNaN(cLat) && !isNaN(cLng)) {
+        fillTxBlock(1, cLat, cLng, txAntH, distTx1, clickEle);
+      }
+      if (showTx2 && !isNaN(cLat2) && !isNaN(cLng2)) {
+        fillTxBlock(2, cLat2, cLng2, tx2AntH, distTx2, clickEle);
       }
 
       // 展開顯示座標資訊框，並定位在透明度/顏色上方
@@ -2934,6 +3006,8 @@ function clearViewshed() {
   vsCanvas = null;
   vsRawImageData = null;
   vsTx2Data = null;
+  window.vsScanTx1Flat = null;
+  window.vsScanTotalCells = null;
   if (vsWorstMarker) { vsMap.removeLayer(vsWorstMarker); vsWorstMarker = null; }
   if (window.vsTx2CenterMarker) { vsMap.removeLayer(window.vsTx2CenterMarker); window.vsTx2CenterMarker = null; }
   if (window.vsTx2Circle) { vsMap.removeLayer(window.vsTx2Circle); window.vsTx2Circle = null; }
@@ -3098,28 +3172,36 @@ function vsFindHighestPoint() {
 let vsDsmCache = null; // { data: Float32Array, width, height, bbox }
 
 async function vsPreloadDSM(south, west, north, east) {
-  // 只支援 DSM TIF 預載（其他API無法一次取矩形）
   if (!window.GeoTIFF) await loadGeoTIFFLibrary();
 
   let image = null;
 
-  // 優先本地 TIF
+  // 優先本地 TIF（使用者上傳，直接重用已解析的 image 物件）
   if (localTifFileData && localTifFileData.tiff) {
     image = localTifFileData.image;
   } else {
-    // 嘗試本地 COG 或 GitHub
+    // ★ 每次都建立全新的 tiff/image 物件
+    //   GeoTIFF COG 的 readRasters 在讀取大範圍區塊時依賴新的 HTTP Range session，
+    //   重用舊 image 會導致 tile offset 為 undefined 的錯誤
     let tiff = null;
-    try { tiff = await GeoTIFF.fromUrl('libs/taiwan_dsm_wgs84_cog.tif'); }
-    catch(e) {
-      try { tiff = await GeoTIFF.fromUrl('taiwan_dsm_wgs84_cog.tif'); }
-      catch(e2) { tiff = await GeoTIFF.fromUrl('https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif'); }
+    const urls = [
+      'libs/taiwan_dsm_wgs84_cog.tif',
+      'taiwan_dsm_wgs84_cog.tif',
+      'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif'
+    ];
+    for (const url of urls) {
+      try {
+        tiff = await GeoTIFF.fromUrl(url, { allowFullFile: true });
+        break;
+      } catch(e) { /* 嘗試下一個 */ }
     }
+    if (!tiff) throw new Error('無法載入台灣DSM圖資（三個來源均失敗）');
     image = await tiff.getImage();
   }
 
-  const bbox  = image.getBoundingBox(); // [west, south, east, north]
-  const W     = image.getWidth();
-  const H     = image.getHeight();
+  const bbox = image.getBoundingBox(); // [west, south, east, north]
+  const W    = image.getWidth();
+  const H    = image.getHeight();
 
   // 計算要讀取的像素範圍（稍微擴大一點避免邊界誤差）
   const margin = 5;
@@ -3128,14 +3210,23 @@ async function vsPreloadDSM(south, west, north, east) {
   const px1 = Math.min(W, Math.ceil( (east  - bbox[0]) / (bbox[2] - bbox[0]) * W) + margin);
   const py1 = Math.min(H, Math.ceil( (bbox[3] - south) / (bbox[3] - bbox[1]) * H) + margin);
 
+  // 防呆：確保範圍有效
+  if (px0 >= px1 || py0 >= py1) {
+    throw new Error(`座標超出DSM圖資涵蓋範圍（bbox: ${bbox.map(v=>v.toFixed(4)).join(', ')}）`);
+  }
+
   vsSetStatus('📥 預載高程資料中（只需一次）…', '#fbbf24');
 
-  // 一次讀取整個矩形區塊
-  const rasters = await image.readRasters({ window: [px0, py0, px1, py1] });
+  let rasters;
+  try {
+    rasters = await image.readRasters({ window: [px0, py0, px1, py1] });
+  } catch(e) {
+    throw new Error('高程資料讀取失敗：' + e.message);
+  }
+
   const blockW = px1 - px0;
   const blockH = py1 - py0;
 
-  // 記錄這個區塊對應的地理範圍
   const blockWest  = bbox[0] + px0 / W * (bbox[2] - bbox[0]);
   const blockNorth = bbox[3] - py0 / H * (bbox[3] - bbox[1]);
   const blockEast  = bbox[0] + px1 / W * (bbox[2] - bbox[0]);
@@ -3147,15 +3238,14 @@ async function vsPreloadDSM(south, west, north, east) {
     height: blockH,
     west: blockWest, east: blockEast,
     north: blockNorth, south: blockSouth,
-    // 儲存完整影像資訊，讓 vsGetElevationFast 使用與剖面圖完全相同的像素映射公式
-    fullBboxW: bbox[0],   // full image west
-    fullBboxE: bbox[2],   // full image east
-    fullBboxN: bbox[3],   // full image north
-    fullBboxS: bbox[1],   // full image south
-    fullW: W,             // full image pixel width
-    fullH: H,             // full image pixel height
-    blockPx0: px0,        // block pixel offset X
-    blockPy0: py0         // block pixel offset Y
+    fullBboxW: bbox[0],
+    fullBboxE: bbox[2],
+    fullBboxN: bbox[3],
+    fullBboxS: bbox[1],
+    fullW: W,
+    fullH: H,
+    blockPx0: px0,
+    blockPy0: py0
   };
 
   return true;
@@ -3413,7 +3503,9 @@ async function startViewshed() {
   // 判斷是否可用快速模式（DSM TIF）
   const apiSel = document.getElementById('elevationApiSelector');
   const api = apiSel ? apiSel.value : 'taiwan-dsm';
-  const useFastMode = (api === 'taiwan-dsm');
+  // 快速模式條件：選擇 taiwan-dsm（含 GitHub 下載）或已上傳本地 TIF
+  const hasLocalTif = (typeof localTifFileData !== 'undefined' && localTifFileData && localTifFileData.tiff);
+  const useFastMode = (api === 'taiwan-dsm') || hasLocalTif;
 
   // ── 快速模式：預載整塊高程到記憶體（範圍涵蓋 TX1 + TX2）──
   if (useFastMode) {
@@ -3486,10 +3578,8 @@ async function startViewshed() {
   // 更新 ImageOverlay 的 bounds 為共用範圍
   const sharedBounds = [[sharedSouth, sharedWest], [sharedNorth, sharedEast]];
 
-  // 移到地圖（視野涵蓋兩圓）
-  const viewLat = (sharedNorth + sharedSouth) / 2;
-  const viewLng = (sharedEast  + sharedWest)  / 2;
-  vsMap.setView([viewLat, viewLng], Math.max(10, 14 - Math.floor(radiusKm / 3)));
+  // 移到地圖（使用 fitBounds 確保 TX1 + TX2 兩圓都在視野內）
+  vsMap.fitBounds(sharedBounds, { padding: [40, 40], maxZoom: 14 });
 
   // 角度範圍說明字串
   const angleDesc = isFullCircle ? '全圓 0°~359°' : `${angleStart}°~${angleEndVal}°`;
@@ -3507,7 +3597,7 @@ async function startViewshed() {
   }).addTo(vsMap);
 
   // 建立 ImageOverlay（使用共用 bounds）
-  vsOverlay = L.imageOverlay(canvas.toDataURL(), sharedBounds, { opacity: 0.75, interactive: false }).addTo(vsMap);
+  vsOverlay = L.imageOverlay(canvas.toDataURL(), sharedBounds, { opacity: 1, interactive: false }).addTo(vsMap);
 
   // 角度判斷輔助函數
   function getBearing(fromLat, fromLng, toLat, toLng) {
@@ -3793,6 +3883,16 @@ self.onmessage = function(e) {
         cellOffset += wCells.length;
       }
 
+      // ── 保存掃圓結果供點擊查詢使用 ──
+      window.vsScanTx1Flat  = tx1Flat;
+      window.vsScanTotalCells = totalCells;
+      window.vsScanSharedCols = sharedCols;
+      window.vsScanSharedRows = sharedRows;
+      window.vsScanTx1OriginRow = tx1OriginRow;
+      window.vsScanTx1OriginCol = tx1OriginCol;
+      window.vsScanDLat = dLat;
+      window.vsScanDLng = dLng;
+
       // ── 若 TX2 啟用，執行第二輪 Worker 掃圓（用 tx2Cells）──
       // tx2Map: key = row*sharedCols+col → result (1/-1/0)
       let tx2Map = null;
@@ -3967,9 +4067,23 @@ self.onmessage = function(e) {
   const _vsElapsed = ((performance.now() - _vsScanStartTime) / 1000).toFixed(1);
   document.getElementById('vs-progress-text').textContent = `完成！共分析 ${total.toLocaleString()} 格　⏱ ${_vsElapsed} 秒`;
 
-  // 顯示透明度控制面板
+  // 顯示透明度控制面板（預設收攏）
   const opCtrl = document.getElementById('vs-opacity-ctrl');
-  if (opCtrl) { opCtrl.style.display = 'block'; vsPositionClickInfo(); }
+  if (opCtrl) {
+    opCtrl.style.display = 'block';
+    // 預設收攏
+    const opBody  = document.getElementById('vs-opacity-body');
+    const opArrow = document.getElementById('vs-opacity-arrow');
+    if (opBody)  opBody.style.display  = 'none';
+    if (opArrow) opArrow.textContent   = '▼';
+    vsOpacityExpanded = false;
+    vsPositionClickInfo();
+  }
+
+  // 分析完成後自動最大化地圖
+  setTimeout(() => {
+    if (typeof vsMaximizeMap === 'function') vsMaximizeMap();
+  }, 300);
 
   vsRunning = false;
   vsAbort = false;
@@ -3987,7 +4101,7 @@ self.onmessage = function(e) {
   })();
   const visibleCount = total - blockedCount;
   const blockPct = Math.round(blockedCount / total * 100);
-  const dataSource = useFastMode ? '內政部DSM(含建物)' : '其他API';
+  const dataSource = hasLocalTif ? '本機TIF(含建物)' : useFastMode ? '內政部DSM(含建物)' : (api || '其他API');
   const tx2StatusStr = tx2Enabled ? `　TX2已合併顯示` : '';
   vsSetStatus(`✅ 完成｜${angleDesc}｜可視 ${visibleCount.toLocaleString()} 格 / 遮蔽 ${blockedCount.toLocaleString()} 格 (${blockPct}%)｜${dataSource}｜含地球曲率+大氣折射修正${tx2StatusStr}`, '#5ff0d5');
 }
@@ -9765,8 +9879,8 @@ function renderChart(elevations) {
       // 檢查菲涅爾區是否顯示（index 2 是菲涅爾區上界）
       const fresnelMeta = chart.getDatasetMeta(2);
 
-      // 如果菲涅爾區隱藏(hidden=true)或未定義時預設為true，則不顯示頻率
-      const isHidden = fresnelMeta.hidden !== false;  // 預設視為隱藏
+      // 如果菲涅爾區隱藏(hidden=true)則不顯示頻率，預設顯示
+      const isHidden = fresnelMeta.hidden === true;  // 預設視為顯示
       if (isHidden) return;
 
       const ctx = chart.ctx;
@@ -9843,7 +9957,7 @@ function renderChart(elevations) {
           order: 4,
           tension: 0.4,
           cubicInterpolationMode: 'monotone',
-          hidden: true  // 預設隱藏
+          hidden: false  // 預設顯示
         },
         {
           label: '菲涅爾區下界',
@@ -9863,7 +9977,7 @@ function renderChart(elevations) {
           order: 4,
           tension: 0.4,
           cubicInterpolationMode: 'monotone',
-          hidden: true  // 預設隱藏
+          hidden: false  // 預設顯示
         }
       ]
     },
@@ -10629,8 +10743,8 @@ function openChartFullscreen() {
         // 檢查菲涅爾區是否顯示（index 2 是菲涅爾區上界）
         const fresnelMeta = chart.getDatasetMeta(2);
 
-        // 如果菲涅爾區隱藏(hidden=true)或未定義時預設為true，則不顯示頻率
-        const isHidden = fresnelMeta.hidden !== false;  // 預設視為隱藏
+        // 如果菲涅爾區隱藏(hidden=true)則不顯示頻率，預設顯示
+        const isHidden = fresnelMeta.hidden === true;  // 預設視為顯示
         if (!isHidden) {
           const freqMHz = parseFloat(document.getElementById('link_freq_mhz')?.value) || 2400;
           ctx.save();
