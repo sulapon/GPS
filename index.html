@@ -3172,36 +3172,28 @@ function vsFindHighestPoint() {
 let vsDsmCache = null; // { data: Float32Array, width, height, bbox }
 
 async function vsPreloadDSM(south, west, north, east) {
+  // 只支援 DSM TIF 預載（其他API無法一次取矩形）
   if (!window.GeoTIFF) await loadGeoTIFFLibrary();
 
   let image = null;
 
-  // 優先本地 TIF（使用者上傳，直接重用已解析的 image 物件）
+  // 優先本地 TIF
   if (localTifFileData && localTifFileData.tiff) {
     image = localTifFileData.image;
   } else {
-    // ★ 每次都建立全新的 tiff/image 物件
-    //   GeoTIFF COG 的 readRasters 在讀取大範圍區塊時依賴新的 HTTP Range session，
-    //   重用舊 image 會導致 tile offset 為 undefined 的錯誤
+    // 嘗試本地 COG 或 GitHub
     let tiff = null;
-    const urls = [
-      'libs/taiwan_dsm_wgs84_cog.tif',
-      'taiwan_dsm_wgs84_cog.tif',
-      'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif'
-    ];
-    for (const url of urls) {
-      try {
-        tiff = await GeoTIFF.fromUrl(url, { allowFullFile: true });
-        break;
-      } catch(e) { /* 嘗試下一個 */ }
+    try { tiff = await GeoTIFF.fromUrl('libs/taiwan_dsm_wgs84_cog.tif'); }
+    catch(e) {
+      try { tiff = await GeoTIFF.fromUrl('taiwan_dsm_wgs84_cog.tif'); }
+      catch(e2) { tiff = await GeoTIFF.fromUrl('https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif'); }
     }
-    if (!tiff) throw new Error('無法載入台灣DSM圖資（三個來源均失敗）');
     image = await tiff.getImage();
   }
 
-  const bbox = image.getBoundingBox(); // [west, south, east, north]
-  const W    = image.getWidth();
-  const H    = image.getHeight();
+  const bbox  = image.getBoundingBox(); // [west, south, east, north]
+  const W     = image.getWidth();
+  const H     = image.getHeight();
 
   // 計算要讀取的像素範圍（稍微擴大一點避免邊界誤差）
   const margin = 5;
@@ -3210,23 +3202,14 @@ async function vsPreloadDSM(south, west, north, east) {
   const px1 = Math.min(W, Math.ceil( (east  - bbox[0]) / (bbox[2] - bbox[0]) * W) + margin);
   const py1 = Math.min(H, Math.ceil( (bbox[3] - south) / (bbox[3] - bbox[1]) * H) + margin);
 
-  // 防呆：確保範圍有效
-  if (px0 >= px1 || py0 >= py1) {
-    throw new Error(`座標超出DSM圖資涵蓋範圍（bbox: ${bbox.map(v=>v.toFixed(4)).join(', ')}）`);
-  }
-
   vsSetStatus('📥 預載高程資料中（只需一次）…', '#fbbf24');
 
-  let rasters;
-  try {
-    rasters = await image.readRasters({ window: [px0, py0, px1, py1] });
-  } catch(e) {
-    throw new Error('高程資料讀取失敗：' + e.message);
-  }
-
+  // 一次讀取整個矩形區塊
+  const rasters = await image.readRasters({ window: [px0, py0, px1, py1] });
   const blockW = px1 - px0;
   const blockH = py1 - py0;
 
+  // 記錄這個區塊對應的地理範圍
   const blockWest  = bbox[0] + px0 / W * (bbox[2] - bbox[0]);
   const blockNorth = bbox[3] - py0 / H * (bbox[3] - bbox[1]);
   const blockEast  = bbox[0] + px1 / W * (bbox[2] - bbox[0]);
@@ -3238,14 +3221,15 @@ async function vsPreloadDSM(south, west, north, east) {
     height: blockH,
     west: blockWest, east: blockEast,
     north: blockNorth, south: blockSouth,
-    fullBboxW: bbox[0],
-    fullBboxE: bbox[2],
-    fullBboxN: bbox[3],
-    fullBboxS: bbox[1],
-    fullW: W,
-    fullH: H,
-    blockPx0: px0,
-    blockPy0: py0
+    // 儲存完整影像資訊，讓 vsGetElevationFast 使用與剖面圖完全相同的像素映射公式
+    fullBboxW: bbox[0],   // full image west
+    fullBboxE: bbox[2],   // full image east
+    fullBboxN: bbox[3],   // full image north
+    fullBboxS: bbox[1],   // full image south
+    fullW: W,             // full image pixel width
+    fullH: H,             // full image pixel height
+    blockPx0: px0,        // block pixel offset X
+    blockPy0: py0         // block pixel offset Y
   };
 
   return true;
@@ -3503,9 +3487,7 @@ async function startViewshed() {
   // 判斷是否可用快速模式（DSM TIF）
   const apiSel = document.getElementById('elevationApiSelector');
   const api = apiSel ? apiSel.value : 'taiwan-dsm';
-  // 快速模式條件：選擇 taiwan-dsm（含 GitHub 下載）或已上傳本地 TIF
-  const hasLocalTif = (typeof localTifFileData !== 'undefined' && localTifFileData && localTifFileData.tiff);
-  const useFastMode = (api === 'taiwan-dsm') || hasLocalTif;
+  const useFastMode = (api === 'taiwan-dsm');
 
   // ── 快速模式：預載整塊高程到記憶體（範圍涵蓋 TX1 + TX2）──
   if (useFastMode) {
@@ -4080,10 +4062,7 @@ self.onmessage = function(e) {
     vsPositionClickInfo();
   }
 
-  // 分析完成後自動最大化地圖
-  setTimeout(() => {
-    if (typeof vsMaximizeMap === 'function') vsMaximizeMap();
-  }, 300);
+
 
   vsRunning = false;
   vsAbort = false;
@@ -4101,7 +4080,7 @@ self.onmessage = function(e) {
   })();
   const visibleCount = total - blockedCount;
   const blockPct = Math.round(blockedCount / total * 100);
-  const dataSource = hasLocalTif ? '本機TIF(含建物)' : useFastMode ? '內政部DSM(含建物)' : (api || '其他API');
+  const dataSource = useFastMode ? '內政部DSM(含建物)' : '其他API';
   const tx2StatusStr = tx2Enabled ? `　TX2已合併顯示` : '';
   vsSetStatus(`✅ 完成｜${angleDesc}｜可視 ${visibleCount.toLocaleString()} 格 / 遮蔽 ${blockedCount.toLocaleString()} 格 (${blockPct}%)｜${dataSource}｜含地球曲率+大氣折射修正${tx2StatusStr}`, '#5ff0d5');
 }
@@ -15305,7 +15284,11 @@ function collectFields(){
   const data={};
   document.querySelectorAll("input,select,textarea").forEach(el=>{
   if(el.id && el.id !== 'ls_save_name' && el.id !== 'ls_import' && el.id !== 'sort_order') {
+    if(el.type === 'checkbox'){
+    data[el.id] = el.checked ? '1' : '0';
+    } else {
     data[el.id]=el.value;
+    }
   }
   });
   return data;
@@ -15313,8 +15296,19 @@ function collectFields(){
 function applyFields(data){
   Object.keys(data).forEach(id=>{
   const el=document.getElementById(id);
-  if(el && id !== 'timestamp') el.value=data[id];
+  if(el && id !== 'timestamp'){
+    if(el.type === 'checkbox'){
+    el.checked = data[id] === '1';
+    } else {
+    el.value=data[id];
+    }
+  }
   });
+  
+  // 觸發 TX2 checkbox 相關 UI 更新
+  if(data['vs-tx2-enabled'] !== undefined && typeof vsTx2Toggle === 'function'){
+  vsTx2Toggle();
+  }
   
   // 🔄 讀取存檔後，觸發響應式系統更新
   // 這會自動同步 GPS → 高度圖 → 地圖
