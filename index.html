@@ -7,7 +7,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 (function () {
-  const VERSION = '20241214';
+  const VERSION = '20241214_v5_3';
   if (!location.search.includes('v=')) {
   const sep = location.search ? '&' : '?';
   location.replace(
@@ -298,56 +298,78 @@ Object.defineProperty(window, 'elevationPointBName', {
 // ========================================
 // 🚀 TIF 檔案快取系統 - 優化剖面圖生成速度
 // ========================================
-let cachedTiffData = {
-  github: null,      // GitHub 線上檔案快取
-  local: null,       // 本地上傳檔案快取
-  url: null          // 快取的 URL
-};
-
-// 快取的圖像對象
-let cachedImageData = {
-  github: null,
-  local: null
-};
+let cachedTiffData = { github: null, local: null, url: null, buffer: null };
+let cachedImageData = { github: null, local: null };
 
 /**
- * 獲取快取的 TIFF 資料 (核心優化函數)
+ * 通用 GeoTIFF 載入與快取系統 (v5 支援全量下載)
  * @param {string} url - TIF 檔案 URL
  * @param {string} source - 'github' 或 'local'
- * @returns {Promise<{tiff, image}>}
+ * @param {function} onProgress - 下載進度回調 (0-100)
  */
-async function getCachedTiff(url, source = 'github') {
-
-  // 如果有快取且 URL 相同,直接返回
+async function getCachedTiff(url, source = 'github', onProgress = null) {
+  // 如果已經快取且網址相符
   if (source === 'github' && cachedTiffData.github && cachedTiffData.url === url) {
-  return {
-    tiff: cachedTiffData.github,
-    image: cachedImageData.github
-  };
+    // 🚀 v5.1 修復：若需要全量下載 (onProgress 有值) 但目前快取只有 range request (無 buffer)，則強制重新載入
+    if (onProgress && !cachedTiffData.buffer) {
+      console.log('現有快取為 Range Request，將強制改為全量下載以確保穩定性...');
+      // 繼續執行下方載入邏輯
+    } else {
+      return { tiff: cachedTiffData.github, image: cachedImageData.github };
+    }
   }
-
   if (source === 'local' && cachedTiffData.local) {
-  return {
-    tiff: cachedTiffData.local,
-    image: cachedImageData.local
-  };
+    return { tiff: cachedTiffData.local, image: cachedImageData.local };
   }
 
-  // 否則重新載入並快取
-  const tiff = await GeoTIFF.fromUrl(url);
-  const image = await tiff.getImage();
+  // 核心載入邏輯
+  try {
+    let tiff = null;
+    if (source === 'github' && onProgress) {
+      // 🚀 v5 核心：對大範圍掃描掃描執行「全量下載」以保證數據完整性 (解決藍色帶狀空白)
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('連線失敗: ' + response.statusText);
+      const reader = response.body.getReader();
+      const contentLength = +response.headers.get('Content-Length');
+      let receivedLength = 0;
+      let chunks = [];
+      while(true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        receivedLength += value.length;
+        if (contentLength && typeof onProgress === 'function') {
+          onProgress(Math.round(receivedLength / contentLength * 100));
+        }
+      }
+      const buffer = new Uint8Array(receivedLength);
+      let pos = 0;
+      for (let chunk of chunks) {
+        buffer.set(chunk, pos);
+        pos += chunk.length;
+      }
+      tiff = await GeoTIFF.fromArrayBuffer(buffer.buffer);
+      cachedTiffData.buffer = buffer.buffer; // 儲存原始 buffer
+    } else {
+      // 點位查詢或小量讀取仍可使用位元範圍請求 (Range Requests)
+      tiff = await GeoTIFF.fromUrl(url);
+    }
+    
+    const image = await tiff.getImage();
 
-  // 儲存到快取
-  if (source === 'github') {
-  cachedTiffData.github = tiff;
-  cachedImageData.github = image;
-  cachedTiffData.url = url;
-  } else if (source === 'local') {
-  cachedTiffData.local = tiff;
-  cachedImageData.local = image;
+    // 儲存快取
+    if (source === 'github') {
+      cachedTiffData.github = tiff;
+      cachedImageData.github = image;
+      cachedTiffData.url = url;
+    } else {
+      cachedTiffData.local = tiff;
+      cachedImageData.local = image;
+    }
+    return { tiff, image };
+  } catch (err) {
+    throw err;
   }
-
-  return { tiff, image };
 }
 
 /**
@@ -3176,19 +3198,37 @@ async function vsPreloadDSM(south, west, north, east) {
   if (!window.GeoTIFF) await loadGeoTIFFLibrary();
 
   let image = null;
+  let tiff = null;
 
   // 優先本地 TIF
   if (localTifFileData && localTifFileData.tiff) {
     image = localTifFileData.image;
   } else {
-    // 嘗試本地 COG 或 GitHub
-    let tiff = null;
-    try { tiff = await GeoTIFF.fromUrl('libs/taiwan_dsm_wgs84_cog.tif'); }
-    catch(e) {
-      try { tiff = await GeoTIFF.fromUrl('taiwan_dsm_wgs84_cog.tif'); }
-      catch(e2) { tiff = await GeoTIFF.fromUrl('https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif'); }
+    // 使用與路徑剖面相同的 getCachedTiff() 快取系統載入
+    const cogFilename = 'taiwan_dsm_wgs84_cog.tif';
+    try {
+      // 🚀 v5: 掃圓預載強制執行全量下載 (傳入進度回調)
+      const cached = await getCachedTiff(cogFilename, 'github', (p) => {
+        vsSetStatus(`📥 正在下載完整圖資庫 (84MB)... ${p}%`, '#fbbf24');
+      });
+      tiff = cached.tiff;
+      image = cached.image;
+    } catch (err) {
+      const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
+      try {
+        const cached = await getCachedTiff(githubUrl, 'github', (p) => {
+          vsSetStatus(`📥 正在從 GitHub 下載完整圖資... ${p}%`, '#fbbf24');
+        });
+        tiff = cached.tiff;
+        image = cached.image;
+      } catch (err2) {
+        throw new Error('無法載入 COG 高程檔案: ' + err2.message);
+      }
     }
-    image = await tiff.getImage();
+
+    if (!tiff || !image) {
+      throw new Error('無法載入 COG 檔案');
+    }
   }
 
   const bbox  = image.getBoundingBox(); // [west, south, east, north]
@@ -3202,12 +3242,72 @@ async function vsPreloadDSM(south, west, north, east) {
   const px1 = Math.min(W, Math.ceil( (east  - bbox[0]) / (bbox[2] - bbox[0]) * W) + margin);
   const py1 = Math.min(H, Math.ceil( (bbox[3] - south) / (bbox[3] - bbox[1]) * H) + margin);
 
-  vsSetStatus('📥 預載高程資料中（只需一次）…', '#fbbf24');
-
-  // 一次讀取整個矩形區塊
-  const rasters = await image.readRasters({ window: [px0, py0, px1, py1] });
   const blockW = px1 - px0;
   const blockH = py1 - py0;
+  let data = null;
+
+  // 🚀 v5.3: 區分本地與網頁圖資。本地端 (或是已經下載好的 buffer) 用最原始的一站式讀圖
+  const isLocalSource = (localTifFileData && localTifFileData.tiff) || (!cachedTiffData.url || !cachedTiffData.url.startsWith('http'));
+  
+  if (isLocalSource || cachedTiffData.buffer) {
+    vsSetStatus('⚡ 正在載入本地/快取高程資料...', '#fbbf24');
+    const rasters = await image.readRasters({ window: [px0, py0, px1, py1] });
+    data = rasters[0];
+  } else {
+    // 只有遠端 GitHub 且尚未全量下載時，才使用穩健的分塊讀取
+    vsSetStatus('📥 預載高程資料中（分塊讀取）…', '#fbbf24');
+    data = new Float32Array(blockW * blockH);
+    const CHUNK_SIZE = 256;
+    for (let y = py0; y < py1; y += CHUNK_SIZE) {
+      for (let x = px0; x < px1; x += CHUNK_SIZE) {
+        const w = Math.min(CHUNK_SIZE, px1 - x);
+        const h = Math.min(CHUNK_SIZE, py1 - y);
+        
+        // 增加重試機制的讀取邏輯
+        let rasters = null;
+        let retries = 3;
+        let activeImage = image;
+
+        while (retries > 0) {
+          try {
+            rasters = await activeImage.readRasters({ window: [x, y, x + w, y + h] });
+            
+            // 檢查是否為「寂靜失敗」
+            if (rasters && rasters[0]) {
+              let allZero = true;
+              for(let i=0; i<Math.min(10, rasters[0].length); i++) {
+                if (rasters[0][i] !== 0) { allZero = false; break; }
+              }
+              if (allZero && retries > 1) { throw new Error('檢測到疑似空數據，進行重試'); }
+            }
+            break; 
+          } catch (e) {
+            retries--;
+            if (retries === 1) {
+              try {
+                const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
+                const freshTiff = await GeoTIFF.fromUrl(githubUrl);
+                activeImage = await freshTiff.getImage();
+              } catch(f) {}
+            }
+            if (retries > 0) await new Promise(r => setTimeout(r, 600));
+          }
+        }
+
+        if (rasters) {
+          const chunkData = rasters[0];
+          for (let row = 0; row < h; row++) {
+            const destOffset = (y - py0 + row) * blockW + (x - px0);
+            const srcOffset = row * w;
+            data.set(chunkData.subarray(srcOffset, srcOffset + w), destOffset);
+          }
+        }
+        await new Promise(r => setTimeout(r, 80));
+      }
+      const progress = Math.round(((y - py0) / blockH) * 100);
+      vsSetStatus(`📥 預載高程中 ${progress}% …`, '#fbbf24');
+    }
+  }
 
   // 記錄這個區塊對應的地理範圍
   const blockWest  = bbox[0] + px0 / W * (bbox[2] - bbox[0]);
@@ -3216,7 +3316,7 @@ async function vsPreloadDSM(south, west, north, east) {
   const blockSouth = bbox[3] - py1 / H * (bbox[3] - bbox[1]);
 
   vsDsmCache = {
-    data: rasters[0],
+    data: data,
     width: blockW,
     height: blockH,
     west: blockWest, east: blockEast,
@@ -3351,6 +3451,15 @@ async function vsGetElevationAsync(lat, lng) {
   const apiSel = document.getElementById('elevationApiSelector');
   const api = apiSel ? apiSel.value : 'taiwan-dsm';
   if (api === 'google-maps') return await getElevationFromGoogleAPI(lat, lng);
+  
+  // 如果是 DSM 模式但異步呼叫，優先嘗試 DSM 點對點查詢
+  if (api === 'taiwan-dsm' && typeof getElevationFromDSMForCompass === 'function') {
+    try {
+      const ele = await getElevationFromDSMForCompass(lat, lng);
+      if (ele !== null && !isNaN(ele)) return ele;
+    } catch(e) {}
+  }
+  
   return await getElevationFromOpenElevationSimple(lat, lng);
 }
 
@@ -3505,9 +3614,26 @@ async function startViewshed() {
   // 取得中心點高程
   let cEle;
   try {
-    cEle = useFastMode
-      ? vsGetElevationFast(cLat, cLng)
-      : await vsGetElevationAsync(cLat, cLng);
+    if (useFastMode) {
+      cEle = vsGetElevationFast(cLat, cLng);
+      // 🚀 Fallback 1: 如果快速查詢失敗，嘗試用 DSM 專用的點對點查詢
+      if (cEle === null) {
+        console.log('中心點快速查詢失敗，嘗試點對點查詢...');
+        const dsmElevation = await getElevationFromDSMForCompass(cLat, cLng);
+        if (dsmElevation !== null && !isNaN(dsmElevation)) {
+          cEle = dsmElevation;
+        }
+      }
+    } else {
+      cEle = await vsGetElevationAsync(cLat, cLng);
+    }
+
+    // 🚀 Fallback 2: 如果還是失敗，嘗試最後的異步查詢（如 Open-Elevation）
+    if (cEle === null) {
+      console.log('再次嘗試異步查詢...');
+      cEle = await vsGetElevationAsync(cLat, cLng);
+    }
+    
     if (cEle === null) throw new Error('無法取得高程');
   } catch(e) {
     vsSetStatus('❌ 無法取得中心點高程：' + e.message, '#ff6464');
@@ -4851,14 +4977,23 @@ document.addEventListener('DOMContentLoaded', function() {
     await loadGeoTIFFLibrary();
     }
 
+    // 使用與路徑剖面相同的 getCachedTiff() 快取系統載入
     const cogFilename = 'taiwan_dsm_wgs84_cog.tif';
-    let tiff = null;
-
     try {
-    tiff = await GeoTIFF.fromUrl(cogFilename);
+      const cached = await getCachedTiff(cogFilename, 'github');
+      tiff = cached.tiff;
     } catch (err) {
-    const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
-    tiff = await GeoTIFF.fromUrl(githubUrl);
+      const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
+      try {
+        const cached = await getCachedTiff(githubUrl, 'github');
+        tiff = cached.tiff;
+      } catch (err2) {
+        throw new Error('無法載入 COG 高程檔案: ' + err2.message);
+      }
+    }
+
+    if (!tiff) {
+      throw new Error('無法載入 COG 檔案');
     }
 
     const image = await tiff.getImage();
@@ -8000,15 +8135,16 @@ async function autoFetchElevation(location) {
       await loadGeoTIFFLibrary();
     }
     
+    // 使用與路徑剖面相同的 getCachedTiff() 快取系統載入
     const cogFilename = 'taiwan_dsm_wgs84_cog.tif';
-    let tiff = null;
-    
     try {
-      tiff = await GeoTIFF.fromUrl(cogFilename);
+      const cached = await getCachedTiff(cogFilename, 'github');
+      tiff = cached.tiff;
     } catch (err) {
       const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
       try {
-        tiff = await GeoTIFF.fromUrl(githubUrl);
+        const cached = await getCachedTiff(githubUrl, 'github');
+        tiff = cached.tiff;
       } catch (err2) {
         // 靜默失敗
         return;
@@ -8175,14 +8311,16 @@ async function getElevationFromSRTM(location) {
     if (!window.GeoTIFF) {
       await loadGeoTIFFLibrary();
     }
+    // 使用與路徑剖面相同的 getCachedTiff() 快取系統載入
     const cogFilename = 'taiwan_dsm_wgs84_cog.tif';
-    let tiff = null;
     try {
-      tiff = await GeoTIFF.fromUrl(cogFilename);
+      const cached = await getCachedTiff(cogFilename, 'github');
+      tiff = cached.tiff;
     } catch (err) {
       const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
       try {
-        tiff = await GeoTIFF.fromUrl(githubUrl);
+        const cached = await getCachedTiff(githubUrl, 'github');
+        tiff = cached.tiff;
       } catch (err2) {
         throw new Error(`無法載入 COG 檔案: ${err2.message}`);
       }
@@ -8593,14 +8731,16 @@ async function getElevationAutomatic(lat, lon, location, eleId) {
       await loadGeoTIFFLibrary();
     }
     updateDialogElevationStatus(eleId, '連接 DSM 資料檔案...', true);
+    // 使用與路徑剖面相同的 getCachedTiff() 快取系統載入
     const cogFilename = 'taiwan_dsm_wgs84_cog.tif';
-    let tiff = null;
     try {
-      tiff = await GeoTIFF.fromUrl(cogFilename);
+      const cached = await getCachedTiff(cogFilename, 'github');
+      tiff = cached.tiff;
     } catch (err) {
       const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
       try {
-        tiff = await GeoTIFF.fromUrl(githubUrl);
+        const cached = await getCachedTiff(githubUrl, 'github');
+        tiff = cached.tiff;
       } catch (err2) {
         throw new Error(`無法載入 COG 檔案: ${err2.message}`);
       }
@@ -14391,14 +14531,19 @@ async function getElevationFromDSM(lat, lng) {
   }
 
   // 使用 GitHub 線上 DSM 資料
+  // 使用與路徑剖面相同的 getCachedTiff() 快取系統載入
   const cogFilename = 'taiwan_dsm_wgs84_cog.tif';
-  let tiff = null;
-
   try {
-    tiff = await GeoTIFF.fromUrl(cogFilename);
+    const cached = await getCachedTiff(cogFilename, 'github');
+    tiff = cached.tiff;
   } catch (err) {
     const githubUrl = 'https://sulapon.github.io/GPS/taiwan_dsm_wgs84_cog.tif';
-    tiff = await GeoTIFF.fromUrl(githubUrl);
+    try {
+      const cached = await getCachedTiff(githubUrl, 'github');
+      tiff = cached.tiff;
+    } catch (err2) {
+      throw new Error(`無法載入 COG 檔案: ${err2.message}`);
+    }
   }
 
   const image = await tiff.getImage();
